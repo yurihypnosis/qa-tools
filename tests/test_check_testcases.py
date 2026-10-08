@@ -1,6 +1,6 @@
 import unittest
 
-from tests.helpers import FIXTURES, codes, run, run_json
+from tests.helpers import FIXTURES, ROOT, codes, run, run_json
 
 SCRIPT = "check_testcases.py"
 VIEWPOINTS = FIXTURES / "viewpoints_ok.md"
@@ -70,6 +70,15 @@ class CheckTestcasesTest(unittest.TestCase):
         code, _, err = run(SCRIPT, FIXTURES / "testcases_ok.md", "--viewpoints", FIXTURES / "nope.md")
         self.assertEqual(code, 2)
         self.assertIn("nope.md", err)
+
+    def test_recorded_sample_output_still_passes(self):
+        """実際の E2E 出力に対する回帰テスト。検査を変えて誤検出が出たら気づける。"""
+        sample = ROOT / "examples" / "dummy-product" / "sample-output" / "DUMMY-001"
+        code, receipt, _ = run_json(
+            SCRIPT, sample / "step3-testcases.md", "--viewpoints", sample / "step2-viewpoints.md"
+        )
+        self.assertEqual((code, receipt["findings"]), (0, []))
+        self.assertEqual(receipt["stats"]["cases"], 37)
 
 
 if __name__ == "__main__":

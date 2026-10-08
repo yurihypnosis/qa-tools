@@ -1,7 +1,8 @@
 # 生成物（利用側プロジェクトの成果物）
 output/
 
-# archify の検証レシート・キャプチャ（再生成できる）
+# archify の生成物と検証レシート（JSON から再生成できる）
+docs/architecture/*.html
 docs/architecture/*.finalize*.json
 docs/architecture/*.browser-check.json
 docs/architecture/*.delivery.json

@@ -4,10 +4,10 @@ QA エンジニア向けの AI テスト設計ツール集（Claude Code プラ�
 
 現在の中身は **test-case-generator** skill（MVP）だけ。PBI の資料から、テスト分析 → テスト観点 → 15 列のテストケースを、QA のレビューゲートで止まりながら段階的に作る。
 
-- 構成要素の図：[docs/architecture/components.html](docs/architecture/components.html)
-- フローの図：[docs/architecture/flow.html](docs/architecture/flow.html)
+![フロー](docs/architecture/flow.png)
 
-（図の元データは同じフォルダの `*.json`。[archify](https://github.com/tt-a1i/archify) で `finalize` して HTML を作り直せる）
+- 構成要素の図：[docs/architecture/components.png](docs/architecture/components.png)
+- 図の元データは同じフォルダの `*.json`。[archify](https://github.com/tt-a1i/archify) で操作できる HTML を生成できる（手順は CLAUDE.md）
 
 ## 試す（ダミー製品）
 
@@ -21,17 +21,17 @@ cd /tmp/dummy-product
 claude --plugin-dir <このリポジトリの絶対パス>
 ```
 
-Claude Code の中で次を実行する（プラグインのコマンドは `プラグイン名:コマンド名` で呼ぶ）。
+Claude Code の中で次を実行する（プラグインの skill は `プラグイン名:skill 名` で呼ぶ）。
 
 ```
-/qa-tools:test-design PBI: DUMMY-001
+/qa-tools:test-case-generator PBI: DUMMY-001
 ```
 
 1. Step 1 の分析を `output/DUMMY-001/step1-analysis.md` に保存して、**ゲート1** で止まる。衝突アラートと `[要確認]` を確認する
 2. `Step 2 の出力をしてください` と入力 → 観点を作り、検査してから **ゲート2** で止まる
 3. `Step 3 の出力をしてください` と入力 → テストケースを作り、検査結果を報告して終わる
 
-途中からやり直すときは `/qa-tools:test-design PBI: DUMMY-001 from: step2` のように指定する。コマンドを使わず「DUMMY-001 のテストケースを作って」と頼んでも skill が起動する。
+途中からやり直すときは `/qa-tools:test-case-generator PBI: DUMMY-001 from: step2` のように指定する。コマンドを使わず「DUMMY-001 のテストケースを作って」と頼んでも skill が起動する。
 
 ## 自分のプロジェクトで使う
 
@@ -44,13 +44,12 @@ Claude Code の中で次を実行する（プラグインのコマンドは `プ
 
 2. プロジェクトのルートに `.qa/product.md` を作る（書式は [examples/dummy-product/.qa/product.md](examples/dummy-product/.qa/product.md) を参照）。最低限、チケット接頭辞・領域コード・ロール表を書く
 3. 必要なら `.qa/knowledge/` に既存機能のナレッジを置く
-4. `PBI/{ID}/` に仕様書と受入基準を置き、`/qa-tools:test-design PBI: {ID}` を実行する
+4. `PBI/{ID}/` に仕様書と受入基準を置き、`/qa-tools:test-case-generator PBI: {ID}` を実行する
 
 ## 構成
 
 ```
 .claude-plugin/          プラグイン・マーケットプレイスのマニフェスト
-commands/test-design.md  入口のスラッシュコマンド（skill を呼ぶだけ）
 skills/test-case-generator/
   SKILL.md               司令塔：入力の契約、フロー、ゲート、検証
   references/            各 Step の手順。その Step に入ったときだけ読む

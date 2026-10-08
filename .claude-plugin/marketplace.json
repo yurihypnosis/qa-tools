@@ -9,7 +9,6 @@
   "plugins": [
     {
       "name": "qa-tools",
-      "version": "0.1.0",
       "source": "./",
       "description": "PBI からテスト分析・観点・テストケースをレビューゲート付きで段階生成する",
       "license": "MIT",

@@ -1,6 +1,6 @@
 ---
 name: test-case-generator
-description: PBI（プロダクトバックログアイテム）の仕様書・受入基準から、テスト分析 → テスト観点（TP / デシジョンテーブル / 確認パターン表）→ 15 列のテストケースを、QA のレビューゲートで止まりながら段階的に生成する。Use when the user asks to design tests or write test cases from a PBI, spec, ticket, or acceptance criteria — e.g. 「テストケースを作って」「テスト設計して」「観点を出して」「/test-design」「PBI からテスト分析」 — even if they only name a PBI ID such as DUMMY-001. Not for writing automated test code or unit tests.
+description: PBI（プロダクトバックログアイテム）の仕様書・受入基準から、テスト分析 → テスト観点（TP / デシジョンテーブル / 確認パターン表）→ 15 列のテストケースを、QA のレビューゲートで止まりながら段階的に生成する。Use when the user asks to design tests or write test cases from a PBI, spec, ticket, or acceptance criteria — e.g. 「テストケースを作って」「テスト設計して」「観点を出して」「PBI からテスト分析」 — even if they only name a PBI ID such as DUMMY-001. Not for writing automated test code or unit tests.
 license: MIT
 metadata:
   version: "0.1.0"
@@ -19,6 +19,8 @@ PBI の資料を入力に、3 つの Step で手動テスト用のテストケ�
 - PBI・仕様書・受入基準からテスト分析、テスト観点、テストケースを作るとき
 - 途中の Step からやり直すとき（`from: step2` など）
 - 使わない場面：自動テストのコード、単体テスト、API テスト、性能などの非機能テストの設計
+
+起動例：`/qa-tools:test-case-generator PBI: DUMMY-001 開発サイズ: S from: step2`（PBI 以外は任意）
 
 ## 入力の契約
 
