@@ -52,7 +52,7 @@ class CheckViewpointsTest(unittest.TestCase):
     def test_recorded_sample_output_still_passes(self):
         """実際の E2E 出力と、観点設計の雛形に対する回帰テスト。"""
         for path in (
-            ROOT / "examples" / "dummy-product" / "sample-output" / "DUMMY-001" / "step2-viewpoints.md",
+            ROOT / "examples" / "dummy-product" / "sample-output" / "DUMMY-001" / "3-viewpoints.md",
             ROOT / "skills" / "test-case-generator" / "assets" / "viewpoints.template.md",
         ):
             with self.subTest(path=path.name):

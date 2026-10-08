@@ -83,10 +83,10 @@ class CheckTestcasesTest(unittest.TestCase):
         """実際の E2E 出力に対する回帰テスト。検査を変えて誤検出が出たら気づける。"""
         sample = ROOT / "examples" / "dummy-product" / "sample-output" / "DUMMY-001"
         code, receipt, _ = run_json(
-            SCRIPT, sample / "step3-testcases.md", "--viewpoints", sample / "step2-viewpoints.md"
+            SCRIPT, sample / "4-testcases.md", "--viewpoints", sample / "3-viewpoints.md"
         )
         self.assertEqual((code, receipt["findings"]), (0, []))
-        self.assertEqual(receipt["stats"]["cases"], 37)
+        self.assertEqual(receipt["stats"]["cases"], 47)
 
 
 if __name__ == "__main__":
