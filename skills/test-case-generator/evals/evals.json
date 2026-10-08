@@ -1,0 +1,41 @@
+{
+  "skill_name": "test-case-generator",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/test-design PBI: DUMMY-001",
+      "expected_output": "examples/dummy-product を作業ディレクトリとして Step 1 を実行し、output/DUMMY-001/step1-analysis.md を保存してゲート1で停止する。",
+      "files": ["../../examples/dummy-product"],
+      "expectations": [
+        "output/DUMMY-001/step1-analysis.md が作られている",
+        "step1-analysis.md の先頭に衝突アラートがあり、仕様書の「100文字以内」と受入基準の「100文字以下」の食い違いを挙げている",
+        "絵文字の文字数の数え方が [要確認] として残っている",
+        "ゲート1の表示で終わり、「Step 2 の出力をしてください」という合図の文言を示している",
+        "output/DUMMY-001/step2-viewpoints.md は作られていない",
+        "references/step2-viewpoint-design.md を読んでいない"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "DUMMY-001 のテストケースを作ってほしい。仕様は PBI フォルダにあります。",
+      "expected_output": "スラッシュコマンドなしでも skill が起動し、評価 1 と同じくゲート1で停止する。",
+      "files": ["../../examples/dummy-product"],
+      "expectations": [
+        "test-case-generator skill が使われている",
+        "output/DUMMY-001/step1-analysis.md が作られ、ゲート1で停止している",
+        "テストケース（step3-testcases.md）を一度に作っていない"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "/test-design PBI: DUMMY-999",
+      "expected_output": "PBI/DUMMY-999/ が無いことを伝えて止まる。成果物は作らない。",
+      "files": ["../../examples/dummy-product"],
+      "expectations": [
+        "PBI/DUMMY-999/ が見つからないことを伝えている",
+        "output/DUMMY-999/ にファイルが作られていない",
+        "架空の仕様を推測して分析を始めていない"
+      ]
+    }
+  ]
+}
