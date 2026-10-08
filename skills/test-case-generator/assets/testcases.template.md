@@ -1,6 +1,6 @@
-# Step 3：テストケース — {PBI ID}
+# 4. ケース生成 — {PBI ID}
 
-### [Step 2 と同じ大項目1の名前]
+### [観点設計と同じ大項目1の名前]
 
 | CaseNo. | 観点ID/Viewpoint ID | タイトル/Title | 領域/Area | 確認画面/Screen | 機能/Function | 大項目/Category | 中項目/Sub category | 小項目/Item | 実施ユーザー/Execution Role | 事前条件/Precondition | 実施手順/Execution Step | 期待結果/Expected Result | 重要度/Priority | 備考/Remarks |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |

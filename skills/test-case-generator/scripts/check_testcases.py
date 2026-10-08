@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Step 3 のテストケースファイルを検査する（読み取り専用）。
+"""ケース生成の成果物（4-testcases.md）を検査する（読み取り専用）。
 
   NO_CASES            CaseNo. で始まるケース表が 1 つも無い
   COLUMNS <行>        ケース表の列が 15 列の固定ヘッダと一致しない
@@ -13,10 +13,10 @@
   EXPECTED <行>       --viewpoints 指定時、期待結果の項目が、その TP の太字セルの写しになっていない
                       （表を持たない TP は太字セルが無いので対象外）
 
-必要ケース数は観点ファイルから数え直す（Step 3 自身のトレース表は信用しない）:
+必要ケース数は観点ファイルから数え直す（ケース生成自身のトレース表は信用しない）:
 DT は R 列の数、確認パターン表はデータ行の数、表の無い TP は 1。
 
-使い方: check_testcases.py <step3-testcases.md> [--viewpoints <step2-viewpoints.md>] [--json]
+使い方: check_testcases.py <4-testcases.md> [--viewpoints <3-viewpoints.md>] [--json]
 終了コード: 0=OK / 1=指摘あり / 2=入力エラー
 """
 import argparse
@@ -152,7 +152,7 @@ def as_text(finding):
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("path")
-    parser.add_argument("--viewpoints", help="数え直しに使う step2-viewpoints.md")
+    parser.add_argument("--viewpoints", help="数え直しに使う 3-viewpoints.md")
     parser.add_argument("--json", action="store_true", help="JSON レシートを出力する")
     args = parser.parse_args()
     text = read_text(args.path)

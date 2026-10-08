@@ -2,7 +2,7 @@
 
 QA エンジニア向けの AI テスト設計ツール集（Claude Code プラグイン）。
 
-現在の中身は **test-case-generator** skill（MVP）だけ。PBI の資料から、テスト分析 → テスト観点 → 15 列のテストケースを、QA のレビューゲートで止まりながら段階的に作る。
+現在の中身は **test-case-generator** skill だけ。PBI の資料から、サイジング → テスト分析 → テスト観点 → 15 列のテストケース → セルフレビューを、QA のレビューゲートで止まりながら段階的に作る。
 
 ![フロー](docs/architecture/flow.png)
 
@@ -27,11 +27,11 @@ Claude Code の中で次を実行する（プラグインの skill は `プラ�
 /qa-tools:test-case-generator PBI: DUMMY-001
 ```
 
-1. Step 1 の分析を `output/DUMMY-001/step1-analysis.md` に保存して、**ゲート1** で止まる。衝突アラートと `[要確認]` を確認する
-2. `Step 2 の出力をしてください` と入力 → 観点を作り、検査してから **ゲート2** で止まる
-3. `Step 3 の出力をしてください` と入力 → テストケースを作り、検査結果を報告して終わる
+1. サイジングとテスト分析を `output/DUMMY-001/` に保存して、**分析レビュー** で止まる。QA 算出サイズ、衝突アラート、`[要確認]` を確認する
+2. `観点設計に進んでください` と入力 → 観点を作り、検査してから **観点レビュー** で止まる
+3. `ケース生成に進んでください` と入力 → テストケースを作り、セルフレビュー（検査と目視、修正は 1 回まで）をして結果を報告する
 
-途中からやり直すときは `/qa-tools:test-case-generator PBI: DUMMY-001 from: step2` のように指定する。コマンドを使わず「DUMMY-001 のテストケースを作って」と頼んでも skill が起動する。
+途中からやり直すときは `/qa-tools:test-case-generator PBI: DUMMY-001 from: viewpoints` のように指定する。コマンドを使わず「DUMMY-001 のテストケースを作って」と頼んでも skill が起動する。
 
 ## 自分のプロジェクトで使う
 
@@ -77,6 +77,6 @@ python3 -m unittest discover -s tests -t .
 claude plugin validate .
 ```
 
-## MVP に含まないもの（後続）
+## まだ実装していないもの
 
-元の設計にある次の要素は、まだ実装していない：Step U（USM）、Step K / K-Gate / K-Evidence（ナレッジの選別と承認）、Step 0（サイジング）、Step R（自己レビュー）、PBI ナレッジ DB 連携、E2E・シナリオ・ドメイン特化などのモード、英語出力。
+元の設計にある次の要素は、まだ実装していない：USM 関連性分析（元の Step U）、ナレッジの選別と承認（元の Step K / K-Gate / K-Evidence）、PBI ナレッジ DB 連携、E2E・シナリオ・ドメイン特化などのモード、英語出力。
