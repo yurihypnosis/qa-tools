@@ -35,12 +35,14 @@ Claude Code の中で次を実行する（プラグインの skill は `プラ�
 
 ## 自分のプロジェクトで使う
 
-1. プラグインを入れる
+1. 手元の clone からプラグインを入れる（一度だけ。どこにも公開されない）
 
+   ```bash
+   claude plugin marketplace add <この clone の絶対パス>
+   claude plugin install qa-tools@qa-tools
    ```
-   /plugin marketplace add yurihypnosis/qa-tools
-   /plugin install qa-tools@qa-tools
-   ```
+
+   手元の clone を直接読むので、qa-tools を編集すると次のセッションから反映される（更新コマンドは不要）。チェックアウト中のブランチの内容が使われる
 
 2. プロジェクトのルートに `.qa/product.md` を作る（書式は [examples/dummy-product/.qa/product.md](examples/dummy-product/.qa/product.md) を参照）。最低限、チケット接頭辞・領域コード・ロール表を書く
 3. 必要なら `.qa/knowledge/` に既存機能のナレッジを置く

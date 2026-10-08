@@ -17,6 +17,11 @@
 - マニフェスト検証：`claude plugin validate .`
 - 図の再生成（HTML は git 管理外。README・PR には PNG を使う）：`node ~/.claude/skills/archify/bin/archify.mjs finalize <type> docs/architecture/<name>.<type>.json docs/architecture/<name>.html --quality showcase --json`
 
+## 配布
+
+- 自分の他のプロジェクトで使うためだけに `marketplace.json` を置いている。公開マーケットプレイスには出さない
+- ローカルパスで追加したプラグインは clone を直接読む（`claude plugin list --json` の `readFromFolder`）。バージョンを上げなくても編集は次のセッションで反映される
+
 ## E2E で試すとき
 
 - `--plugin-dir` で読み込んだプラグインのディレクトリ配下には書き込めない。`examples/dummy-product` はプラグインの外にコピーしてから実行する
