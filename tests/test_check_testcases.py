@@ -66,6 +66,14 @@ class CheckTestcasesTest(unittest.TestCase):
         missing = sorted(f["tp"] for f in receipt["findings"] if f["code"] == "TRACE")
         self.assertEqual(missing, ["TP-002", "TP-003", "TP-004", "TP-005"])
 
+    def test_expected_result_must_copy_bold_cells_verbatim(self):
+        code, receipt, _ = run_json(SCRIPT, FIXTURES / "testcases_paraphrased.md", "--viewpoints", VIEWPOINTS)
+        self.assertEqual(code, 1)
+        self.assertEqual(
+            [(f["code"], f["line"], f["value"]) for f in receipt["findings"]],
+            [("EXPECTED", 5, "入力欄が赤枠になる"), ("EXPECTED", 6, "保存に成功する")],
+        )
+
     def test_missing_viewpoints_file_exits_two(self):
         code, _, err = run(SCRIPT, FIXTURES / "testcases_ok.md", "--viewpoints", FIXTURES / "nope.md")
         self.assertEqual(code, 2)

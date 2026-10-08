@@ -10,6 +10,8 @@
   REMARKS <行>        備考セルが空でない
   TRACE <TP>          --viewpoints 指定時、観点ファイルを数え直した必要ケース数に足りない
   UNKNOWN_TP <TP>     --viewpoints 指定時、観点ファイルに無い TP を参照している
+  EXPECTED <行>       --viewpoints 指定時、期待結果の項目が、その TP の太字セルの写しになっていない
+                      （表を持たない TP は太字セルが無いので対象外）
 
 必要ケース数は観点ファイルから数え直す（Step 3 自身のトレース表は信用しない）:
 DT は R 列の数、確認パターン表はデータ行の数、表の無い TP は 1。
@@ -24,7 +26,7 @@ from collections import Counter
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _markdown import emit, expand_tp, parse, read_text
+from _markdown import BOLD, emit, expand_tp, parse, read_text
 
 COLUMNS = [
     "CaseNo.",
@@ -63,7 +65,7 @@ def check_structure(text):
             if len(cells) != len(COLUMNS):
                 findings.append({"code": "ROW_WIDTH", "line": line})
                 continue
-            case_id, viewpoint, remarks = cells[0], cells[1], cells[-1]
+            case_id, viewpoint, result, remarks = cells[0], cells[1], cells[12], cells[-1]
             match = CASE_ID.match(case_id)
             if not match:
                 findings.append({"code": "CASE_ID", "line": line, "value": case_id})
@@ -80,13 +82,12 @@ def check_structure(text):
                 findings.append({"code": "VIEWPOINT_ID", "line": line, "value": viewpoint})
             if remarks:
                 findings.append({"code": "REMARKS", "line": line})
-            cases.append((line, case_id, viewpoint))
+            cases.append((line, case_id, viewpoint, result))
     return findings, cases
 
 
-def required_cases(viewpoints_text):
+def required_cases(doc):
     """観点ファイルを数え直し、TP ごとの必要ケース数を返す。"""
-    doc = parse(viewpoints_text)
     required = dict.fromkeys(doc.tp_ids, 0)
     for table in doc.tables:
         if table.tp is None or len(table.header) < 2 or not table.rows:
@@ -98,16 +99,38 @@ def required_cases(viewpoints_text):
     return {tp_id: max(count, 1) for tp_id, count in required.items()}
 
 
+def bold_cells(doc):
+    """TP ごとの、期待結果として写してよい太字セルの文言（1 列目の行ラベルは除く）。"""
+    cells = {}
+    for table in doc.tables:
+        if table.tp is None:
+            continue
+        texts = {m.strip("* ").strip() for _, row in table.rows for c in row[1:] for m in BOLD.findall(c)}
+        for tp_id in expand_tp(table.tp):
+            cells.setdefault(tp_id, set()).update(texts)
+    return cells
+
+
+def expected_items(cell):
+    return [item.strip().lstrip("・").strip() for item in cell.split("<br>") if item.strip()]
+
+
 def check_trace(cases, viewpoints_text):
-    required = required_cases(viewpoints_text)
-    actual = Counter(viewpoint for _, _, viewpoint in cases)
+    doc = parse(viewpoints_text)
+    required = required_cases(doc)
+    sources = bold_cells(doc)
+    actual = Counter(case[2] for case in cases)
     findings = []
     for tp_id, expected in required.items():
         if actual[tp_id] < expected:
             findings.append({"code": "TRACE", "tp": tp_id, "expected": expected, "actual": actual[tp_id]})
-    for line, _, viewpoint in cases:
+    for line, _, viewpoint, result in cases:
         if VIEWPOINT_ID.match(viewpoint) and viewpoint not in required:
             findings.append({"code": "UNKNOWN_TP", "tp": viewpoint, "line": line})
+        if sources.get(viewpoint):
+            for item in expected_items(result):
+                if item not in sources[viewpoint]:
+                    findings.append({"code": "EXPECTED", "line": line, "value": item})
     return findings
 
 
