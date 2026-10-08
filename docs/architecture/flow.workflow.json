@@ -1,0 +1,277 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "qa-tools テストケース生成 MVP：フロー",
+    "locale": "ja",
+    "output": "docs/architecture/flow.html",
+    "quality_profile": "showcase"
+  },
+  "lanes": [
+    {
+      "id": "qa",
+      "label": "QA エンジニア（人）"
+    },
+    {
+      "id": "agent",
+      "label": "Agent：test-case-generator skill"
+    },
+    {
+      "id": "checks",
+      "label": "scripts（決定的検査）"
+    }
+  ],
+  "phases": [
+    {
+      "id": "analysis",
+      "label": "テスト分析",
+      "fromCol": 0,
+      "toCol": 2
+    },
+    {
+      "id": "viewpoints",
+      "label": "観点",
+      "fromCol": 3,
+      "toCol": 4,
+      "variant": "emphasis"
+    },
+    {
+      "id": "cases",
+      "label": "テストケース",
+      "fromCol": 5,
+      "toCol": 5
+    }
+  ],
+  "mainPath": [
+    "start",
+    "step1",
+    "gate1",
+    "step2",
+    "checkvp",
+    "gate2",
+    "step3",
+    "checktc",
+    "done"
+  ],
+  "nodes": [
+    {
+      "id": "start",
+      "lane": "qa",
+      "col": 0,
+      "type": "external",
+      "label": "/qa-tools:test-case-generator",
+      "sublabel": "PBI: DUMMY-001",
+      "icon": "person",
+      "width": 236
+    },
+    {
+      "id": "gate1",
+      "lane": "qa",
+      "col": 2,
+      "type": "security",
+      "label": "⛔ ゲート1",
+      "sublabel": "衝突・[要確認] を確認",
+      "tag": "停止",
+      "width": 140
+    },
+    {
+      "id": "gate2",
+      "lane": "qa",
+      "col": 4,
+      "type": "security",
+      "label": "⛔ ゲート2",
+      "sublabel": "観点レビュー",
+      "tag": "停止",
+      "width": 132
+    },
+    {
+      "id": "done",
+      "lane": "qa",
+      "col": 5,
+      "type": "external",
+      "label": "完了報告",
+      "sublabel": "成果物＋レシート",
+      "icon": "success",
+      "width": 132
+    },
+    {
+      "id": "step1",
+      "lane": "agent",
+      "col": 1,
+      "type": "backend",
+      "label": "Step 1 テスト分析",
+      "sublabel": "references/step1 を Read",
+      "tag": "step1-analysis.md",
+      "width": 150
+    },
+    {
+      "id": "step2",
+      "lane": "agent",
+      "col": 3,
+      "type": "backend",
+      "label": "Step 2 観点生成",
+      "sublabel": "TP / DT / パターン表",
+      "tag": "step2-viewpoints.md",
+      "width": 150
+    },
+    {
+      "id": "step3",
+      "lane": "agent",
+      "col": 5,
+      "type": "backend",
+      "label": "Step 3 ケース生成",
+      "sublabel": "15 列＋トレース表",
+      "tag": "step3-testcases.md",
+      "width": 150
+    },
+    {
+      "id": "checkvp",
+      "lane": "checks",
+      "col": 4,
+      "type": "security",
+      "label": "check_viewpoints",
+      "sublabel": "太字漏れ・見出し違反",
+      "tag": "JSON レシート",
+      "width": 150
+    },
+    {
+      "id": "checktc",
+      "lane": "checks",
+      "col": 5,
+      "type": "security",
+      "label": "check_testcases",
+      "sublabel": "15列・連番・トレース数",
+      "tag": "JSON レシート",
+      "width": 150
+    }
+  ],
+  "edges": [
+    {
+      "id": "start-step1",
+      "from": "start",
+      "to": "step1",
+      "label": "起動",
+      "variant": "emphasis",
+      "role": "main",
+      "fromSide": "bottom",
+      "toSide": "left"
+    },
+    {
+      "id": "step1-gate1",
+      "from": "step1",
+      "to": "gate1",
+      "label": "保存して停止",
+      "variant": "emphasis",
+      "role": "main",
+      "fromSide": "top",
+      "toSide": "left"
+    },
+    {
+      "id": "gate1-step2",
+      "from": "gate1",
+      "to": "step2",
+      "label": "合図",
+      "variant": "emphasis",
+      "role": "main",
+      "fromSide": "right",
+      "toSide": "top"
+    },
+    {
+      "id": "step2-checkvp",
+      "from": "step2",
+      "to": "checkvp",
+      "label": "検査",
+      "variant": "security",
+      "role": "main",
+      "fromSide": "bottom",
+      "toSide": "left"
+    },
+    {
+      "id": "checkvp-gate2",
+      "from": "checkvp",
+      "to": "gate2",
+      "label": "修正は1回まで",
+      "variant": "security",
+      "role": "main",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "gate2-step3",
+      "from": "gate2",
+      "to": "step3",
+      "label": "合図",
+      "variant": "emphasis",
+      "role": "main",
+      "toSide": "top"
+    },
+    {
+      "id": "step3-checktc",
+      "from": "step3",
+      "to": "checktc",
+      "label": "検査",
+      "variant": "security",
+      "role": "main",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "checktc-done",
+      "from": "checktc",
+      "to": "done",
+      "label": "レシート",
+      "variant": "default",
+      "role": "main",
+      "fromSide": "right",
+      "toSide": "right"
+    },
+    {
+      "id": "gate1-fix",
+      "from": "gate1",
+      "to": "step1",
+      "label": "修正指示 → 差分 Edit",
+      "variant": "dashed",
+      "role": "return",
+      "fromSide": "bottom",
+      "toSide": "right"
+    },
+    {
+      "id": "gate2-fix",
+      "from": "gate2",
+      "to": "step2",
+      "label": "修正指示",
+      "variant": "dashed",
+      "role": "return",
+      "fromSide": "left"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "ゲートの約束",
+      "items": [
+        "合図は「Step 2 の出力をしてください」「Step 3 の出力をしてください」",
+        "合図なしに次の Step を読み込まない・下書きしない",
+        "[要確認] を推測で埋めない"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "成果物",
+      "items": [
+        "すべて output/{ID}/ に Markdown で保存",
+        "修正は差分 Edit、同じゲートで再停止",
+        "`from: step2` 指定 or 既存成果物から途中再開"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "MVP 外（後続）",
+      "items": [
+        "Step U / K / K-Gate / K-Evidence",
+        "Step 0 サイジング",
+        "Step R 自己レビュー・PBI ナレッジ"
+      ]
+    }
+  ]
+}

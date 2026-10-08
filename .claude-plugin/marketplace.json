@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "qa-tools",
+  "description": "QA エンジニア向けの AI テスト設計ツール",
+  "owner": {
+    "name": "yurihypnosis",
+    "url": "https://github.com/yurihypnosis"
+  },
+  "plugins": [
+    {
+      "name": "qa-tools",
+      "source": "./",
+      "description": "PBI からテスト分析・観点・テストケースをレビューゲート付きで段階生成する",
+      "license": "MIT",
+      "keywords": ["qa", "test-design", "test-cases"]
+    }
+  ]
+}

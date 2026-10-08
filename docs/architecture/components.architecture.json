@@ -1,0 +1,246 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "qa-tools テストケース生成 MVP：構成要素",
+    "locale": "ja",
+    "output": "docs/architecture/components.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    {
+      "id": "qa",
+      "type": "external",
+      "label": "QA エンジニア",
+      "sublabel": "レビュー・合図",
+      "pos": [
+        20,
+        260
+      ],
+      "size": [
+        120,
+        64
+      ],
+      "icon": "person"
+    },
+    {
+      "id": "skill",
+      "type": "backend",
+      "label": "test-case-generator",
+      "sublabel": "SKILL.md 司令塔",
+      "tag": "状態遷移＋ゲート",
+      "pos": [
+        490,
+        250
+      ],
+      "size": [
+        200,
+        84
+      ]
+    },
+    {
+      "id": "refs",
+      "type": "backend",
+      "label": "references/",
+      "sublabel": "Step1〜3・ゲート手順",
+      "pos": [
+        490,
+        70
+      ],
+      "size": [
+        200,
+        64
+      ]
+    },
+    {
+      "id": "assets",
+      "type": "backend",
+      "label": "assets/",
+      "sublabel": "出力テンプレート×3",
+      "pos": [
+        740,
+        70
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "scripts",
+      "type": "security",
+      "label": "scripts/",
+      "sublabel": "check_viewpoints / check_testcases",
+      "tag": "JSON レシート",
+      "pos": [
+        480,
+        470
+      ],
+      "size": [
+        220,
+        70
+      ]
+    },
+    {
+      "id": "product",
+      "type": "database",
+      "label": ".qa/",
+      "sublabel": "product.md・knowledge/",
+      "tag": "DUMMY",
+      "pos": [
+        1040,
+        70
+      ],
+      "size": [
+        190,
+        64
+      ]
+    },
+    {
+      "id": "output",
+      "type": "database",
+      "label": "output/{ID}/",
+      "sublabel": "step1〜3 の md",
+      "pos": [
+        1040,
+        260
+      ],
+      "size": [
+        190,
+        64
+      ]
+    },
+    {
+      "id": "pbi",
+      "type": "database",
+      "label": "PBI/{ID}/",
+      "sublabel": "仕様書・受入基準",
+      "tag": "DUMMY",
+      "pos": [
+        1040,
+        470
+      ],
+      "size": [
+        190,
+        64
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "qa-tools プラグイン（汎用・製品を知らない）",
+      "wraps": [
+        "skill",
+        "refs",
+        "assets",
+        "scripts"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "利用側プロジェクト（examples/dummy-product）",
+      "wraps": [
+        "product",
+        "output",
+        "pbi"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "qa-invoke",
+      "from": "qa",
+      "to": "skill",
+      "label": "/qa-tools:test-case-generator PBI: ID",
+      "variant": "emphasis"
+    },
+    {
+      "id": "skill-write",
+      "from": "skill",
+      "to": "output",
+      "label": "Step ごとに Write",
+      "variant": "emphasis"
+    },
+    {
+      "id": "skill-refs",
+      "from": "skill",
+      "to": "refs",
+      "label": "Step 開始時だけ Read"
+    },
+    {
+      "id": "skill-assets",
+      "from": "skill",
+      "to": "assets",
+      "label": "雛形",
+      "variant": "dashed"
+    },
+    {
+      "id": "skill-product",
+      "from": "skill",
+      "to": "product",
+      "label": "製品コンテキスト"
+    },
+    {
+      "id": "skill-pbi",
+      "from": "skill",
+      "to": "pbi",
+      "label": "入力"
+    },
+    {
+      "id": "skill-scripts",
+      "from": "skill",
+      "to": "scripts",
+      "label": "ゲート前に検査",
+      "variant": "security"
+    },
+    {
+      "id": "gate-stop",
+      "from": "skill",
+      "to": "qa",
+      "label": "⛔ ゲートで停止・合図待ち",
+      "variant": "security",
+      "fromSide": "top",
+      "toSide": "top"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "分離の原則",
+      "items": [
+        "skill は汎用プロセスだけを持つ",
+        "製品固有値は利用側の .qa/ に置く",
+        "ダミー製品は examples/ に隔離"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Progressive disclosure",
+      "items": [
+        "SKILL.md は状態遷移とゲートだけ",
+        "各 Step の詳細は入ったときだけ Read",
+        "出力形式は assets のテンプレートが正",
+        "references は「入力・出力・検査」の共通契約で書く（将来 skill に昇格可能）"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "決定的な検査",
+      "items": [
+        "太字漏れ・見出し違反・15列・連番・トレース数",
+        "JSON レシートだけを根拠に報告",
+        "自己修正は各ゲートで 1 回まで"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "MVP 外（後続）",
+      "items": [
+        "Step U / K / K-Gate / K-Evidence",
+        "Step 0 サイジング・Step R 自己レビュー",
+        "PBI ナレッジ DB・各モード・英語出力"
+      ]
+    }
+  ]
+}
