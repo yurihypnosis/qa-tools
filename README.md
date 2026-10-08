@@ -13,22 +13,25 @@ QA エンジニア向けの AI テスト設計ツール集（Claude Code プラ�
 
 `examples/dummy-product/` は架空の製品「DUMMY ToDo Cloud」の利用側プロジェクトである。すべてテスト用のダミー情報で、実在の製品・仕様ではない。
 
+プラグインとして読み込んだディレクトリの中には書き込めないので、ダミー製品は**プラグインの外にコピーしてから**使う。
+
 ```bash
-cd examples/dummy-product
-claude --plugin-dir ../..
+cp -R examples/dummy-product /tmp/dummy-product
+cd /tmp/dummy-product
+claude --plugin-dir <このリポジトリの絶対パス>
 ```
 
-Claude Code の中で次を実行する。
+Claude Code の中で次を実行する（プラグインのコマンドは `プラグイン名:コマンド名` で呼ぶ）。
 
 ```
-/test-design PBI: DUMMY-001
+/qa-tools:test-design PBI: DUMMY-001
 ```
 
 1. Step 1 の分析を `output/DUMMY-001/step1-analysis.md` に保存して、**ゲート1** で止まる。衝突アラートと `[要確認]` を確認する
 2. `Step 2 の出力をしてください` と入力 → 観点を作り、検査してから **ゲート2** で止まる
 3. `Step 3 の出力をしてください` と入力 → テストケースを作り、検査結果を報告して終わる
 
-途中からやり直すときは `/test-design PBI: DUMMY-001 from: step2` のように指定する。
+途中からやり直すときは `/qa-tools:test-design PBI: DUMMY-001 from: step2` のように指定する。コマンドを使わず「DUMMY-001 のテストケースを作って」と頼んでも skill が起動する。
 
 ## 自分のプロジェクトで使う
 
@@ -41,7 +44,7 @@ Claude Code の中で次を実行する。
 
 2. プロジェクトのルートに `.qa/product.md` を作る（書式は [examples/dummy-product/.qa/product.md](examples/dummy-product/.qa/product.md) を参照）。最低限、チケット接頭辞・領域コード・ロール表を書く
 3. 必要なら `.qa/knowledge/` に既存機能のナレッジを置く
-4. `PBI/{ID}/` に仕様書と受入基準を置き、`/test-design PBI: {ID}` を実行する
+4. `PBI/{ID}/` に仕様書と受入基準を置き、`/qa-tools:test-design PBI: {ID}` を実行する
 
 ## 構成
 

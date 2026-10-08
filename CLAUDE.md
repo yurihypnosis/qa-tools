@@ -17,6 +17,11 @@
 - マニフェスト検証：`claude plugin validate .`
 - 図の再生成：`node ~/.claude/skills/archify/bin/archify.mjs finalize <type> docs/architecture/<name>.<type>.json docs/architecture/<name>.html --quality showcase --json`
 
+## E2E で試すとき
+
+- `--plugin-dir` で読み込んだプラグインのディレクトリ配下には書き込めない。`examples/dummy-product` はプラグインの外にコピーしてから実行する
+- 例：`claude -p "/qa-tools:test-design PBI: DUMMY-001" --plugin-dir <repo> --permission-mode acceptEdits --output-format json`、ゲートの合図は `--resume <session_id>` で送る
+
 ## 変更するとき
 
 - 検査スクリプトはテストを先に書く（`tests/fixtures/` に再現用の Markdown を置く）
