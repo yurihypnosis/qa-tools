@@ -451,14 +451,14 @@
     {
       "id": "command",
       "type": "frontend",
-      "label": "/test-design",
+      "label": "/qa-tools:test-design",
       "sublabel": "commands/ 薄い入口",
       "pos": [
         250,
         260
       ],
       "size": [
-        170,
+        190,
         64
       ]
     },

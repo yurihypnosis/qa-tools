@@ -484,10 +484,10 @@
       "lane": "qa",
       "col": 0,
       "type": "external",
-      "label": "/test-design",
+      "label": "/qa-tools:test-design",
       "sublabel": "PBI: DUMMY-001",
       "icon": "person",
-      "width": 132
+      "width": 170
     },
     {
       "id": "gate1",
