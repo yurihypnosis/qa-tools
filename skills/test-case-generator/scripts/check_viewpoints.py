@@ -22,7 +22,8 @@ def check(text):
     for table in doc.tables:
         if table.tp is None or len(table.header) < 2 or not table.rows:
             continue
-        if not any(BOLD.search(cell) for _, cells in table.rows for cell in cells):
+        # 1 列目は行ラベル（DT の `**期待結果**` など）なので、期待結果のセルとは数えない
+        if not any(BOLD.search(cell) for _, cells in table.rows for cell in cells[1:]):
             findings.append({"code": "BOLD", "line": table.line})
     for line, level, heading, tp in doc.headings:
         if tp is not None and level >= 3:

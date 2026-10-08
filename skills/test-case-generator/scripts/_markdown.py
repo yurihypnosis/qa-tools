@@ -9,8 +9,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 HEADING = re.compile(r"^(#{1,6})\s+(.*\S)\s*$")
-TP_HEADING = re.compile(r"^###\s+(TP-\d{3}(?:〜\d{3})?)\b")
-SEPARATOR_CELL = re.compile(r"^:?-{3,}:?$")
+# `TP-010〜012` のほか、`TP-010〜TP-012` や全角チルダ `～`、半角 `~` の表記ゆれも受け付ける
+TP_RANGE = r"TP-(\d{3})(?:\s*[〜～~]\s*(?:TP-)?(\d{3}))?"
+TP_HEADING = re.compile(rf"^###\s+({TP_RANGE})(?!\d)")
+SEPARATOR_CELL = re.compile(r"^:?-+:?$")
+CELL_BREAK = re.compile(r"(?<!\\)\|")  # エスケープされた `\|` はセル内の文字として扱う
 BOLD = re.compile(r"\*\*[^*]+\*\*")
 
 
@@ -26,15 +29,16 @@ class Table:
 class Document:
     headings: list  # [(行番号, レベル, 行テキスト, 属する TP or None)]
     tables: list
+    tp_ids: list  # TP 見出しを個別の ID に展開したもの（出現順）
 
 
 def split_row(line):
     body = line.strip()
     if body.startswith("|"):
         body = body[1:]
-    if body.endswith("|"):
+    if body.endswith("|") and not body.endswith("\\|"):
         body = body[:-1]
-    return [cell.strip() for cell in body.split("|")]
+    return [cell.strip() for cell in CELL_BREAK.split(body)]
 
 
 def is_separator(cells):
@@ -43,7 +47,7 @@ def is_separator(cells):
 
 def parse(text):
     """見出しと表を、TP 見出しへの所属付きで取り出す。コードブロック内は無視する。"""
-    headings, tables = [], []
+    headings, tables, tp_ids = [], [], []
     tp = None
     table = None
     in_code = False
@@ -78,13 +82,14 @@ def parse(text):
             tp = None
         elif tp_match:
             tp = tp_match.group(1)
+            tp_ids.extend(expand_tp(tp))
         headings.append((index, level, line, None if tp_match else tp))
-    return Document(headings=headings, tables=tables)
+    return Document(headings=headings, tables=tables, tp_ids=tp_ids)
 
 
 def expand_tp(tp_id):
     """`TP-010〜012` のようなまとめ見出しを個別の ID に展開する。"""
-    match = re.match(r"^TP-(\d{3})(?:〜(\d{3}))?$", tp_id)
+    match = re.fullmatch(TP_RANGE, tp_id)
     start = int(match.group(1))
     end = int(match.group(2) or start)
     return [f"TP-{n:03d}" for n in range(start, end + 1)]

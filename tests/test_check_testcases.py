@@ -38,6 +38,34 @@ class CheckTestcasesTest(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("SEQUENCE 7 expected DUMMY-001-TC-003 got DUMMY-001-TC-004", out.splitlines())
 
+    def test_file_without_case_table_is_not_ok(self):
+        code, receipt, _ = run_json(SCRIPT, FIXTURES / "testcases_none.md")
+        self.assertEqual(code, 1)
+        self.assertEqual(codes(receipt), ["NO_CASES"])
+
+    def test_malformed_case_id_is_reported_once(self):
+        code, receipt, _ = run_json(SCRIPT, FIXTURES / "testcases_bad_id.md")
+        self.assertEqual(code, 1)
+        self.assertEqual(codes(receipt), ["CASE_ID"])
+
+    def test_escaped_pipe_inside_cell_is_not_a_column_break(self):
+        code, out, _ = run(SCRIPT, FIXTURES / "testcases_escaped_pipe.md")
+        self.assertEqual(code, 0)
+        self.assertEqual(out.strip(), "OK")
+
+    def test_case_pointing_to_unknown_viewpoint_is_reported(self):
+        code, receipt, _ = run_json(SCRIPT, FIXTURES / "testcases_unknown_tp.md", "--viewpoints", VIEWPOINTS)
+        self.assertEqual(code, 1)
+        self.assertEqual(receipt["findings"], [{"code": "UNKNOWN_TP", "tp": "TP-090", "line": 13}])
+
+    def test_range_headings_expand_with_prefix_and_fullwidth_tilde(self):
+        code, receipt, _ = run_json(
+            SCRIPT, FIXTURES / "testcases_range.md", "--viewpoints", FIXTURES / "viewpoints_range.md"
+        )
+        self.assertEqual(code, 1)
+        missing = sorted(f["tp"] for f in receipt["findings"] if f["code"] == "TRACE")
+        self.assertEqual(missing, ["TP-002", "TP-003", "TP-004", "TP-005"])
+
     def test_missing_viewpoints_file_exits_two(self):
         code, _, err = run(SCRIPT, FIXTURES / "testcases_ok.md", "--viewpoints", FIXTURES / "nope.md")
         self.assertEqual(code, 2)

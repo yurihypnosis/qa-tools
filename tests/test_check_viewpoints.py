@@ -34,6 +34,16 @@ class CheckViewpointsTest(unittest.TestCase):
         self.assertEqual(receipt["status"], "fail")
         self.assertEqual(receipt["findings"], [{"code": "BOLD", "line": 7}])
 
+    def test_table_with_short_separator_row_is_still_checked(self):
+        code, out, _ = run(SCRIPT, FIXTURES / "viewpoints_short_separator.md")
+        self.assertEqual(code, 1)
+        self.assertEqual(out.strip(), "BOLD 5")
+
+    def test_bold_row_label_alone_does_not_satisfy_bold_rule(self):
+        code, out, _ = run(SCRIPT, FIXTURES / "viewpoints_label_only_bold.md")
+        self.assertEqual(code, 1)
+        self.assertEqual(out.strip(), "BOLD 7")
+
     def test_missing_file_exits_two(self):
         code, _, err = run(SCRIPT, FIXTURES / "does-not-exist.md")
         self.assertEqual(code, 2)
