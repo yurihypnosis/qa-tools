@@ -66,6 +66,21 @@ class CheckTestcasesTest(unittest.TestCase):
         missing = sorted(f["tp"] for f in receipt["findings"] if f["code"] == "TRACE")
         self.assertEqual(missing, ["TP-002", "TP-003", "TP-004", "TP-005"])
 
+    def test_expected_result_must_copy_bold_cells_verbatim(self):
+        code, receipt, _ = run_json(SCRIPT, FIXTURES / "testcases_paraphrased.md", "--viewpoints", VIEWPOINTS)
+        self.assertEqual(code, 1)
+        self.assertEqual(
+            [(f["code"], f["line"], f["value"]) for f in receipt["findings"]],
+            [("EXPECTED", 5, "入力欄が赤枠になる"), ("EXPECTED", 6, "保存に成功する")],
+        )
+
+    def test_expected_check_tolerates_multi_item_cells_markers_and_bullets(self):
+        """複数項目の太字セル、`[要確認]` 付きの期待結果、`・` 始まりの太字セルは写しとして通す。"""
+        code, out, _ = run(
+            SCRIPT, FIXTURES / "testcases_cell_variants.md", "--viewpoints", FIXTURES / "viewpoints_cell_variants.md"
+        )
+        self.assertEqual((code, out.strip()), (0, "OK"))
+
     def test_missing_viewpoints_file_exits_two(self):
         code, _, err = run(SCRIPT, FIXTURES / "testcases_ok.md", "--viewpoints", FIXTURES / "nope.md")
         self.assertEqual(code, 2)
@@ -75,10 +90,10 @@ class CheckTestcasesTest(unittest.TestCase):
         """実際の E2E 出力に対する回帰テスト。検査を変えて誤検出が出たら気づける。"""
         sample = ROOT / "examples" / "dummy-product" / "sample-output" / "DUMMY-001"
         code, receipt, _ = run_json(
-            SCRIPT, sample / "step3-testcases.md", "--viewpoints", sample / "step2-viewpoints.md"
+            SCRIPT, sample / "4-testcases.md", "--viewpoints", sample / "3-viewpoints.md"
         )
         self.assertEqual((code, receipt["findings"]), (0, []))
-        self.assertEqual(receipt["stats"]["cases"], 37)
+        self.assertEqual(receipt["stats"]["cases"], 47)
 
 
 if __name__ == "__main__":

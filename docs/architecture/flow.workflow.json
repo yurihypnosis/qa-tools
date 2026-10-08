@@ -2,7 +2,7 @@
   "schema_version": 2,
   "diagram_type": "workflow",
   "meta": {
-    "title": "qa-tools テストケース生成 MVP：フロー",
+    "title": "qa-tools テストケース生成：フロー",
     "locale": "ja",
     "output": "docs/architecture/flow.html",
     "quality_profile": "showcase"
@@ -18,13 +18,13 @@
     },
     {
       "id": "checks",
-      "label": "scripts（決定的検査）"
+      "label": "セルフレビュー・決定的検査"
     }
   ],
   "phases": [
     {
       "id": "analysis",
-      "label": "テスト分析",
+      "label": "見積もりと分析",
       "fromCol": 0,
       "toCol": 2
     },
@@ -44,13 +44,14 @@
   ],
   "mainPath": [
     "start",
-    "step1",
+    "sizing",
+    "analysis",
     "gate1",
-    "step2",
+    "viewpoints",
     "checkvp",
     "gate2",
-    "step3",
-    "checktc",
+    "testcases",
+    "review",
     "done"
   ],
   "nodes": [
@@ -69,20 +70,20 @@
       "lane": "qa",
       "col": 2,
       "type": "security",
-      "label": "⛔ ゲート1",
-      "sublabel": "衝突・[要確認] を確認",
+      "label": "⛔ 分析レビュー",
+      "sublabel": "サイズ・衝突・[要確認]",
       "tag": "停止",
-      "width": 140
+      "width": 150
     },
     {
       "id": "gate2",
       "lane": "qa",
       "col": 4,
       "type": "security",
-      "label": "⛔ ゲート2",
-      "sublabel": "観点レビュー",
+      "label": "⛔ 観点レビュー",
+      "sublabel": "観点を QA が確定",
       "tag": "停止",
-      "width": 132
+      "width": 140
     },
     {
       "id": "done",
@@ -95,33 +96,43 @@
       "width": 132
     },
     {
-      "id": "step1",
+      "id": "sizing",
+      "lane": "agent",
+      "col": 0,
+      "type": "backend",
+      "label": "1 サイジング",
+      "sublabel": "QA 算出サイズ",
+      "tag": "1-sizing.md",
+      "width": 132
+    },
+    {
+      "id": "analysis",
       "lane": "agent",
       "col": 1,
       "type": "backend",
-      "label": "Step 1 テスト分析",
-      "sublabel": "references/step1 を Read",
-      "tag": "step1-analysis.md",
-      "width": 150
+      "label": "2 テスト分析",
+      "sublabel": "衝突・リスク・予測",
+      "tag": "2-analysis.md",
+      "width": 140
     },
     {
-      "id": "step2",
+      "id": "viewpoints",
       "lane": "agent",
       "col": 3,
       "type": "backend",
-      "label": "Step 2 観点生成",
+      "label": "3 観点設計",
       "sublabel": "TP / DT / パターン表",
-      "tag": "step2-viewpoints.md",
+      "tag": "3-viewpoints.md",
       "width": 150
     },
     {
-      "id": "step3",
+      "id": "testcases",
       "lane": "agent",
       "col": 5,
       "type": "backend",
-      "label": "Step 3 ケース生成",
+      "label": "4 ケース生成",
       "sublabel": "15 列＋トレース表",
-      "tag": "step3-testcases.md",
+      "tag": "4-testcases.md",
       "width": 150
     },
     {
@@ -135,30 +146,35 @@
       "width": 150
     },
     {
-      "id": "checktc",
+      "id": "review",
       "lane": "checks",
       "col": 5,
       "type": "security",
-      "label": "check_testcases",
-      "sublabel": "15列・連番・トレース数",
-      "tag": "JSON レシート",
+      "label": "5 セルフレビュー",
+      "sublabel": "検査 2 種＋目視",
+      "tag": "5-review.md",
       "width": 150
     }
   ],
   "edges": [
     {
-      "id": "start-step1",
+      "id": "start-sizing",
       "from": "start",
-      "to": "step1",
+      "to": "sizing",
       "label": "起動",
       "variant": "emphasis",
-      "role": "main",
-      "fromSide": "bottom",
-      "toSide": "left"
+      "role": "main"
     },
     {
-      "id": "step1-gate1",
-      "from": "step1",
+      "id": "sizing-analysis",
+      "from": "sizing",
+      "to": "analysis",
+      "variant": "emphasis",
+      "role": "main"
+    },
+    {
+      "id": "analysis-gate1",
+      "from": "analysis",
       "to": "gate1",
       "label": "保存して停止",
       "variant": "emphasis",
@@ -167,18 +183,16 @@
       "toSide": "left"
     },
     {
-      "id": "gate1-step2",
+      "id": "gate1-viewpoints",
       "from": "gate1",
-      "to": "step2",
+      "to": "viewpoints",
       "label": "合図",
       "variant": "emphasis",
-      "role": "main",
-      "fromSide": "right",
-      "toSide": "top"
+      "role": "main"
     },
     {
-      "id": "step2-checkvp",
-      "from": "step2",
+      "id": "viewpoints-checkvp",
+      "from": "viewpoints",
       "to": "checkvp",
       "label": "検査",
       "variant": "security",
@@ -197,27 +211,27 @@
       "toSide": "bottom"
     },
     {
-      "id": "gate2-step3",
+      "id": "gate2-testcases",
       "from": "gate2",
-      "to": "step3",
+      "to": "testcases",
       "label": "合図",
       "variant": "emphasis",
       "role": "main",
       "toSide": "top"
     },
     {
-      "id": "step3-checktc",
-      "from": "step3",
-      "to": "checktc",
-      "label": "検査",
+      "id": "testcases-review",
+      "from": "testcases",
+      "to": "review",
+      "label": "続けて実行",
       "variant": "security",
       "role": "main",
       "fromSide": "bottom",
       "toSide": "top"
     },
     {
-      "id": "checktc-done",
-      "from": "checktc",
+      "id": "review-done",
+      "from": "review",
       "to": "done",
       "label": "レシート",
       "variant": "default",
@@ -228,7 +242,7 @@
     {
       "id": "gate1-fix",
       "from": "gate1",
-      "to": "step1",
+      "to": "analysis",
       "label": "修正指示 → 差分 Edit",
       "variant": "dashed",
       "role": "return",
@@ -238,7 +252,7 @@
     {
       "id": "gate2-fix",
       "from": "gate2",
-      "to": "step2",
+      "to": "viewpoints",
       "label": "修正指示",
       "variant": "dashed",
       "role": "return",
@@ -250,8 +264,8 @@
       "dot": "rose",
       "title": "ゲートの約束",
       "items": [
-        "合図は「Step 2 の出力をしてください」「Step 3 の出力をしてください」",
-        "合図なしに次の Step を読み込まない・下書きしない",
+        "合図は「観点設計に進んでください」「ケース生成に進んでください」",
+        "合図なしに次の工程を読み込まない・下書きしない",
         "[要確認] を推測で埋めない"
       ]
     },
@@ -259,18 +273,25 @@
       "dot": "cyan",
       "title": "成果物",
       "items": [
-        "すべて output/{ID}/ に Markdown で保存",
+        "すべて output/{ID}/ に 1-sizing.md〜5-review.md として保存",
         "修正は差分 Edit、同じゲートで再停止",
-        "`from: step2` 指定 or 既存成果物から途中再開"
+        "from: viewpoints などで途中の工程から再開"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "セルフレビュー",
+      "items": [
+        "直すのはケースファイルだけ（観点は QA が確定済み）",
+        "自己修正は 1 回まで、残った問題は報告"
       ]
     },
     {
       "dot": "amber",
-      "title": "MVP 外（後続）",
+      "title": "まだ実装していないもの",
       "items": [
-        "Step U / K / K-Gate / K-Evidence",
-        "Step 0 サイジング",
-        "Step R 自己レビュー・PBI ナレッジ"
+        "USM 関連性分析・ナレッジの選別と承認",
+        "PBI ナレッジ DB・各モード・英語出力"
       ]
     }
   ]

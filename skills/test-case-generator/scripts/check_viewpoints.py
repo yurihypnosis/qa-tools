@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Step 2 の観点ファイルを、ゲート2の前に検査する（読み取り専用）。
+"""観点設計の成果物（3-viewpoints.md）を、観点レビューの前に検査する（読み取り専用）。
 
 見つけるのは「人が読んでも気づきにくく、情報を足さずに直せる」崩れだけ:
   BOLD <行>            TP 配下の 2 列以上の表で、データ行に太字セルが 1 つも無い
   HEADING <行> <見出し>  TP 配下で DT／確認パターン表のタイトルが見出しになっている
 
-使い方: check_viewpoints.py <step2-viewpoints.md> [--json]
+使い方: check_viewpoints.py <3-viewpoints.md> [--json]
 終了コード: 0=OK / 1=指摘あり / 2=入力エラー
 """
 import argparse

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "diagram_type": "architecture",
   "meta": {
-    "title": "qa-tools テストケース生成 MVP：構成要素",
+    "title": "qa-tools テストケース生成：構成要素",
     "locale": "ja",
     "output": "docs/architecture/components.html",
     "quality_profile": "showcase"
@@ -42,7 +42,7 @@
       "id": "refs",
       "type": "backend",
       "label": "references/",
-      "sublabel": "Step1〜3・ゲート手順",
+      "sublabel": "5 工程・レビューゲートの手順",
       "pos": [
         490,
         70
@@ -56,7 +56,7 @@
       "id": "assets",
       "type": "backend",
       "label": "assets/",
-      "sublabel": "出力テンプレート×3",
+      "sublabel": "成果物の雛形×5",
       "pos": [
         740,
         70
@@ -100,7 +100,7 @@
       "id": "output",
       "type": "database",
       "label": "output/{ID}/",
-      "sublabel": "step1〜3 の md",
+      "sublabel": "1-sizing〜5-review の md",
       "pos": [
         1040,
         260
@@ -228,17 +228,17 @@
       "dot": "rose",
       "title": "決定的な検査",
       "items": [
-        "太字漏れ・見出し違反・15列・連番・トレース数",
-        "JSON レシートだけを根拠に報告",
-        "自己修正は各ゲートで 1 回まで"
+        "太字漏れ・見出し違反・15列・連番",
+        "観点からの数え直し・期待結果の写し",
+        "JSON レシートだけを根拠に報告"
       ]
     },
     {
       "dot": "amber",
-      "title": "MVP 外（後続）",
+      "title": "まだ実装していないもの",
       "items": [
-        "Step U / K / K-Gate / K-Evidence",
-        "Step 0 サイジング・Step R 自己レビュー",
+        "USM 関連性分析",
+        "ナレッジの選別と承認・社内ドキュメント抽出",
         "PBI ナレッジ DB・各モード・英語出力"
       ]
     }
