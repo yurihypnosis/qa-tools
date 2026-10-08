@@ -45,6 +45,8 @@ COLUMNS = [
     "重要度/Priority",
     "備考/Remarks",
 ]
+EXPECTED_COLUMN = COLUMNS.index("期待結果/Expected Result")
+UNRESOLVED = "[要確認]"
 CASE_ID = re.compile(r"^(?P<pbi>[A-Z][A-Z0-9]*-\d+)-TC-(?P<num>\d{3})$")
 VIEWPOINT_ID = re.compile(r"^TP-\d{3}$")
 RULE_COLUMN = re.compile(r"^R\d+$")
@@ -65,7 +67,7 @@ def check_structure(text):
             if len(cells) != len(COLUMNS):
                 findings.append({"code": "ROW_WIDTH", "line": line})
                 continue
-            case_id, viewpoint, result, remarks = cells[0], cells[1], cells[12], cells[-1]
+            case_id, viewpoint, result, remarks = cells[0], cells[1], cells[EXPECTED_COLUMN], cells[-1]
             match = CASE_ID.match(case_id)
             if not match:
                 findings.append({"code": "CASE_ID", "line": line, "value": case_id})
@@ -100,22 +102,34 @@ def required_cases(doc):
 
 
 def bold_cells(doc):
-    """TP ごとの、期待結果として写してよい太字セルの文言（1 列目の行ラベルは除く）。"""
+    """TP ごとの、期待結果として写してよい太字セルの項目（1 列目の行ラベルは除く）。"""
     cells = {}
     for table in doc.tables:
         if table.tp is None:
             continue
-        texts = {m.strip("* ").strip() for _, row in table.rows for c in row[1:] for m in BOLD.findall(c)}
+        items = {
+            item
+            for _, row in table.rows
+            for cell in row[1:]
+            for bold in BOLD.findall(cell)
+            for item in expected_items(bold[2:-2])
+        }
         for tp_id in expand_tp(table.tp):
-            cells.setdefault(tp_id, set()).update(texts)
+            cells.setdefault(tp_id, set()).update(items)
     return cells
 
 
-def expected_items(cell):
-    return [item.strip().lstrip("・").strip() for item in cell.split("<br>") if item.strip()]
+def expected_items(text):
+    """期待結果を項目に分ける。太字セルとケースの両方に同じ正規化をかけて比べる。
+
+    `[要確認]` は取り除いて比べる。ケース生成は未決の項目に `[要確認]` を残すルールなので、
+    これを不一致として扱うと、セルフレビューが `[要確認]` を消してしまう。
+    """
+    items = (item.replace(UNRESOLVED, "").strip().lstrip("・").strip() for item in text.split("<br>"))
+    return [item for item in items if item]
 
 
-def check_trace(cases, viewpoints_text):
+def check_against_viewpoints(cases, viewpoints_text):
     doc = parse(viewpoints_text)
     required = required_cases(doc)
     sources = bold_cells(doc)
@@ -160,7 +174,7 @@ def main():
 
     findings, cases = check_structure(text)
     if viewpoints_text is not None:
-        findings += check_trace(cases, viewpoints_text)
+        findings += check_against_viewpoints(cases, viewpoints_text)
     stats = {"cases": len(cases), "lastCaseId": cases[-1][1] if cases else None}
     raise SystemExit(emit("testcases", args.path, findings, args.json, stats=stats, text_of=as_text))
 

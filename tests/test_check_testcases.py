@@ -74,6 +74,13 @@ class CheckTestcasesTest(unittest.TestCase):
             [("EXPECTED", 5, "入力欄が赤枠になる"), ("EXPECTED", 6, "保存に成功する")],
         )
 
+    def test_expected_check_tolerates_multi_item_cells_markers_and_bullets(self):
+        """複数項目の太字セル、`[要確認]` 付きの期待結果、`・` 始まりの太字セルは写しとして通す。"""
+        code, out, _ = run(
+            SCRIPT, FIXTURES / "testcases_cell_variants.md", "--viewpoints", FIXTURES / "viewpoints_cell_variants.md"
+        )
+        self.assertEqual((code, out.strip()), (0, "OK"))
+
     def test_missing_viewpoints_file_exits_two(self):
         code, _, err = run(SCRIPT, FIXTURES / "testcases_ok.md", "--viewpoints", FIXTURES / "nope.md")
         self.assertEqual(code, 2)

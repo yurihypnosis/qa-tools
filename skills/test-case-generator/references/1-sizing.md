@@ -4,7 +4,7 @@
 
 | 項目 | 内容 |
 | --- | --- |
-| 入力 | `PBI/{ID}/` の全ファイル、`.qa/product.md`、`.qa/knowledge/`（あれば）、開発サイズ（あれば） |
+| 入力 | `PBI/{ID}/` の全ファイル、`.qa/product.md`、`.qa/knowledge/`（あれば）、開発サイズ（起動引数 ＞ PBI の資料の順。どちらにも無ければ比較しない） |
 | 出力 | `output/{ID}/1-sizing.md`（雛形：`assets/sizing.template.md`） |
 | 検査 | なし |
 | 次 | テスト分析（止まらずに続ける） |
