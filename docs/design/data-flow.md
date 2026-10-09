@@ -13,12 +13,11 @@
 | screen-list | code-map | `output/code-map/lookup/routes.jsonl` | 画面の候補を列挙し、グループに分ける |
 | screen-list | code-map | `output/code-map/manifest.json` | 入力の KB が古くないかを確かめる |
 | test-steps | screen-list | `output/screen-list/screens.csv`（画面ID・URL 列） | 手順の各ステップに「今いる画面 ID」を書く |
-| code-map | screen-list | `output/screen-list/screens.csv`（画面ID・ソース列） | モジュール要約に「含まれる画面 ID」を書く |
 | test-priority | test-case-generator | `output/*/4-testcases.md`（15 列の表） | 判定するテストケースの一覧 |
 | test-priority | test-steps | `output/test-steps/**/*.md` | 自動テストも、手動のケースと同じ基準で判定する |
 | test-priority | screen-list | `output/screen-list/screens.csv`（画面ID・画面名列） | 「確認画面」列を画面 ID に引き、代表を選ぶ単位にする |
 
-code-map と screen-list が互いの出力を読むのは循環に見えるが、読む時期が違う。screen-list は build のときに code-map の `routes.jsonl` を読み、code-map は画面 ID が発行された後の update で `screens.csv` を読む。
+code-map は screen-list の出力を読まない。読み合うと、update の順番によってどちらかが 1 つ前の版を読むことになる。「このモジュールに含まれる画面」が知りたいときは、読む側が screens.csv のソース列と code-map の `lookup/tree.md` を突き合わせて引く（原則 8：使う側が変換する）。
 
 ## 画面 ID
 

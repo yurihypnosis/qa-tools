@@ -35,9 +35,9 @@ skill の中の置き方：SKILL.md には流れと動詞の分岐だけを書�
 | `source` | 何を読むか。他のツールの出力を読むときは `source.inputs` | `spec_glob = "e2e/**/*.spec.ts"` |
 | `output` | どこに何を出すか | `dir = "output/test-steps"` |
 | `platform` | どう描くか（ツールごとの描き方の選択） | `"web-react"` |
-| `checks` | 何で検証するか | `[[checks]] coverage = { mode = "exact" }` |
+| `checks` | 何で検証するか | `checks = [{ coverage = { mode = "exact" } }]` |
 
-`local.toml` には、`[repos]` の下に「名前 = 絶対パス」を書く。共有の設定は `repo = "dummy-app"` のように名前で参照する。
+`local.toml` には、`[repos]` の下に「名前 = 絶対パス」を書く。共有の設定は `repo = "dummy-app"` のように名前で参照する。利用側プロジェクト自身を読むときは `repo = "."` と書き、`local.toml` は要らない。
 
 ```toml
 # .qa/local.toml（git に入れない）
@@ -110,7 +110,8 @@ output/
 ## 7. core の置き場所
 
 - **決めたこと**：ツールをまたいで使う処理は、プラグイン直下の `core/` に置く。skill からは `python3 <skill>/../../core/<name>.py` で呼ぶ
-- **理由**：プラグインの中の配置（`skills/<tool>/` の 2 階層上がプラグインの直下）は変わらないので、相対パスで届く。この相対パスはテストで確かめる
+- **スクリプトから使うとき**：既存の `check_viewpoints.py` と同じく `sys.path` に足してから import する。`sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "core"))`（`skills/<tool>/scripts/<name>.py` から 3 階層上がプラグインの直下）
+- **理由**：プラグインの中の配置は変わらないので、相対パスで届く。CLI の呼び方と import の両方を、テストで確かめる
 - **切り出す時期**：2 つ目のツールが同じ処理を必要としたときに core に移す。1 つ目のツールしか使わないうちは、そのツールの `scripts/` に置く
 
 | モジュール | やること | 最初に使うツール |

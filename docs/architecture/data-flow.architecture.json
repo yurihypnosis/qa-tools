@@ -128,7 +128,7 @@
       "type": "security",
       "label": "core/",
       "sublabel": "manifest / plan / carry / screen_id",
-      "tag": "共通の骨格",
+      "tag": "全ツール共通の骨格",
       "pos": [
         680,
         290
@@ -223,7 +223,7 @@
       "id": "core-sl",
       "from": "core",
       "to": "screenlist",
-      "label": "差分・引き継ぎ・ID",
+      "label": "全ツールが使う",
       "variant": "dashed"
     }
   ],
