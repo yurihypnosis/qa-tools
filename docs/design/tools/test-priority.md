@@ -236,7 +236,7 @@ run = ["import-clean", "examples"]
 
 ### 9.1 計算例 `[checks.examples]`
 
-設定ファイルに書く。`decide` の規則（4・6）だけを確かめる（AI の判断は入力として与える）。
+設定ファイルに書く。`decide` の規則（4・6）だけを確かめる（AI の判断は入力として与える）。`level` は `R1`〜`R4`、`scale` は規模の値。
 
 ```toml
 [checks.examples]
@@ -249,7 +249,7 @@ impact = "stop"
 kind = "代表"
 existing = "high"
 representative = true
-expect = { 重要度 = "R2", 規模 = "smoke" }
+expect = { level = "R2", scale = "smoke" }
 ```
 
 ## 10. 計算例（ダミー製品の設定、5 の例）
