@@ -17,6 +17,7 @@
 | F2 | screen-list | code-map | `output/code-map/manifest.json` | 読んだ tree.md が古くないかを確かめる |
 | F3 | test-priority | test-case-generator | `output/*/4-testcases.md` の 15 列の表 | 判定するテストケースの一覧として読む（プラットフォーム定義 `tcg-markdown`） |
 | F4 | test-priority | screen-list | `output/screen-list/screens.csv` の `画面ID` 列と `画面名` 列 | テストケースの「確認画面」列の画面名から画面 ID を引く |
+| F5 | screen-list | code-map | `output/code-map/lookup/reverse_imports.jsonl` | ダイアログのファイルから import を上へ辿り、開く画面（`親画面ID`）を求める |
 
 **画面の候補は screen-list が自分で列挙する（決定）**：何が画面かは UI フレームワークによって違うので、screen-list のプラットフォーム定義（[contracts.md の C9](contracts.md#c9-プラットフォーム定義)）が列挙する。code-map は言語の単位（import・シンボル・モジュール）だけを扱い、画面を知らない。
 
@@ -27,7 +28,7 @@
 | 決めたこと | 内容 |
 | --- | --- |
 | 作るのは | screen-list だけ。他のツールは screens.csv から引くだけで、自分で作らない |
-| 形 | `<接頭辞>/<画面のキー>`。接頭辞と画面のキーの作り方は、screen-list のプラットフォーム定義が決める |
+| 形 | 画面は `<接頭辞>/<画面のキー>`、ダイアログは `<接頭辞>#<キー>`。接頭辞とキーの作り方は、screen-list のプラットフォーム定義が決める（[仕様](tools/screen-list.md)の 4.2） |
 | 例 | Next.js App Router：接頭辞 `web`、キーは URL のパス（`/settings` → `web/settings`）。Android なら接頭辞 `android`、キーは Activity のクラス名、のように決める |
 | 変わらないこと | 画面名を変えても ID は変わらない。画面のキー（URL のパスなど）を変えたときだけ変わる |
 | 引けないとき | 他のツールで画面 ID を決められないときは `[未解決: 画面を特定できない]` と書く（P5） |
