@@ -50,7 +50,7 @@ UTF-8 BOM 付き。1 行 1 件。行は `画面ID` の昇順。
 | 名前 | 内容 |
 | --- | --- |
 | `PREFIX` | 画面 ID の接頭辞（例：`web`） |
-| `candidates(repo_root, root, rules)` | 候補の一覧を返す。各要素：`{"key", "kind", "file", "line", "url"}`（`url` はダイアログなら null） |
+| `candidates(repo_root, root, rules, reverse_imports)` | 候補の一覧を返す。各要素：`{"key", "kind", "file", "line", "url"}`（`url` はダイアログなら null）。`reverse_imports` は、code-map の `reverse_imports.jsonl`（F5）を読んだもの。プラットフォーム定義は、code-map の他のファイルを読まない |
 
 最初に作るのは `nextjs-app-router`（`PREFIX = "web"`）。
 
@@ -59,7 +59,7 @@ UTF-8 BOM 付き。1 行 1 件。行は `画面ID` の昇順。
 | 候補 | 見つけ方 | 種別 |
 | --- | --- | --- |
 | 画面 | `app/` か `src/app/`（`rules.app_dir` で指定。無ければ、あるほう）の下の `page.tsx` `page.jsx` `page.ts` `page.js` | `画面` |
-| ダイアログ | `rules.dialog_imports`（ダイアログ部品のパスの前方一致のリスト）のどれかを import しているファイル。ただし `page` と `layout` のファイルは除く（画面そのものであり、ダイアログの部品ではない） | `ダイアログ` |
+| ダイアログ | `reverse_imports.jsonl` の `file` が `rules.dialog_imports`（ダイアログ部品のパスの前方一致のリスト）のどれかで始まる行の、`imported_by` のファイル。ただし `page` と `layout` のファイルは除く（画面そのものであり、ダイアログの部品ではない） | `ダイアログ` |
 | 申告された画面 | `rules.extra` に書かれたもの（4.5） | `画面` |
 
 ### 4.2 画面のキーと ID
@@ -129,6 +129,7 @@ run = ["coverage"]
 ```
 
 - ロールの値は、`.qa/product.md` のロール表と同じものを使う
+- `rules.roles` は必須。無ければ `ConfigError`（`init` を勧める）。`rules.dialog_imports` が空なら、ダイアログの候補は無い
 - code-map の出力（`output/code-map/`）が無い、または古い（`manifest.json` の `source.commit` が、今のコミットと違う）ときは、そのことを伝えて止まる（F2）
 
 ## 7. 人の裁定 `output/screen-list/adjudications.json`
@@ -161,6 +162,10 @@ run = ["coverage"]
 | `MANIFEST` | manifest.json が無い、または必須のキーが欠けている |
 
 `stats`：`candidates` `rows` `unresolved`（`[未解決: …]` を含む行の数）`dialogs`。
+
+**確かめられること**：CSV が、候補（＋申告された画面、− 除外）と完全に一致していること。AI の part の抜け・余り、手での編集、古い CSV を見つける。
+
+**確かめられないこと**：候補の列挙そのものの正しさ。「検査が通った」は、「画面が全部ある」ことを意味しない。列挙の正しさは、プラットフォーム定義のテスト（`tests/` の fixture：ルートグループ、動的セグメント、`_` と `@` のフォルダ、ダイアログなど）で確かめる。
 
 ## 9. manifest.json（C5）
 
