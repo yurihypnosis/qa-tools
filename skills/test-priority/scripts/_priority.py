@@ -68,6 +68,8 @@ def load_config(path):
     if not isinstance(raw["platform"], str):
         raise ConfigError("platform は文字列（プラットフォーム定義の名前）")
     source, output, rules = raw["source"], raw["output"], raw["rules"]
+    if source.get("repo") != ".":
+        raise ConfigError(f"source.repo は \".\" （利用側プロジェクト自身）: {source.get('repo')!r}")
     for table, key in ((source, "source.cases_glob"), (output, "output.dir")):
         if not isinstance(table.get(key.split(".")[1]), str):
             raise ConfigError(f"{key} が無い")
@@ -164,8 +166,29 @@ def write_jsonl(path, rows):
 
 
 def read_adjudications(config):
+    """人の裁定を読んで検証する（仕様書 7）。誤りは InputError（どのケースのどのキーか）。"""
     path = config["out_dir"] / "adjudications.json"
-    return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+    if not path.is_file():
+        return {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        raise InputError(f"{path.name} を JSON として読めない: {error}") from None
+    if not isinstance(data, dict):
+        raise InputError(f"{path.name} は {{ケース: 裁定 }} の形")
+    for case, adj in data.items():
+        where = f"{path.name} の {case}"
+        if not isinstance(adj, dict) or not set(adj) <= {"重要度", "規模", "理由"}:
+            raise InputError(f"{where}: キーは 重要度・規模・理由 だけ")
+        if not (isinstance(adj.get("理由"), str) and adj["理由"].strip()):
+            raise InputError(f"{where}: 理由が必須")
+        if "重要度" not in adj and "規模" not in adj:
+            raise InputError(f"{where}: 重要度か規模のどちらかが必要")
+        if "重要度" in adj and adj["重要度"] not in tuple(level_name(l) for l in LEVELS):
+            raise InputError(f"{where}: 重要度は R1〜R4: {adj['重要度']!r}")
+        if "規模" in adj and adj["規模"] not in (*SCALES, EXCLUDED):
+            raise InputError(f"{where}: 規模は {[*SCALES, EXCLUDED]} のどれか: {adj['規模']!r}")
+    return data
 
 
 # --- 決定 ---------------------------------------------------------------------
@@ -333,6 +356,9 @@ def check(config, skip_manifest=False):
             raise InputError(f"{path} が無い。先に build か export を実行する")
     run = config["checks"].get("run", [])
     imp, rev = read_csv(paths["import.csv"]), read_csv(paths["review.csv"])
+    for name, table in (("import.csv", imp), ("review.csv", rev)):
+        if not table:
+            raise InputError(f"{paths[name]} が空")
     rev_header = review_header(config)
     if rev[0] != rev_header:
         raise InputError(f"{paths['review.csv']} の列が決まった列と違う")

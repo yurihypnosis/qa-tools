@@ -377,3 +377,54 @@ class SampleOutputTest(unittest.TestCase):
         import hashlib
         self.assertEqual(data["config_hash"], "sha256:" + hashlib.sha256(self.config["path"].read_bytes()).hexdigest())
         self.assertEqual(data["source"]["hash"], pr.source_hash(self.config))
+
+
+class HardeningTest(unittest.TestCase):
+    """レビューで見つかった、仕様書が決めているのに確かめていなかったところ。"""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.p = Project(self.tmp.name)
+
+    def adjudicate(self, value):
+        self.p.write_judgments()
+        self.p.out.mkdir(parents=True, exist_ok=True)
+        (self.p.out / "adjudications.json").write_text(json.dumps(value, ensure_ascii=False), encoding="utf-8")
+        return self.p.run("decide.py")
+
+    def test_adjudications_are_validated_against_the_spec(self):
+        bad = [
+            {"T-1": {"規模": "対象外"}},                       # 理由が無い
+            {"T-1": {"規模": "huge", "理由": "x"}},           # 規模が語彙の外
+            {"T-1": {"重要度": "R9", "理由": "x"}},           # 重要度が語彙の外
+            {"T-1": {"理由": "x"}},                           # 重要度も規模も無い
+            {"T-1": {"重要度": "R1", "理由": "x", "他": 1}},  # 知らないキー
+        ]
+        for value in bad:
+            with self.subTest(value=value):
+                code, _, err = self.adjudicate(value)
+                self.assertEqual(code, 2, err)
+                self.assertIn("T-1", err)
+
+    def test_a_valid_adjudication_is_accepted(self):
+        code, out, err = self.adjudicate({"T-1": {"重要度": "R1", "規模": "smoke", "理由": "監査対象"}})
+        self.assertEqual(code, 0, err)
+        self.assertIn('"scale": "smoke"', out)
+
+    def test_source_repo_other_than_dot_is_a_config_error(self):
+        text = self.p.config.read_text(encoding="utf-8").replace('repo = "."', 'repo = "other-app"')
+        self.p.config.write_text(text, encoding="utf-8")
+        code, _, err = self.p.run("load_cases.py")
+        self.assertEqual(code, 2)
+        self.assertIn("repo", err)
+
+    def test_empty_or_truncated_csvs_are_input_errors_not_tracebacks(self):
+        self.p.build()
+        for name, content in (("import.csv", ""), ("review.csv", ""), ("review.csv", "a,b\n")):
+            with self.subTest(name=name, content=content):
+                (self.p.out / name).write_text(content, encoding="utf-8")
+                code, _, err = self.p.run("check_priority.py", "--no-manifest")
+                self.assertEqual(code, 2)
+                self.assertNotIn("Traceback", err)
+                self.p.build()

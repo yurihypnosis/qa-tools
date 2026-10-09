@@ -24,7 +24,7 @@
 
 1. **load**：`python3 <skill>/scripts/load_cases.py --config .qa/test-priority.toml --fresh` を実行する。終了コードが 2 なら、メッセージを QA に見せて止まる（設定が無ければ `init` を勧める）。件数を控える。
 2. **judge**：`references/judge.md` を読み、全ケースの判断を下書き `output/test-priority/_raw/judge.draft.jsonl` に書き、取り込む。
-3. **decide**：`python3 <skill>/scripts/decide.py --config .qa/test-priority.toml` を実行する。出力（1 ケース 1 行の JSON）が、explain の入力になる。終了コードが 2 なら、メッセージを見せて止まる。
+3. **decide**：`python3 <skill>/scripts/decide.py --config .qa/test-priority.toml` を実行する。出力（1 ケース 1 行の JSON）が、explain の入力になる。終了コードが 2 のとき、メッセージが「判断が無い、または古いケース」の一覧なら、その一覧のケースだけを下書きに書いて取り込み直し（1 回まで）、decide をやり直す。それ以外のメッセージなら、見せて止まる。
 4. **explain**：`references/explain.md` を読み、全ケースの理由文を下書き `output/test-priority/_raw/explain.draft.jsonl` に書き、取り込む。
 5. **export**：`python3 <skill>/scripts/export.py --config .qa/test-priority.toml` を実行する。「理由が無い」で止まったら、そのケースだけ explain をやり直す（1 回まで）。
 6. **finish**：`python3 <skill>/scripts/finish.py --config .qa/test-priority.toml` を実行する。
