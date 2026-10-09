@@ -2,7 +2,7 @@
 
 新しいツールを作るときに、全ツールで同じにしなければならない形（コマンド・設定・出力・記録・検査）を決める。ツールを作る人と AI は、この文書と [glossary.md](glossary.md) だけを見れば入出力の形が分かる。
 
-- **対象**：これから作るツール（test-steps・test-priority・code-map・screen-list）
+- **対象**：これから作るツール（test-priority・code-map・screen-list）
 - **対象外**：test-case-generator（v0.4.0 より前に作った）。C4 の出力ディレクトリ `output/` だけは同じで、それ以外の約束にはまだ合わせていない
 - **ルールの強さ**：「必須」「禁止」は [principles.md](principles.md) と同じ意味。外すときは PR に理由を書く
 
@@ -37,7 +37,7 @@
 | `update` | manifest の `source` から変わった入力に対応する項目だけ作り直す | 変わった項目と manifest.json | 変わっていない項目 |
 | `check` | 成果物を検査して結果を表示する | なし | すべて |
 
-**例**：`/qa-tools:test-steps build`、`/qa-tools:code-map build --stage extract`
+**例**：`/qa-tools:test-priority build`、`/qa-tools:code-map build --stage extract`
 
 ## C2. 実行の最後
 
@@ -56,21 +56,21 @@
 1. 置き場所は利用側プロジェクトの `.qa/<ツール名>.toml`
 2. 最上位のキーは次の 4 つだけ。ツールごとに違うのは、各キーの下の中身
 
-| キー | 意味 | 例（test-steps） |
+| キー | 意味 | 例（code-map でサンプルアプリを読む） |
 | --- | --- | --- |
-| `source` | 何を読むか | `repo = "."`、`spec_glob = "app/e2e/**/*.spec.ts"` |
-| `output` | どこに書くか | `dir = "output/test-steps"` |
-| `platform` | どの方式で作るか（ツールごとに選べる値が決まっている） | `"playwright-ts"` |
-| `checks` | どの検査を実行するか。型は表で固定：`run` に検査の名前の配列を書き、検査ごとの設定が要るときは `[checks.<名前>]` に書く | `[checks]` の下に `run = ["sections", "one-to-one"]` |
+| `source` | 何を読むか | `repo = "my-learning-app"`、`root = "src"` |
+| `output` | どこに書くか | `dir = "output/code-map"` |
+| `platform` | どの方式で作るか（ツールごとに選べる値が決まっている） | `"typescript"` |
+| `checks` | どの検査を実行するか。型は表で固定：`run` に検査の名前の配列を書き、検査ごとの設定が要るときは `[checks.<名前>]` に書く | `[checks]` の下に `run = ["public-files"]` |
 
 3. `source.repo` は、読むソースがどこにあるかを名前で指す
-   - 利用側プロジェクトそのものを読むときは `repo = "."`（ダミー製品はこれ）
-   - 別のリポジトリを読むときは名前を書き（例：`repo = "other-app"`）、その絶対パスを**個人設定ファイル** `.qa/local.toml` に書く。共有の設定ファイルに絶対パスを書くのは禁止
+   - 利用側プロジェクトそのものを読むときは `repo = "."`
+   - 別のリポジトリを読むときは名前を書き（例：`repo = "my-learning-app"`）、その絶対パスを**個人設定ファイル** `.qa/local.toml` に書く。共有の設定ファイルに絶対パスを書くのは禁止
 
 ```toml
 # .qa/local.toml（git に入れない）
 [repos]
-other-app = "/Users/me/work/other-app"
+my-learning-app = "/Users/me/work/my-learning-app"
 ```
 
 4. 設定ファイルが無い、またはキーが足りないときは、既定値で続けずに止まり、`init` を実行するよう伝える
@@ -82,7 +82,6 @@ other-app = "/Users/me/work/other-app"
 ```
 output/
 ├── DUMMY-001/        test-case-generator（PBI ごと。この約束より前からある形）
-├── test-steps/       manifest.json、index.md、手順書 *.md
 ├── test-priority/    manifest.json、取り込み用 CSV、レビュー用 CSV、adjudications.json
 ├── code-map/         manifest.json、index.md、modules/、lookup/、_raw/（中間ファイル）
 └── screen-list/      manifest.json、screens.csv、adjudications.json
@@ -103,18 +102,18 @@ output/
 | `generated_by` | オブジェクト | 項目を何で作ったかの件数。キーは `claude`（AI）、`script`（スクリプト）、`carried`（前回から引き継ぎ）、`local`（ローカル LLM、experimental） |
 | `items` | 整数 | 項目の数。`generated_by` の合計と一致する |
 
-**例**（screen-list、ダミー製品で build した直後）
+**例**（screen-list、サンプルアプリで build した直後）
 
 ```json
 {
   "tool": "screen-list",
   "version": 1,
-  "source": { "repo": ".", "commit": "3f2a9c1" },
+  "source": { "repo": "my-learning-app", "commit": "3f2a9c1" },
   "config_hash": "sha256:9b1e0c…",
-  "inputs": { "code-map": { "repo": ".", "commit": "3f2a9c1" } },
+  "inputs": { "code-map": { "repo": "my-learning-app", "commit": "3f2a9c1" } },
   "generated_at": "2026-10-09T10:00:00+09:00",
-  "generated_by": { "claude": 8, "script": 0, "carried": 0, "local": 0 },
-  "items": 8
+  "generated_by": { "claude": 10, "script": 0, "carried": 0, "local": 0 },
+  "items": 10
 }
 ```
 
@@ -135,7 +134,7 @@ output/
 終了コード：`0` = 指摘なし、`1` = 指摘あり、`2` = 入力エラー（ファイルが無いなど）
 
 ```json
-{"check": "check_steps", "file": "output/test-steps", "status": "fail", "findings": [{"code": "SECTION", "file": "app/e2e/login.md", "line": 12, "section": "補足"}], "stats": {"documents": 3, "unresolved": 2}}
+{"check": "check_priority", "file": "output/test-priority/import.csv", "status": "fail", "findings": [{"code": "EXCLUDED_ROW", "line": 12, "case": "DUMMY-001-TC-031"}], "stats": {"rows": 47, "unresolved": 2}}
 ```
 
 ## C7. core の呼び方
@@ -149,8 +148,8 @@ output/
 
 | ファイル | やること | 最初に使うツール（Issue） |
 | --- | --- | --- |
-| `core/manifest.py` | manifest.json の読み書き、設定ファイルのハッシュ | test-steps（#10） |
-| `core/plan.py` | manifest のコミットから今までに変わったファイルの一覧 | test-steps（#11） |
+| `core/manifest.py` | manifest.json の読み書き、設定ファイルのハッシュ | test-priority（#14） |
+| `core/plan.py` | manifest のコミットから今までに変わったファイルの一覧 | code-map（#20） |
 | `core/carry.py` | 前回の項目を「キー ＋ 内容のハッシュ」で比べて引き継ぐ。裁定の記録 | test-priority（#15） |
 | `core/screen_id.py` | 画面 ID を作る・画面 ID から CSV の行を引く | screen-list（#24） |
 
@@ -166,7 +165,7 @@ output/
 
 1. `python3 -m unittest discover -s tests -t .` が通る
 2. `claude plugin validate .` が通る
-3. ダミー製品で E2E を 1 回以上実行し、出力を `examples/dummy-product/sample-output/<ツール名>/` に置く
+3. E2E を 1 回以上実行し、出力例を置く。ソースコードを読むツールはサンプルアプリ（my-learning-app）で実行し `examples/my-learning-app/sample-output/<ツール名>/` に、テストケースを読むツールは `examples/dummy-product/` で実行し `examples/dummy-product/sample-output/<ツール名>/` に置く
 4. `skills/<ツール名>/evals/evals.json` に挙動評価のケースを 2 つ以上書く
 5. README の「構成」と使い方を更新する。ツールの受け渡しが変わったら `docs/architecture/` の図も更新する
 6. `.claude-plugin/plugin.json` の `version` を上げる

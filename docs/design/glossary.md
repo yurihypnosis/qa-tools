@@ -7,20 +7,21 @@ docs/design/ の文書と、qa-tools の Issue で使う言葉の定義。**こ�
 | 用語 | 定義 | 例 |
 | --- | --- | --- |
 | プラグインのディレクトリ | このリポジトリ（qa-tools）を clone した場所。読み取り専用として扱い、実行中に書き込まない | `~/work/qa-tools/` |
-| 利用側プロジェクト | qa-tools を使う側のリポジトリ。Claude Code をここで起動する。設定・入力・出力はすべてここにある | `examples/dummy-product/` をコピーした `/tmp/dummy-product/` |
-| 設定ファイル | 利用側プロジェクトの `.qa/<ツール名>.toml`。ツールごとに 1 つ | `.qa/test-steps.toml` |
-| 個人設定ファイル | 利用側プロジェクトの `.qa/local.toml`。人によって違う値（絶対パス）だけを書く。git に入れない | `[repos] other-app = "/Users/me/other-app"` |
-| 出力ディレクトリ | 利用側プロジェクトの `output/<ツール名>/`。ツールが書き込むのはここだけ | `output/test-steps/` |
+| 利用側プロジェクト | qa-tools を使う側のディレクトリ。Claude Code をここで起動する。設定と出力はここにある。読むソースコードは、ここか、個人設定ファイルで指した別のリポジトリにある | `examples/dummy-product/` をコピーした `/tmp/dummy-product/` |
+| 設定ファイル | 利用側プロジェクトの `.qa/<ツール名>.toml`。ツールごとに 1 つ | `.qa/code-map.toml` |
+| 個人設定ファイル | 利用側プロジェクトの `.qa/local.toml`。人によって違う値（絶対パス）だけを書く。git に入れない | `[repos] my-learning-app = "/Users/me/my-learning-app"` |
+| 出力ディレクトリ | 利用側プロジェクトの `output/<ツール名>/`。ツールが書き込むのはここだけ | `output/code-map/` |
 | core | プラグインのディレクトリ直下の `core/`。2 つ以上のツールが使う Python スクリプトを置く | `core/manifest.py` |
+| サンプルアプリ | ソースコードを読むツール（code-map・screen-list）を試すときの入力にするアプリ。[yurihypnosis/my-learning-app](https://github.com/yurihypnosis/my-learning-app)（Next.js・TypeScript） | — |
 
 ## ツールと操作
 
 | 用語 | 定義 | 例 |
 | --- | --- | --- |
-| ツール | `skills/<ツール名>/` にある 1 つの skill。1 つの成果物を作る | test-steps（Playwright の spec → 手順書） |
-| 動詞 | ツールに渡す引数の最初の語。`init` / `build` / `update` / `check` の 4 つ | `/qa-tools:test-steps build` の `build` |
-| 成果物 | ツールが出力ディレクトリに書くファイルのうち、人や他のツールが使うもの | test-steps の手順書 `output/test-steps/e2e/login.md` |
-| 項目 | 成果物を数える単位。ツールごとに決まっている | test-steps は手順書 1 本、screen-list は CSV の 1 行 |
+| ツール | `skills/<ツール名>/` にある 1 つの skill。1 つの成果物を作る | screen-list（ソースコード → 画面一覧 CSV） |
+| 動詞 | ツールに渡す引数の最初の語。`init` / `build` / `update` / `check` の 4 つ | `/qa-tools:code-map build` の `build` |
+| 成果物 | ツールが出力ディレクトリに書くファイルのうち、人や他のツールが使うもの | screen-list の `output/screen-list/screens.csv` |
+| 項目 | 成果物を数える単位。ツールごとに決まっている | code-map はモジュール 1 つ、screen-list と test-priority は CSV の 1 行 |
 | 中間ファイル | 成果物を作る途中でツールが書くファイル。他のツールは読まない | code-map の `output/code-map/_raw/` |
 
 ## 記録と検査
@@ -39,9 +40,9 @@ docs/design/ の文書と、qa-tools の Issue で使う言葉の定義。**こ�
 
 | 用語 | 定義 | 例 |
 | --- | --- | --- |
-| 画面 | ルート定義の 1 エントリで表示されるページ。今は Web（web-react）だけを対象にした定義で、他のプラットフォームを足すときに広げる | `/tasks/new`（タスク作成画面） |
-| ダイアログ | 画面の上に開く部品で、独立した URL を持たないもの | タスク削除の確認ダイアログ |
-| 画面 ID | screen-list が画面とダイアログに付ける識別子。ソースコード上の場所から機械的に作り、画面名を変えても変わらない | `web/tasks/new`、`web/tasks#DeleteTaskDialog` |
+| 画面 | URL で開けるページ。Next.js App Router では `page.tsx` 1 つが 1 画面。URL を変えずにページの中で切り替わる表示をどう数えるかは、screen-list の仕様（#22）で決める | `/catalog`（`src/app/(main)/catalog/page.tsx`） |
+| ダイアログ | 画面の上に開く部品で、独立した URL を持たないもの | 削除の確認ダイアログ |
+| 画面 ID | screen-list が画面とダイアログに付ける識別子。URL のパスなどソースコード上の場所から機械的に作り、画面名を変えても変わらない。作り方は [data-flow.md](data-flow.md) の「画面 ID」 | `web/catalog` |
 | 未解決マーカー | 情報が足りず決められなかった箇所に書く文字列。`[未解決: 理由]` の形 | `[未解決: fixture の中身が分からない]` |
 
 ## ツール名
@@ -49,7 +50,6 @@ docs/design/ の文書と、qa-tools の Issue で使う言葉の定義。**こ�
 | ツール名 | 状態 | 入力 → 成果物 |
 | --- | --- | --- |
 | test-case-generator | 実装済み | PBI の資料 → テストケース（15 列の Markdown 表） |
-| test-steps | 未実装（v0.5.0） | Playwright の spec → 手順書（Markdown） |
-| test-priority | 未実装（v0.6.0） | テストケース → 重要度と規模の CSV |
-| code-map | 未実装（v0.7.0） | ソースコード → コードの索引と要約（Markdown ＋ JSONL） |
-| screen-list | 未実装（v0.9.0） | ソースコード → 画面一覧 CSV |
+| test-priority | 未実装（v0.5.0） | テストケース → 重要度と規模の CSV |
+| code-map | 未実装（v0.6.0） | ソースコード → コードの索引と要約（Markdown ＋ JSONL） |
+| screen-list | 未実装（v0.8.0） | ソースコード → 画面一覧 CSV |
