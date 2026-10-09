@@ -12,24 +12,10 @@
       "id": "source",
       "type": "external",
       "label": "ソースコード",
-      "sublabel": "対象リポジトリ",
+      "sublabel": "例：サンプルアプリ",
       "pos": [
         60,
         140
-      ],
-      "size": [
-        140,
-        64
-      ]
-    },
-    {
-      "id": "e2e",
-      "type": "external",
-      "label": "Playwright spec",
-      "sublabel": "e2e/**/*.spec.ts",
-      "pos": [
-        60,
-        500
       ],
       "size": [
         140,
@@ -54,7 +40,7 @@
       "id": "codemap",
       "type": "backend",
       "label": "code-map",
-      "sublabel": "索引と要約（lookup/）",
+      "sublabel": "索引と要約（言語の単位）",
       "tag": "コードの地図",
       "pos": [
         340,
@@ -74,21 +60,6 @@
       "pos": [
         340,
         310
-      ],
-      "size": [
-        200,
-        84
-      ]
-    },
-    {
-      "id": "teststeps",
-      "type": "backend",
-      "label": "test-steps",
-      "sublabel": "手順書 *.md",
-      "tag": "操作の地図",
-      "pos": [
-        340,
-        490
       ],
       "size": [
         200,
@@ -130,7 +101,6 @@
       "label": "入力（利用側プロジェクト）",
       "wraps": [
         "source",
-        "e2e",
         "pbi"
       ]
     },
@@ -140,7 +110,6 @@
       "wraps": [
         "codemap",
         "screenlist",
-        "teststeps",
         "tcg",
         "priority"
       ]
@@ -157,13 +126,7 @@
       "id": "src-sl",
       "from": "source",
       "to": "screenlist",
-      "label": "画面の有無と名前"
-    },
-    {
-      "id": "e2e-ts",
-      "from": "e2e",
-      "to": "teststeps",
-      "label": "読む"
+      "label": "画面の候補（プラットフォーム定義）"
     },
     {
       "id": "pbi-tcg",
@@ -175,49 +138,27 @@
       "id": "cm-sl",
       "from": "codemap",
       "to": "screenlist",
-      "label": "F1 routes.jsonl",
-      "variant": "emphasis"
-    },
-    {
-      "id": "sl-ts",
-      "from": "screenlist",
-      "to": "teststeps",
-      "label": "F3 画面ID・URL",
+      "label": "F1・F2 tree.md",
       "variant": "emphasis"
     },
     {
       "id": "sl-pr",
       "from": "screenlist",
       "to": "priority",
-      "label": "F7 画面ID・画面名",
+      "label": "F4 画面ID・画面名",
       "variant": "emphasis"
-    },
-    {
-      "id": "ts-pr",
-      "from": "teststeps",
-      "to": "priority",
-      "label": "F6 手順書"
     },
     {
       "id": "tcg-pr",
       "from": "tcg",
       "to": "priority",
-      "label": "F5 テストケース"
-    },
-    {
-      "id": "cm-ts",
-      "from": "codemap",
-      "to": "teststeps",
-      "label": "F4 tree.md",
-      "variant": "dashed",
-      "fromSide": "right",
-      "toSide": "right"
+      "label": "F3 テストケース"
     }
   ],
   "cards": [
     {
       "dot": "cyan",
-      "title": "矢印の F1〜F7",
+      "title": "矢印の F1〜F4",
       "items": [
         "data-flow.md の「公開ファイルの一覧」の ID",
         "他のツールが読んでよいのはこれだけ"
@@ -229,16 +170,15 @@
       "items": [
         "1. code-map",
         "2. screen-list",
-        "3. test-steps",
-        "4. test-priority"
+        "3. test-priority"
       ]
     },
     {
       "dot": "rose",
-      "title": "図に無いもの",
+      "title": "アプリの種類による違い",
       "items": [
-        "core/：全ツールが使う共通処理",
-        "code-map は screen-list を読まない（循環させない）"
+        "各ツールの platforms/ にだけ置く",
+        "code-map は言語、screen-list は UI フレームワーク"
       ]
     }
   ]

@@ -64,7 +64,7 @@ docs/architecture/       アーキテクチャ図（archify）
 tests/                   検査スクリプトと skill 構造のテスト
 ```
 
-設計の考え方は次の 4 点である。今後追加するツール（test-steps・test-priority・code-map・screen-list）も含めた原則と約束ごとは、[docs/design/](docs/design/principles.md) にまとめてある。
+設計の考え方は次の 4 点である。今後追加するツール（test-priority・code-map・screen-list）も含めた原則と約束ごとは、[docs/design/](docs/design/principles.md) にまとめてある。
 
 - **汎用のプロセスと製品コンテキストを分ける。** skill は製品を知らない。製品固有の値は利用側の `.qa/` に置く
 - **Step ごとに必要なものだけを読む。** SKILL.md は流れとゲートだけを持ち、各 Step の詳細は references に分ける。references の冒頭は「契約（入力・出力・検査・次）」で揃えてあり、将来 Step を独立した skill に昇格できる
