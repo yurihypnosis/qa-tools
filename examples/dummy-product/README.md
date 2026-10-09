@@ -2,7 +2,7 @@
 
 > ⚠️ このファイルはテスト用のダミー情報です。実在の製品・仕様ではありません。
 
-`test-case-generator` skill を試すための、架空の製品「DUMMY ToDo Cloud」の利用側プロジェクト。
+qa-tools の skill を試すための、架空の製品「DUMMY ToDo Cloud」の利用側プロジェクト。
 プラグインの外にコピーしてから、そのディレクトリで Claude Code を起動して使う（手順はリポジトリ直下の README を参照）。
 
 | パス | 役割 |
@@ -10,6 +10,7 @@
 | `.qa/product.md` | 製品コンテキスト（チケット接頭辞・領域コード・ロール） |
 | `.qa/knowledge/` | 既存機能のナレッジ（画面名・ボタン名・エラー文言の出典） |
 | `PBI/DUMMY-001/` | サンプル PBI |
+| `app/` | ダミーアプリのソース。test-steps・code-map・screen-list の入力（[app/README.md](app/README.md)） |
 | `output/` | 成果物の出力先（git 管理外） |
 | `sample-output/DUMMY-001/` | 実際に実行して得た出力例。検査スクリプトの回帰テストにも使う |
 

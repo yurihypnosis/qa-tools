@@ -1,0 +1,15 @@
+{
+  "//": "⚠️ テスト用のダミーです。実在の製品・仕様ではありません。",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "baseUrl": ".",
+    "paths": {
+      "@fixtures/*": ["e2e/fixtures/*"]
+    }
+  },
+  "include": ["src", "e2e"]
+}
