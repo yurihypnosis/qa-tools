@@ -18,6 +18,8 @@ Supabase のデータベース定義。テーブルごとの行・挿入・更�
 | src/types/database.ts | 378 | type | InsertTables |
 | src/types/database.ts | 380 | type | UpdateTables |
 
+代表ファイルのシンボルだけを示す。全部は `lookup/symbol_index.tsv`（このモジュールは 5 個）。
+
 ## 依存先
 
 （なし）

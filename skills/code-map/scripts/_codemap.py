@@ -253,8 +253,10 @@ def assemble(config):
         if old.name not in keep:
             old.unlink()
     for name, m in modules.items():
-        symbols = [f"| {s['file']} | {s['line']} | {s['kind']} | {s['name']} |" for s in m["symbols"]]
+        shown = {r["path"] for r in m["representatives"]}  # 全件は lookup/symbol_index.tsv にある。ここは読むために小さく保つ
+        symbols = [f"| {s['file']} | {s['line']} | {s['kind']} | {s['name']} |" for s in m["symbols"] if s["file"] in shown]
         table = "| ファイル | 行 | 種類 | 名前 |\n| --- | --- | --- | --- |\n" + "\n".join(symbols) if symbols else "（なし）"
+        table += f"\n\n代表ファイルのシンボルだけを示す。全部は `lookup/symbol_index.tsv`（このモジュールは {len(m['symbols'])} 個）。"
         text = "\n".join([
             f"# {name}", "", "## 役割", "", roles[name]["role"], "",
             "## 主なファイル", "", listing([f"- `{r['path']}`（被参照 {r['imported_by']}）" for r in m["representatives"]]), "",

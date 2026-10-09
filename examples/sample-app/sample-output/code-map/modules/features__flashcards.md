@@ -16,7 +16,6 @@
 
 | ファイル | 行 | 種類 | 名前 |
 | --- | --- | --- | --- |
-| src/features/flashcards/components/filter-chip.tsx | 1 | function | FilterChip |
 | src/features/flashcards/hooks/use-deck-filter.ts | 7 | type | Scope |
 | src/features/flashcards/hooks/use-deck-filter.ts | 14 | function | useDeckFilter |
 | src/features/flashcards/hooks/use-flashcard-session.ts | 16 | type | Phase |
@@ -39,9 +38,8 @@
 | src/features/flashcards/lib/flashcards.ts | 38 | function | categoryColor |
 | src/features/flashcards/lib/flashcards.ts | 346 | const | FLASHCARD_DECKS |
 | src/features/flashcards/lib/flashcards.ts | 352 | function | deckByKey |
-| src/features/flashcards/screens/done-screen.tsx | 10 | function | DoneScreen |
-| src/features/flashcards/screens/session-screen.tsx | 11 | function | SessionScreen |
-| src/features/flashcards/screens/setup-screen.tsx | 16 | function | SetupScreen |
+
+代表ファイルのシンボルだけを示す。全部は `lookup/symbol_index.tsv`（このモジュールは 26 個）。
 
 ## 依存先
 

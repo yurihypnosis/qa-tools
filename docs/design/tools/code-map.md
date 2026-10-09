@@ -79,7 +79,7 @@
 （スクリプト）代表ファイル（被参照数の多い上位 `rules.representatives` 個）と被参照数
 
 ## 公開シンボル
-（スクリプト）symbol_index.tsv から
+（スクリプト）代表ファイルの公開シンボルと、モジュール全体の個数。全部は symbol_index.tsv
 
 ## 依存先
 （スクリプト）import している他のモジュールと、import 数

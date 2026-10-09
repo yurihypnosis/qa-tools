@@ -60,7 +60,9 @@ def main(argv=None):
             return report(findings, stats, config, args.json)
         else:
             findings, stats = cm.finish(config)
-            return report(findings, stats, config, True) if findings else (print("manifest.json を書いた"), 0)[1]
+            if findings:
+                return report(findings, stats, config, True)
+            print("manifest.json を書いた")
     except (ValueError, OSError) as error:
         print(error, file=sys.stderr)
         return 2

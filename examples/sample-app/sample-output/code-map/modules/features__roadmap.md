@@ -23,6 +23,8 @@
 | src/features/roadmap/lib/roadmap.ts | 86 | function | isRoadmapDoc |
 | src/features/roadmap/lib/roadmap.ts | 93 | function | newId |
 
+代表ファイルのシンボルだけを示す。全部は `lookup/symbol_index.tsv`（このモジュールは 10 個）。
+
 ## 依存先
 
 （なし）

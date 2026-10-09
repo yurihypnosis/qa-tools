@@ -17,6 +17,8 @@
 | src/app/api/fsrs/backfill/route.ts | 11 | function | POST |
 | src/app/api/questions/route.ts | 6 | function | POST |
 
+代表ファイルのシンボルだけを示す。全部は `lookup/symbol_index.tsv`（このモジュールは 3 個）。
+
 ## 依存先
 
 - `features/quiz`（2 import）

@@ -17,6 +17,8 @@
 | src/shared/components/app-shell.tsx | 50 | interface | ShellExam |
 | src/shared/components/app-shell.tsx | 157 | function | AppShell |
 
+代表ファイルのシンボルだけを示す。全部は `lookup/symbol_index.tsv`（このモジュールは 4 個）。
+
 ## 依存先
 
 - `shared/lib`（1 import）

@@ -18,6 +18,8 @@ G検定チートシートの用語データの型と、用語を一覧して関�
 | src/features/g-kentei-cheatsheet/lib/types.ts | 18 | interface | ComparisonGroup |
 | src/features/g-kentei-cheatsheet/screens/cheatsheet-screen.tsx | 172 | function | CheatsheetScreen |
 
+代表ファイルのシンボルだけを示す。全部は `lookup/symbol_index.tsv`（このモジュールは 4 個）。
+
 ## 依存先
 
 （なし）

@@ -28,6 +28,8 @@
 | src/features/code-tour/lib/code-tour.ts | 72 | interface | CtTopic |
 | src/features/code-tour/lib/code-tour.ts | 84 | const | CODE_TOUR_DATA |
 
+代表ファイルのシンボルだけを示す。全部は `lookup/symbol_index.tsv`（このモジュールは 14 個）。
+
 ## 依存先
 
 （なし）

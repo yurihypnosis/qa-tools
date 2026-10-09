@@ -22,6 +22,8 @@ Supabase クライアントの生成（ブラウザ用、サーバ用、ミド�
 | src/shared/lib/supabase/server.ts | 46 | const | getSessionUser |
 | src/shared/lib/utils.ts | 4 | function | cn |
 
+代表ファイルのシンボルだけを示す。全部は `lookup/symbol_index.tsv`（このモジュールは 6 個）。
+
 ## 依存先
 
 - `types`（3 import）

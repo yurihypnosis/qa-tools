@@ -17,15 +17,8 @@
 | ファイル | 行 | 種類 | 名前 |
 | --- | --- | --- | --- |
 | src/app/(main)/catalog/catalog-client.tsx | 37 | function | CatalogClient |
-| src/app/(main)/catalog/page.tsx | 6 | const | dynamic |
-| src/app/(main)/catalog/page.tsx | 8 | function | CatalogPage |
 | src/app/(main)/code-tour/code-tour-client.tsx | 38 | function | CodeTourClient |
-| src/app/(main)/code-tour/page.tsx | 3 | function | CodeTourPage |
 | src/app/(main)/flashcards/flashcards-client.tsx | 13 | function | FlashcardsClient |
-| src/app/(main)/flashcards/page.tsx | 4 | const | dynamic |
-| src/app/(main)/flashcards/page.tsx | 6 | function | FlashcardsPage |
-| src/app/(main)/g-kentei/cheatsheet/page.tsx | 6 | function | GKenteiCheatsheetPage |
-| src/app/(main)/layout.tsx | 9 | function | MainLayout |
 | src/app/(main)/learning-app.tsx | 69 | function | LearningApp |
 | src/app/(main)/log/build-days.ts | 4 | interface | AnswerEvent |
 | src/app/(main)/log/build-days.ts | 13 | interface | DayEntry |
@@ -34,17 +27,8 @@
 | src/app/(main)/log/build-days.ts | 41 | function | shiftKey |
 | src/app/(main)/log/build-days.ts | 47 | function | buildDays |
 | src/app/(main)/log/build-days.ts | 103 | function | calcStreak |
-| src/app/(main)/log/log-client.tsx | 107 | function | LogClient |
-| src/app/(main)/log/page.tsx | 6 | const | dynamic |
-| src/app/(main)/log/page.tsx | 15 | function | LogPage |
-| src/app/(main)/mindset/mindset-client.tsx | 22 | function | MindsetClient |
-| src/app/(main)/mindset/page.tsx | 3 | function | MindsetPage |
-| src/app/(main)/overview-dashboard.tsx | 27 | function | OverviewDashboard |
-| src/app/(main)/page.tsx | 16 | const | dynamic |
-| src/app/(main)/page.tsx | 81 | function | HomePage |
-| src/app/(main)/roadmap/page.tsx | 12 | const | dynamic |
-| src/app/(main)/roadmap/page.tsx | 14 | function | RoadmapPage |
-| src/app/(main)/roadmap/roadmap-client.tsx | 55 | function | RoadmapClient |
+
+代表ファイルのシンボルだけを示す。全部は `lookup/symbol_index.tsv`（このモジュールは 29 個）。
 
 ## 依存先
 

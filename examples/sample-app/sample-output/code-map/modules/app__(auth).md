@@ -18,6 +18,8 @@
 | src/app/(auth)/login/page.tsx | 8 | function | LoginPage |
 | src/app/(auth)/register/page.tsx | 8 | function | RegisterPage |
 
+代表ファイルのシンボルだけを示す。全部は `lookup/symbol_index.tsv`（このモジュールは 3 個）。
+
 ## 依存先
 
 - `shared/lib`（2 import）

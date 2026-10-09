@@ -45,7 +45,7 @@ Python 3.11 以上と標準ライブラリだけで動く（`pip install` は要
 - [ ] 4 finish：検査に通り、manifest.json を書いた
 ```
 
-1. **extract**：`python3 <skill>/scripts/codemap.py extract --fresh`（`build`）または `extract`（`update`）。出力の JSON の `pending` が、役割を書くモジュールである。2 を終えるまで、`unresolved`（解決できなかった相対 import の件数）を控える。終了コードが 2 なら、メッセージを見せて止まる（設定が無ければ `init` を勧める）。
+1. **extract**：`python3 <skill>/scripts/codemap.py extract --fresh`（`build`）または `extract`（`update`）。出力の JSON の `pending` が、役割を書くモジュールである。出力の `unresolved`（解決できなかった相対 import の件数）は、完了報告のために控える。終了コードが 2 なら、メッセージを見せて止まる（設定が無ければ `init` を勧める）。
 2. **roles**：`pending` が空なら飛ばす。空でなければ `references/roles.md` を読み、`pending` のモジュールだけ役割を書いて取り込む。
 3. **assemble**：`python3 <skill>/scripts/codemap.py assemble`。
 4. **finish**：`python3 <skill>/scripts/codemap.py finish`。終了コード 1 なら、指摘（JSON）のモジュールだけを直して 2 から 1 回だけやり直す。それでも通らなければ、指摘を報告して止まる（manifest.json は書かれていない）。

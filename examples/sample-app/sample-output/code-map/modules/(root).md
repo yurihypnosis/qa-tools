@@ -15,6 +15,8 @@ Next.js のすべてのリクエストの前に動く前処理（proxy）を置�
 | src/proxy.ts | 4 | function | proxy |
 | src/proxy.ts | 8 | const | config |
 
+代表ファイルのシンボルだけを示す。全部は `lookup/symbol_index.tsv`（このモジュールは 2 個）。
+
 ## 依存先
 
 - `shared/lib`（1 import）

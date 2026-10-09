@@ -233,7 +233,9 @@ class RolesAndAssembleTest(unittest.TestCase):
         self.assertEqual(headings, ["## 役割", "## 主なファイル", "## 公開シンボル", "## 依存先", "## 依存元"])
         self.assertIn("クイズの計算を持つ。最初の文。次の文。", quiz)
         self.assertIn("## 主なファイル\n\n- `src/features/quiz/lib/format.ts`（被参照 3）", quiz)
-        self.assertIn("| src/features/quiz/lib/streak.ts | 2 | function | computeStreak |", quiz)
+        self.assertIn("| src/features/quiz/lib/streak.ts | 2 | function | computeStreak |", quiz)      # 代表ファイルのシンボル
+        self.assertIn("全部は `lookup/symbol_index.tsv`", quiz)
+        self.assertNotIn("| src/features/quiz/index.ts |", quiz)                                  # 代表ファイル以外は出ない（representatives = 2）
         self.assertIn("- `app`（1 import）", quiz)           # 依存元
         self.assertIn("## 依存先\n\n（なし）", quiz)
         index = (self.p.out / "index.md").read_text(encoding="utf-8")

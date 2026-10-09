@@ -16,6 +16,8 @@
 | src/app/layout.tsx | 10 | const | viewport |
 | src/app/layout.tsx | 16 | function | RootLayout |
 
+代表ファイルのシンボルだけを示す。全部は `lookup/symbol_index.tsv`（このモジュールは 3 個）。
+
 ## 依存先
 
 （なし）

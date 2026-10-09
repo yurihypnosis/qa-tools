@@ -17,6 +17,8 @@
 | src/features/mindset/lib/mindset.ts | 21 | const | CATEGORY_META |
 | src/features/mindset/lib/mindset.ts | 31 | const | MINDSET_DATA |
 
+代表ファイルのシンボルだけを示す。全部は `lookup/symbol_index.tsv`（このモジュールは 4 個）。
+
 ## 依存先
 
 （なし）
