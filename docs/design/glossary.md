@@ -7,7 +7,7 @@ docs/design/ の文書と、qa-tools の Issue で使う言葉の定義。**こ�
 | 用語 | 定義 | 例 |
 | --- | --- | --- |
 | プラグインのディレクトリ | このリポジトリ（qa-tools）を clone した場所。読み取り専用として扱い、実行中に書き込まない | `~/work/qa-tools/` |
-| 利用側プロジェクト | qa-tools を使う側のディレクトリ。Claude Code をここで起動する。設定と出力はここにある。読むソースコードは、ここか、個人設定ファイルで指した別のリポジトリにある | `examples/dummy-product/` をコピーした `/tmp/dummy-product/` |
+| 利用側プロジェクト | qa-tools を使う側のディレクトリ。Claude Code をここで起動する。設定と出力はここにある。読むソースコードは、ここか、個人設定ファイルで指した別のリポジトリにある | テストケースを読むとき：`examples/dummy-product/` をコピーした `/tmp/dummy-product/`。サンプルアプリを読むとき：`examples/my-learning-app/` をコピーしたディレクトリ（ソースは `.qa/local.toml` で指した my-learning-app の clone） |
 | 設定ファイル | 利用側プロジェクトの `.qa/<ツール名>.toml`。ツールごとに 1 つ | `.qa/code-map.toml` |
 | 個人設定ファイル | 利用側プロジェクトの `.qa/local.toml`。人によって違う値（絶対パス）だけを書く。git に入れない | `[repos] my-learning-app = "/Users/me/my-learning-app"` |
 | 出力ディレクトリ | 利用側プロジェクトの `output/<ツール名>/`。ツールが書き込むのはここだけ | `output/code-map/` |
