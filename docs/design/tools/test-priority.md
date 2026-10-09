@@ -24,7 +24,7 @@ test-case-generator の「重要度/Priority」列（High / Medium / Low）は�
 | 読む | `load` | スクリプト | テストケースの表 | 項目の一覧（メモリ上） |
 | 判定 | `judge` | AI | 新規・変更のあったケース | `_raw/judgments.jsonl` に 1 件 1 行 |
 | 決定 | `decide` | スクリプト | 項目の一覧、judgments.jsonl、設定、adjudications.json | 重要度・規模・代表か・要レビュー |
-| 理由 | `explain` | AI | 決定の結果 | judgments.jsonl の `reason` |
+| 理由 | `explain` | AI | 決定の結果。新規のケースと、`reason_level` が決定した重要度と違うケースだけ | judgments.jsonl の `reason` と `reason_level` |
 | 書き出し | `export` | スクリプト | 上のすべて | import.csv、review.csv、manifest.json |
 
 - AI がするのは、意味の判断（リスク軸・影響範囲・代表か応用か・理由文）だけ。重要度と規模は、AI の判断と設定から**スクリプトが計算する**（P3）
@@ -125,7 +125,7 @@ run = ["import-clean", "examples"]
 
 | キー | 型 | 意味 |
 | --- | --- | --- |
-| `group_by` | `"feature"` か `"screen"` | 代表を 1 件に絞る単位 |
+| `group_by` | `"feature"` か `"screen"` | 代表を 1 件に絞る単位。その値が空のケースは、グループ名 `(なし)` に入れる |
 | `areas.<領域コード>.emphasis` | 配列（`data` `permission` `blast`） | その領域で、重要度を上げる根拠にするリスク軸 |
 | `areas.<領域コード>.default` | 整数 1〜4 | 機能が重み表に無いときの開始点（推定になる） |
 | `areas.<領域コード>.weights` | 表（機能名 = 整数 1〜4） | 機能ごとの開始点。機能名は `feature` と完全一致 |
@@ -216,9 +216,9 @@ run = ["import-clean", "examples"]
 
 ### 8.3 そのほか
 
-- `manifest.json`（C5）：`generated_by` の `claude` は今回 AI が新しく判断した件数、`carried` は judgments.jsonl から使い回した件数、`script` は 0。`items` は review.csv の行数
+- `manifest.json`（C5）：`generated_by` の `claude` は、今回 AI が 1 回でも出力（判断か理由文）を作ったケースの件数、`carried` は 1 回も作らずに judgments.jsonl から使い回したケースの件数、`script` は 0。`claude` ＋ `carried` ＝ `items`（review.csv の行数）
 - `adjudications.json`：7
-- `_raw/judgments.jsonl`（中間ファイル。他のツールは読まない）：1 件 1 行。`{"case", "fingerprint", "axes", "impact", "kind", "reason"}`
+- `_raw/judgments.jsonl`（中間ファイル。他のツールは読まない）：1 件 1 行。`{"case", "fingerprint", "axes", "impact", "kind", "reason", "reason_level"}`。`reason_level` は理由文を書いたときの重要度
 
 ## 9. 検査 `check_priority.py`（C6 の形）
 
