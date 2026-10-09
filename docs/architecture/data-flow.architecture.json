@@ -1,0 +1,281 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "qa-tools：ツールのつながり",
+    "locale": "ja",
+    "output": "docs/architecture/data-flow.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    {
+      "id": "source",
+      "type": "external",
+      "label": "ソースコード",
+      "sublabel": "対象リポジトリ",
+      "pos": [
+        60,
+        140
+      ],
+      "size": [
+        140,
+        64
+      ]
+    },
+    {
+      "id": "help",
+      "type": "external",
+      "label": "ヘルプ記事",
+      "sublabel": "任意",
+      "pos": [
+        60,
+        320
+      ],
+      "size": [
+        140,
+        64
+      ]
+    },
+    {
+      "id": "e2e",
+      "type": "external",
+      "label": "Playwright spec",
+      "sublabel": "e2e/**/*.spec.ts",
+      "pos": [
+        60,
+        500
+      ],
+      "size": [
+        140,
+        64
+      ]
+    },
+    {
+      "id": "pbi",
+      "type": "external",
+      "label": "PBI の資料",
+      "sublabel": "PBI/{ID}/",
+      "pos": [
+        60,
+        660
+      ],
+      "size": [
+        140,
+        64
+      ]
+    },
+    {
+      "id": "codemap",
+      "type": "backend",
+      "label": "code-map",
+      "sublabel": "KB（lookup/routes.jsonl）",
+      "tag": "コードの地図",
+      "pos": [
+        340,
+        130
+      ],
+      "size": [
+        200,
+        84
+      ]
+    },
+    {
+      "id": "screenlist",
+      "type": "backend",
+      "label": "screen-list",
+      "sublabel": "screens.csv",
+      "tag": "画面 ID の持ち主",
+      "pos": [
+        340,
+        310
+      ],
+      "size": [
+        200,
+        84
+      ]
+    },
+    {
+      "id": "teststeps",
+      "type": "backend",
+      "label": "test-steps",
+      "sublabel": "手順書 *.md",
+      "tag": "操作の地図",
+      "pos": [
+        340,
+        490
+      ],
+      "size": [
+        200,
+        84
+      ]
+    },
+    {
+      "id": "tcg",
+      "type": "backend",
+      "label": "test-case-generator",
+      "sublabel": "4-testcases.md（15 列）",
+      "pos": [
+        340,
+        650
+      ],
+      "size": [
+        200,
+        84
+      ]
+    },
+    {
+      "id": "priority",
+      "type": "backend",
+      "label": "test-priority",
+      "sublabel": "重要度・規模の CSV",
+      "pos": [
+        680,
+        570
+      ],
+      "size": [
+        200,
+        84
+      ]
+    },
+    {
+      "id": "core",
+      "type": "security",
+      "label": "core/",
+      "sublabel": "manifest / plan / carry / screen_id",
+      "tag": "共通の骨格",
+      "pos": [
+        680,
+        290
+      ],
+      "size": [
+        220,
+        84
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "入力（利用側プロジェクト）",
+      "wraps": [
+        "source",
+        "help",
+        "e2e",
+        "pbi"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "qa-tools のツール",
+      "wraps": [
+        "codemap",
+        "screenlist",
+        "teststeps",
+        "tcg",
+        "priority"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "src-cm",
+      "from": "source",
+      "to": "codemap",
+      "label": "読む"
+    },
+    {
+      "id": "src-sl",
+      "from": "source",
+      "to": "screenlist",
+      "label": "画面の有無"
+    },
+    {
+      "id": "help-sl",
+      "from": "help",
+      "to": "screenlist",
+      "label": "目的",
+      "variant": "dashed"
+    },
+    {
+      "id": "e2e-ts",
+      "from": "e2e",
+      "to": "teststeps",
+      "label": "読む"
+    },
+    {
+      "id": "pbi-tcg",
+      "from": "pbi",
+      "to": "tcg",
+      "label": "読む"
+    },
+    {
+      "id": "cm-sl",
+      "from": "codemap",
+      "to": "screenlist",
+      "label": "routes.jsonl",
+      "variant": "emphasis"
+    },
+    {
+      "id": "sl-ts",
+      "from": "screenlist",
+      "to": "teststeps",
+      "label": "画面 ID",
+      "variant": "emphasis"
+    },
+    {
+      "id": "sl-pr",
+      "from": "screenlist",
+      "to": "priority",
+      "label": "画面 ID",
+      "variant": "emphasis"
+    },
+    {
+      "id": "ts-pr",
+      "from": "teststeps",
+      "to": "priority",
+      "label": "自動テストの手順書"
+    },
+    {
+      "id": "tcg-pr",
+      "from": "tcg",
+      "to": "priority",
+      "label": "手動のテストケース"
+    },
+    {
+      "id": "core-sl",
+      "from": "core",
+      "to": "screenlist",
+      "label": "差分・引き継ぎ・ID",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "画面 ID",
+      "items": [
+        "発行するのは screen-list だけ",
+        "実装の場所から作る（名前を変えても不変）",
+        "特定できなければ [未解決]"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "update の順番",
+      "items": [
+        "code-map",
+        "screen-list",
+        "test-steps",
+        "test-priority"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "契約",
+      "items": [
+        "他ツールが読むのは契約のファイルだけ",
+        "_raw/ などの中間データは読まない"
+      ]
+    }
+  ]
+}
