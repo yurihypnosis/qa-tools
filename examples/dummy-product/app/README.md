@@ -13,3 +13,9 @@ qa-tools のツール（test-steps・code-map・screen-list）に**読ませる�
 | `e2e/` | Playwright の spec 3 本と fixture。fixture は tsconfig の `paths`（`@fixtures/*`）で読む | test-steps |
 
 画面名は `.qa/knowledge/todo-task.md` と同じにしてある（タスク一覧画面、タスク編集ダイアログ）。
+
+## わざと入れたもの
+
+ツールの動作を確かめるために、次の点はわざとそうしてある。直さないこと。
+
+- `e2e/task-delete.spec.ts` は「削除用のタスク」が一覧にある前提だが、そのタスクを作る処理はどこにも無い。test-steps が、書かれていない事前条件を推測で埋めずに `[未解決]` にできるかを確かめるため

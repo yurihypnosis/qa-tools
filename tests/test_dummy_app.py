@@ -9,7 +9,7 @@ import unittest
 from tests.helpers import ROOT
 
 APP = ROOT / "examples" / "dummy-product" / "app"
-NOTICE = "ダミー"
+NOTICE = "テスト用のダミー"
 
 
 class DummyAppTest(unittest.TestCase):
