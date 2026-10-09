@@ -97,8 +97,11 @@ class PipelineTest(unittest.TestCase):
         self.p.write_judgments()
         code, out, _ = self.p.run("decide.py")
         self.assertEqual(code, 0)
-        got = {d["case"]: (d["level"] or "", d["scale"]) for d in map(json.loads, out.splitlines())}
+        decisions = [json.loads(line) for line in out.splitlines()]
+        got = {d["case"]: (d["level"] or "", d["scale"]) for d in decisions}
         self.assertEqual(got, EXPECTED)
+        by_case = {d["case"]: d for d in decisions}
+        self.assertEqual((by_case["T-3"]["blocked_by"], by_case["T-3"]["effective_axes"], by_case["T-3"]["adjudicated"]), ("existing_low", ["data"], False))
 
     def test_decide_without_judgments_exits_2(self):
         code, _, err = self.p.run("decide.py")
@@ -237,3 +240,140 @@ class FinishTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ApplyJudgmentsTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.p = Project(self.tmp.name)
+        self.draft = self.p.root / "draft.jsonl"
+
+    def write_draft(self, *lines):
+        self.draft.write_text("".join(json.dumps(l, ensure_ascii=False) + "\n" for l in lines), encoding="utf-8")
+
+    def judge_all(self):
+        self.write_draft(*[{"case": c, "axes": a, "impact": i, "kind": k} for c, (a, i, k) in JUDGMENTS.items()])
+        return self.p.run("apply_judgments.py", "judge", self.draft)
+
+    def stored(self):
+        return {j["case"]: j for j in pr.read_jsonl(self.p.out / "_raw" / "judgments.jsonl")}
+
+    def test_judge_fills_the_fingerprint_and_leaves_the_reason_empty(self):
+        code, out, err = self.judge_all()
+        self.assertEqual((code, out.strip()), (0, "6 judgments"), err)
+        cases = {c["case"]: c for c in pr.load_cases(pr.load_config(self.p.config))}
+        stored = self.stored()
+        self.assertEqual(stored["T-1"]["fingerprint"], cases["T-1"]["fingerprint"])
+        self.assertEqual((stored["T-1"]["reason"], stored["T-1"]["reason_level"]), ("", 0))
+        self.assertEqual(stored["C-1"]["axes"], ["permission"])
+
+    def test_invalid_drafts_are_rejected_and_nothing_is_written(self):
+        bad = [
+            {"case": "NOPE", "axes": [], "impact": "stop", "kind": "代表"},
+            {"case": "T-1", "axes": ["speed"], "impact": "stop", "kind": "代表"},
+            {"case": "T-1", "axes": [], "impact": "huge", "kind": "代表"},
+            {"case": "T-1", "axes": [], "impact": "stop", "kind": "普通"},
+            {"case": "T-1", "axes": [], "impact": "stop", "kind": "代表", "extra": 1},
+        ]
+        for line in bad:
+            with self.subTest(line=line):
+                self.write_draft({"case": "T-2", "axes": [], "impact": "stop", "kind": "応用"}, line)
+                code, _, err = self.p.run("apply_judgments.py", "judge", self.draft)
+                self.assertEqual(code, 2, err)
+                self.assertIn("draft.jsonl", err)  # どのファイルの何行目かを伝える
+                self.assertFalse((self.p.out / "_raw" / "judgments.jsonl").exists())
+
+    def test_explain_stores_the_reason_with_the_decided_level(self):
+        self.judge_all()
+        self.write_draft({"case": "T-1", "reason": "結論\n何を確認する？"}, {"case": "X-1", "reason": "領域が決まらない"})
+        code, out, err = self.p.run("apply_judgments.py", "explain", self.draft)
+        self.assertEqual((code, out.strip()), (0, "2 reasons"), err)
+        stored = self.stored()
+        self.assertEqual((stored["T-1"]["reason"], stored["T-1"]["reason_level"]), ("結論\n何を確認する？", 2))
+        self.assertEqual(stored["X-1"]["reason_level"], 0)
+
+    def test_rejudging_with_the_same_answer_keeps_the_reason(self):
+        self.judge_all()
+        self.write_draft({"case": "T-1", "reason": "残る理由"})
+        self.p.run("apply_judgments.py", "explain", self.draft)
+        self.judge_all()
+        self.assertEqual(self.stored()["T-1"]["reason"], "残る理由")
+        self.write_draft({"case": "T-1", "axes": [], "impact": "cosmetic", "kind": "代表"})
+        self.p.run("apply_judgments.py", "judge", self.draft)
+        self.assertEqual(self.stored()["T-1"]["reason"], "")
+
+    def test_judgments_of_cases_that_left_the_input_are_dropped(self):
+        self.judge_all()
+        stale = self.stored()["T-1"] | {"case": "GONE-1"}
+        pr.write_jsonl(self.p.out / "_raw" / "judgments.jsonl", [*self.stored().values(), stale])
+        self.judge_all()
+        self.assertNotIn("GONE-1", self.stored())
+
+    def test_load_cases_fresh_removes_all_stored_judgments(self):
+        self.judge_all()
+        self.assertEqual(self.p.run("load_cases.py", "--fresh")[0], 0)
+        self.assertFalse((self.p.out / "_raw" / "judgments.jsonl").exists())
+        self.judge_all()
+        self.assertEqual(self.p.run("load_cases.py")[0], 0)
+        self.assertTrue((self.p.out / "_raw" / "judgments.jsonl").exists())
+
+    def test_explain_for_a_case_without_a_judgment_is_rejected(self):
+        self.write_draft({"case": "T-1", "reason": "x"})
+        self.assertEqual(self.p.run("apply_judgments.py", "explain", self.draft)[0], 2)
+
+
+class SurveyTest(unittest.TestCase):
+    def test_lists_areas_features_and_screens_with_counts(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            Project(tmp)
+            code, out, err = run_path(script("survey.py"), "--platform", "tcg-markdown", "--glob", "output/*/4-testcases.md", "--root", tmp)
+            self.assertEqual(code, 0, err)
+            data = json.loads(out)
+            self.assertEqual(data["cases"], 6)
+            self.assertEqual(data["areas"]["DMY-TASK"], {"cases": 3, "features": {"タスク名の文字数上限": 3}, "screens": {"タスク編集ダイアログ": 3}})
+            self.assertEqual(sorted(data["areas"]), ["DMY-COMMON", "DMY-TASK", "DMY-XXX"])
+
+    def test_unknown_platform_exits_2_and_lists_the_choices(self):
+        code, _, err = run_path(script("survey.py"), "--platform", "nope", "--glob", "x", "--root", ".")
+        self.assertEqual(code, 2)
+        self.assertIn("選べるもの", err)
+
+
+class SampleOutputTest(unittest.TestCase):
+    """examples/dummy-product/sample-output/test-priority/ は、実際に build を実行して得た出力例。
+    AI の判断（judgments.jsonl）から、CSV がそのまま再現できることと、設定・入力と食い違っていないことを確かめる。"""
+
+    SAMPLE = ROOT / "examples" / "dummy-product" / "sample-output"
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        (self.root / ".qa").mkdir()
+        shutil.copy(ROOT / "examples" / "dummy-product" / ".qa" / "test-priority.toml", self.root / ".qa" / "test-priority.toml")
+        shutil.copytree(self.SAMPLE / "DUMMY-001", self.root / "output" / "DUMMY-001")
+        shutil.copytree(self.SAMPLE / "test-priority", self.root / "output" / "test-priority")
+        self.config = pr.load_config(self.root / ".qa" / "test-priority.toml")
+
+    def run_cli(self, name, *args):
+        return run_path(script(name), "--config", self.config["path"], *args, cwd=self.root)
+
+    def test_export_reproduces_the_committed_csvs_byte_for_byte(self):
+        for name in ("import.csv", "review.csv"):
+            (self.root / "output" / "test-priority" / name).unlink()
+        self.assertEqual(self.run_cli("export.py")[0], 0)
+        for name in ("import.csv", "review.csv"):
+            self.assertEqual((self.root / "output" / "test-priority" / name).read_bytes(), (self.SAMPLE / "test-priority" / name).read_bytes())
+
+    def test_the_committed_output_passes_every_check_including_the_manifest(self):
+        code, out, _ = self.run_cli("check_priority.py", "--json")
+        self.assertEqual(code, 0, out)
+        stats = json.loads(out)["stats"]
+        self.assertEqual((stats["cases"], stats["decided"]), (47, 47))
+
+    def test_the_manifest_matches_the_current_config_and_input(self):
+        data = json.loads((self.SAMPLE / "test-priority" / "manifest.json").read_text(encoding="utf-8"))
+        import hashlib
+        self.assertEqual(data["config_hash"], "sha256:" + hashlib.sha256(self.config["path"].read_bytes()).hexdigest())
+        self.assertEqual(data["source"]["hash"], pr.source_hash(self.config))

@@ -33,6 +33,7 @@ class WorkedExamplesTest(unittest.TestCase):
     def test_1_data_axis_raises_one_step(self):
         d = decide(rec(existing="high"), ["data"], "stop", "代表", True)
         self.assertEqual((d["start"], d["level"], d["scale"], d["marks"]), (3, 2, "smoke", []))
+        self.assertEqual((d["effective_axes"], d["blocked_by"]), (["data"], None))
 
     def test_2_cosmetic_without_axis_lowers_one_step(self):
         d = decide(rec(existing="medium"), [], "cosmetic", "応用", False)
@@ -53,6 +54,7 @@ class WorkedExamplesTest(unittest.TestCase):
     def test_6_existing_low_blocks_a_raise(self):
         d = decide(rec(existing="low"), ["data"], "stop", "応用", False)
         self.assertEqual((d["level"], d["scale"], d["marks"]), (3, "full", []))
+        self.assertEqual((d["effective_axes"], d["blocked_by"]), (["data"], "existing_low"))
 
 
 class RuleDetailsTest(unittest.TestCase):
@@ -64,7 +66,12 @@ class RuleDetailsTest(unittest.TestCase):
         self.assertEqual(decide(rec(), ["data"], "cosmetic", "応用", False)["level"], 3)
 
     def test_existing_high_blocks_a_lowering(self):
-        self.assertEqual(decide(rec(existing="high"), [], "cosmetic", "応用", False)["level"], 3)
+        d = decide(rec(existing="high"), [], "cosmetic", "応用", False)
+        self.assertEqual((d["level"], d["blocked_by"]), (3, "existing_high"))
+
+    def test_axes_outside_the_emphasis_are_not_effective(self):
+        d = decide(rec(), ["blast", "data"], "stop", "応用", False)
+        self.assertEqual(d["effective_axes"], ["data"])
 
     def test_excluded_feature_is_out_of_scale(self):
         rules = {**RULES, "exclude": {"features": ["タスク名の文字数上限"]}}

@@ -1,0 +1,18 @@
+{
+  "tool": "test-priority",
+  "version": 1,
+  "source": {
+    "files": "output/*/4-testcases.md",
+    "hash": "sha256:cf565239b3506801128669b7f46640dc99767b6f4f257d989cd8876e0d598300"
+  },
+  "config_hash": "sha256:e4094253e2c2d86c565685cdb6a9db43c6dde0d76bf1b3dde72172dfcd0e39ac",
+  "inputs": {},
+  "generated_at": "2026-10-09T19:25:37+09:00",
+  "generated_by": {
+    "claude": 47,
+    "script": 0,
+    "carried": 0,
+    "local": 0
+  },
+  "items": 47
+}

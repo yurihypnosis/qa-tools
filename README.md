@@ -2,7 +2,10 @@
 
 QA エンジニア向けの AI テスト設計ツール集（Claude Code プラグイン）。
 
-現在の中身は **test-case-generator** skill だけ。PBI の資料から、サイジング → テスト分析 → テスト観点 → 15 列のテストケース → セルフレビューを、QA のレビューゲートで止まりながら段階的に作る。
+現在の中身は 2 つの skill である。
+
+- **test-case-generator**：PBI の資料から、サイジング → テスト分析 → テスト観点 → 15 列のテストケース → セルフレビューを、QA のレビューゲートで止まりながら段階的に作る
+- **test-priority**：テストケース 1 件ずつに、回帰テストとしての重要度（R1〜R4）と、実行する規模（sanity / smoke / light / full）を決める。AI は意味の判断だけをして、重要度と規模は設定の規則からスクリプトが計算する
 
 ![フロー](docs/architecture/flow.png)
 
@@ -33,6 +36,21 @@ Claude Code の中で次を実行する（プラグインの skill は `プラ�
 
 途中からやり直すときは `/qa-tools:test-case-generator PBI: DUMMY-001 from: viewpoints` のように指定する。コマンドを使わず「DUMMY-001 のテストケースを作って」と頼んでも skill が起動する。
 
+## test-priority を試す（ダミー製品）
+
+test-case-generator の出力（`output/DUMMY-001/4-testcases.md`）を入力にする。出力例が `examples/dummy-product/sample-output/DUMMY-001/` にあるので、それを `output/` にコピーして使う。
+
+```bash
+cp -R examples/dummy-product /tmp/dummy-product
+cd /tmp/dummy-product
+mkdir -p output && cp -R sample-output/DUMMY-001 output/DUMMY-001
+claude --plugin-dir <このリポジトリの絶対パス>
+```
+
+Claude Code の中で `/qa-tools:test-priority build` を実行する。設定は `.qa/test-priority.toml`（自分のプロジェクトでは `/qa-tools:test-priority init` で質問に答えて作る）。
+
+`output/test-priority/` に、取り込み用の `import.csv`、レビュー用の `review.csv`（理由と要レビューの印つき）、`manifest.json` ができる。出力例は `examples/dummy-product/sample-output/test-priority/`、仕様は [docs/design/tools/test-priority.md](docs/design/tools/test-priority.md) にある。
+
 ## 自分のプロジェクトで使う
 
 1. 手元の clone からプラグインを入れる（一度だけ。どこにも公開されない）
@@ -58,13 +76,15 @@ skills/test-case-generator/
   assets/                成果物の雛形（出力形式の正）
   scripts/               決定的な検査（標準ライブラリのみ、JSON レシート）
   evals/evals.json       挙動評価のケース（skill-creator の形式）
+skills/test-priority/    同じ構成。platforms/ にテストケースの形式ごとの読み方を置く
+core/                    2 つ以上のツールが使う共通処理（manifest.json の読み書き）
 examples/dummy-product/  テスト用ダミー製品
 docs/design/             設計の正本（用語集・原則・共通の約束ごと・ツール同士の受け渡し）
 docs/architecture/       アーキテクチャ図（archify）
 tests/                   検査スクリプトと skill 構造のテスト
 ```
 
-設計の考え方は次の 4 点である。今後追加するツール（test-priority・code-map・screen-list）も含めた原則と約束ごとは、[docs/design/](docs/design/principles.md) にまとめてある。
+設計の考え方は次の 4 点である。今後追加するツール（code-map・screen-list）も含めた原則と約束ごとは、[docs/design/](docs/design/principles.md) にまとめてある。
 
 - **汎用のプロセスと製品コンテキストを分ける。** skill は製品を知らない。製品固有の値は利用側の `.qa/` に置く
 - **Step ごとに必要なものだけを読む。** SKILL.md は流れとゲートだけを持ち、各 Step の詳細は references に分ける。references の冒頭は「契約（入力・出力・検査・次）」で揃えてあり、将来 Step を独立した skill に昇格できる

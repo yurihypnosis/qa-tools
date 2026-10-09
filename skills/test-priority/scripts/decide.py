@@ -25,7 +25,9 @@ def main(argv=None):
         return 2
     for r in rows:
         print(json.dumps({"case": r["case"], "start": pr.level_name(r["start"]) or None, "level": pr.level_name(r["level"]) or None,
-                          "scale": r["scale"], "representative": r["representative"], "marks": r["marks"]}, ensure_ascii=False))
+                          "scale": r["scale"], "representative": r["representative"], "marks": r["marks"],
+                          "effective_axes": r["effective_axes"], "blocked_by": r["blocked_by"],
+                          "adjudicated": bool(r["adjudication"])}, ensure_ascii=False))
     return 0
 
 

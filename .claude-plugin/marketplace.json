@@ -10,7 +10,7 @@
     {
       "name": "qa-tools",
       "source": "./",
-      "description": "PBI からテスト分析・観点・テストケースをレビューゲート付きで段階生成する",
+      "description": "PBI からテストケースを段階生成し、テストケースごとに回帰の重要度と規模を決める",
       "license": "MIT",
       "keywords": ["qa", "test-design", "test-cases"]
     }

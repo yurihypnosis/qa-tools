@@ -1,0 +1,55 @@
+# ⚠️ このファイルはテスト用のダミー情報です。実在の製品・仕様ではありません。
+platform = "tcg-markdown"
+
+[source]
+repo = "."
+cases_glob = "output/*/4-testcases.md"
+
+[output]
+dir = "output/test-priority"
+
+[rules]
+group_by = "screen"
+
+[rules.areas.DMY-TASK]
+emphasis = ["data", "permission"]
+default = 3
+
+[rules.areas.DMY-TASK.weights]
+"タスク名の文字数上限" = 3
+
+[rules.areas.DMY-COMMON]
+emphasis = ["permission", "blast"]
+default = 2
+
+[rules.areas.DMY-COMMON.weights]
+"ログイン" = 1
+
+[rules.exclude]
+features = []
+
+[checks]
+run = ["import-clean", "examples"]
+
+[checks.examples]
+[[checks.examples.case]]
+name = "データの正しさで 1 段上がる"
+area = "DMY-TASK"
+feature = "タスク名の文字数上限"
+axes = ["data"]
+impact = "stop"
+kind = "代表"
+existing = "high"
+representative = true
+expect = { level = "R2", scale = "smoke" }
+
+[[checks.examples.case]]
+name = "見た目だけで有効な軸が無いと 1 段下がる"
+area = "DMY-TASK"
+feature = "タスク名の文字数上限"
+axes = []
+impact = "cosmetic"
+kind = "応用"
+existing = "medium"
+representative = false
+expect = { level = "R4", scale = "full" }

@@ -173,20 +173,22 @@ def read_adjudications(config):
 def decide_level(rules, rec, judgment, adjudication=None):
     """開始点・リスク軸・影響範囲・既存の優先度から、重要度と要レビューの印を決める（仕様書 4・5.2）。"""
     area = rules["areas"].get(rec["area"])
-    start, level, marks = None, None, set()
+    start, level, marks, effective, blocked_by = None, None, set(), [], None
     if area is not None:
         if rec["feature"] in area["weights"]:
             start = area["weights"][rec["feature"]]
         else:
             start = area["default"]
             marks.add("推定")
-        effective = [a for a in judgment["axes"] if a in area["emphasis"]]
+        effective = [a for a in AXES if a in judgment["axes"] and a in area["emphasis"]]
         if judgment["impact"] in ("stop", "harm"):
             step = 1 if effective else 0
         else:
             step = 0 if effective else -1
-        if (step > 0 and rec["existing"] == "low") or (step < 0 and rec["existing"] == "high"):
-            step = 0
+        if step > 0 and rec["existing"] == "low":
+            step, blocked_by = 0, "existing_low"
+        elif step < 0 and rec["existing"] == "high":
+            step, blocked_by = 0, "existing_high"
         level = min(4, max(1, start - step))
     if adjudication and "重要度" in adjudication:
         level = parse_level(adjudication["重要度"])
@@ -197,7 +199,8 @@ def decide_level(rules, rec, judgment, adjudication=None):
             marks.add("上げ")
         if start is not None and start != 4 and level == 4:
             marks.add("下げ")
-    return {"start": start, "level": level, "marks": [m for m in MARK_ORDER if m in marks]}
+    return {"start": start, "level": level, "marks": [m for m in MARK_ORDER if m in marks],
+            "effective_axes": effective, "blocked_by": blocked_by}
 
 
 def scale_of(rules, rec, level, is_representative, adjudication=None):
@@ -379,3 +382,81 @@ def check(config, skip_manifest=False):
             import manifest
             findings += [_finding("MANIFEST", path, 1, message=m) for m in manifest.validate(json.loads(path.read_text(encoding="utf-8")))]
     return findings, stats
+
+
+# --- AI の判断の取り込み --------------------------------------------------------
+
+DRAFT_KEYS = {"judge": {"case", "axes", "impact", "kind"}, "explain": {"case", "reason"}}
+
+
+def read_draft(path, mode):
+    """AI が書いた下書きを検証して返す。1 行でも誤りがあれば InputError（何も書かない）。"""
+    path = Path(path)
+    rows = []
+    for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        if not line.strip():
+            continue
+        where = f"{path.name} の {number} 行目"
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError as error:
+            raise InputError(f"{where}: JSON として読めない: {error}") from None
+        if not isinstance(row, dict) or set(row) != DRAFT_KEYS[mode]:
+            raise InputError(f"{where}: キーは {sorted(DRAFT_KEYS[mode])} だけ")
+        if mode == "judge":
+            axes = row["axes"]
+            if not (isinstance(axes, list) and set(axes) <= set(AXES)):
+                raise InputError(f"{where}: axes は {list(AXES)} の配列")
+            if row["impact"] not in IMPACTS:
+                raise InputError(f"{where}: impact は {list(IMPACTS)} のどれか: {row['impact']!r}")
+            if row["kind"] not in KINDS:
+                raise InputError(f"{where}: kind は {list(KINDS)} のどちらか: {row['kind']!r}")
+        elif not (isinstance(row["reason"], str) and row["reason"].strip()):
+            raise InputError(f"{where}: reason が空")
+        rows.append((where, row))
+    return rows
+
+
+def apply_judge(config, draft):
+    cases = {c["case"]: c for c in load_cases(config)}
+    path = raw_dir(config) / "judgments.jsonl"
+    stored = {j["case"]: j for j in read_jsonl(path) if j["case"] in cases}
+    for where, row in draft:
+        if row["case"] not in cases:
+            raise InputError(f"{where}: 入力に無いケース {row['case']}")
+    for _, row in draft:
+        new = {"case": row["case"], "fingerprint": cases[row["case"]]["fingerprint"],
+               "axes": sorted(set(row["axes"]), key=AXES.index), "impact": row["impact"], "kind": row["kind"],
+               "reason": "", "reason_level": 0}
+        old = stored.get(row["case"])
+        if old and all(old[k] == new[k] for k in ("fingerprint", "axes", "impact", "kind")):
+            new["reason"], new["reason_level"] = old["reason"], old["reason_level"]
+        stored[row["case"]] = new
+    write_jsonl(path, [stored[c] for c in sorted(stored)])
+    return len(draft)
+
+
+def apply_explain(config, draft):
+    rows = {r["case"]: r for r in decide_from_files(config)}
+    path = raw_dir(config) / "judgments.jsonl"
+    stored = {j["case"]: j for j in read_jsonl(path)}
+    for where, row in draft:
+        if row["case"] not in rows:
+            raise InputError(f"{where}: 判断が無いケース {row['case']}")
+    for _, row in draft:
+        stored[row["case"]]["reason"] = row["reason"]
+        stored[row["case"]]["reason_level"] = rows[row["case"]]["level"] or 0
+    write_jsonl(path, [stored[c] for c in sorted(stored)])
+    return len(draft)
+
+
+def survey(platform_name, root, cases_glob):
+    """init 用：領域・機能・確認画面ごとの件数を数える（設定ファイルはまだ無い）。"""
+    config = {"platform": platform_name, "root": Path(root), "cases_glob": cases_glob}
+    areas = {}
+    for rec in load_cases(config):
+        area = areas.setdefault(rec["area"], {"cases": 0, "features": {}, "screens": {}})
+        area["cases"] += 1
+        area["features"][rec["feature"]] = area["features"].get(rec["feature"], 0) + 1
+        area["screens"][rec["screen"]] = area["screens"].get(rec["screen"], 0) + 1
+    return {"cases": sum(a["cases"] for a in areas.values()), "areas": areas}
