@@ -61,7 +61,7 @@
 | `source` | 何を読むか | `repo = "."`、`spec_glob = "app/e2e/**/*.spec.ts"` |
 | `output` | どこに書くか | `dir = "output/test-steps"` |
 | `platform` | どの方式で作るか（ツールごとに選べる値が決まっている） | `"playwright-ts"` |
-| `checks` | どの検査を実行するか。型は「検査の名前の配列」で固定。検査ごとの設定が要るときは `[checks_config.<名前>]` の表に書く | `checks = ["sections", "one-to-one"]` |
+| `checks` | どの検査を実行するか。型は表で固定：`run` に検査の名前の配列を書き、検査ごとの設定が要るときは `[checks.<名前>]` に書く | `[checks]` の下に `run = ["sections", "one-to-one"]` |
 
 3. `source.repo` は、読むソースがどこにあるかを名前で指す
    - 利用側プロジェクトそのものを読むときは `repo = "."`（ダミー製品はこれ）
