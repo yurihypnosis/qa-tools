@@ -22,6 +22,7 @@ COLUMNS = ["画面ID", "画面名", "種別", "ロール", "URL", "ソース", "
 KINDS = ("画面", "ダイアログ")
 EVERYONE = "全員"
 MAX_NAME = 80
+FORMULA_START = "=+-@\t\r"  # CSV を表計算ソフトで開いたとき、式として評価される先頭の文字
 
 
 def available_platforms():
@@ -50,6 +51,8 @@ def load_config(path):
         raise ValueError("output.dir が無い")
     if not (isinstance(rules.get("roles"), list) and all(isinstance(r, str) for r in rules["roles"])):
         raise ValueError("rules.roles が必須（ロールの名前の配列。無ければ []）。init を実行する")
+    if any(";" in r for r in rules["roles"]):
+        raise ValueError("rules.roles のロール名に ; は使えない（CSV のロール列の区切りのため）")
     extra = rules.get("extra", [])
     for item in extra:
         if not (isinstance(item, dict) and all(isinstance(item.get(k), str) for k in ("key", "source", "parent"))):
@@ -137,6 +140,8 @@ def read_draft(path, config):
             raise ValueError(f"{where}: キーは id・name・roles だけ")
         if not (isinstance(row["name"], str) and row["name"].strip()):
             raise ValueError(f"{where}: name が空")
+        if row["name"][0] in FORMULA_START:
+            raise ValueError(f"{where}: name が {row['name'][0]!r} で始まっている（表計算ソフトで式として実行されるため、別の名前にする）")
         if len(row["name"]) > MAX_NAME:
             raise ValueError(f"{where}: name が {MAX_NAME} 字を超えている")
         roles = row["roles"]
@@ -218,7 +223,7 @@ def finish(config):
     plan_path = config["out"] / "_raw" / "plan.json"
     plan = json.loads(plan_path.read_text(encoding="utf-8")) if plan_path.is_file() else {"pending": None}
     items = stats["rows"]
-    claude = items if plan["pending"] is None else len([i for i in plan["pending"] if i not in set(config["exclude"])])
+    claude = items if plan["pending"] is None else len(plan["pending"])
     manifest.write(
         config["out"], tool="screen-list",
         source={"repo": config["repo_name"], "commit": gitinfo.head(config["repo"], config["root"])},

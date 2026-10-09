@@ -247,6 +247,19 @@ class NamesAndMergeTest(unittest.TestCase):
                 self.assertIn("draft.jsonl", err)
                 self.assertEqual((self.s.out / "_raw" / "names.jsonl").read_text(encoding="utf-8"), "")
 
+    def test_names_that_a_spreadsheet_would_run_as_a_formula_are_rejected(self):
+        for name in ('=HYPERLINK("http://x","y")', "+1", "@SUM(A1)", "-1", "\t=1"):
+            with self.subTest(name=name):
+                code, _, err = self.s.apply_names([{"id": "web/login", "name": name, "roles": ["全員"]}])
+                self.assertEqual(code, 2)
+                self.assertIn("式", err)
+        self.assertEqual(self.s.apply_names([{"id": "web/login", "name": "1 ページ目", "roles": ["全員"]}, {"id": "web/index", "name": "ログイン", "roles": ["全員"]}])[0], 0)
+
+    def test_a_role_name_with_a_semicolon_is_a_config_error(self):
+        (self.s.root / ".qa" / "screen-list.toml").write_text(SCREENS_TOML.replace('roles = ["管理者", "一般ユーザー"]', 'roles = ["管理者;一般"]'), encoding="utf-8")
+        code, _, err = self.s.run("candidates")
+        self.assertEqual((code, ";" in err), (2, True))
+
     def test_roles_may_be_in_the_vocabulary_or_unresolved(self):
         rows = [{"id": "web/login", "name": "ログイン", "roles": ["管理者", "一般ユーザー"]}, {"id": "web/index", "name": "トップ", "roles": ["[未解決: ガードが見つからない]"]}]
         self.assertEqual(self.s.apply_names(rows)[0], 0)
