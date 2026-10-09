@@ -7,12 +7,12 @@ docs/design/ の文書と、qa-tools の Issue で使う言葉の定義。**こ�
 | 用語 | 定義 | 例 |
 | --- | --- | --- |
 | プラグインのディレクトリ | このリポジトリ（qa-tools）を clone した場所。読み取り専用として扱い、実行中に書き込まない | `~/work/qa-tools/` |
-| 利用側プロジェクト | qa-tools を使う側のディレクトリ。Claude Code をここで起動する。設定と出力はここにある。読むソースコードは、ここか、個人設定ファイルで指した別のリポジトリにある | テストケースを読むとき：`examples/dummy-product/` をコピーした `/tmp/dummy-product/`。サンプルアプリを読むとき：`examples/my-learning-app/` をコピーしたディレクトリ（ソースは `.qa/local.toml` で指した my-learning-app の clone） |
+| 利用側プロジェクト | qa-tools を使う側のディレクトリ。Claude Code をここで起動する。設定と出力はここにある。読むソースコードは、ここか、個人設定ファイルで指した別のリポジトリにある | テストケースを読むとき：`examples/dummy-product/` をコピーした `/tmp/dummy-product/`。サンプルアプリを読むとき：`examples/sample-app/` をコピーしたディレクトリ（ソースは `.qa/local.toml` で指したサンプルアプリの clone） |
 | 設定ファイル | 利用側プロジェクトの `.qa/<ツール名>.toml`。ツールごとに 1 つ | `.qa/code-map.toml` |
-| 個人設定ファイル | 利用側プロジェクトの `.qa/local.toml`。人によって違う値（絶対パス）だけを書く。git に入れない | `[repos] my-learning-app = "/Users/me/my-learning-app"` |
+| 個人設定ファイル | 利用側プロジェクトの `.qa/local.toml`。人によって違う値（絶対パス）だけを書く。git に入れない | `[repos] sample-app = "/Users/me/sample-app"` |
 | 出力ディレクトリ | 利用側プロジェクトの `output/<ツール名>/`。ツールが書き込むのはここだけ | `output/code-map/` |
 | core | プラグインのディレクトリ直下の `core/`。2 つ以上のツールが使う Python スクリプトを置く | `core/manifest.py` |
-| サンプルアプリ | ソースコードを読むツール（code-map・screen-list）を試すときの入力にするアプリ。[yurihypnosis/my-learning-app](https://github.com/yurihypnosis/my-learning-app)（Next.js・TypeScript） | — |
+| サンプルアプリ | qa-tools 自体を試すための入力にするアプリ。ソースコードを読むツール（code-map・screen-list）の E2E に使う。別のアプリに替えることがあるので、設計・Issue・ツールの中では「サンプルアプリ」と呼び、アプリ名を書かない。今は [yurihypnosis/my-learning-app](https://github.com/yurihypnosis/my-learning-app)（Next.js・TypeScript）。替えるときは、この行と `examples/sample-app/.qa/` の設定を直す | — |
 
 ## ツールと操作
 
@@ -40,9 +40,9 @@ docs/design/ の文書と、qa-tools の Issue で使う言葉の定義。**こ�
 
 | 用語 | 定義 | 例 |
 | --- | --- | --- |
-| 画面 | URL で開けるページ。Next.js App Router では `page.tsx` 1 つが 1 画面。URL を変えずにページの中で切り替わる表示をどう数えるかは、screen-list の仕様（#22）で決める | `/catalog`（`src/app/(main)/catalog/page.tsx`） |
+| 画面 | URL で開けるページ。Next.js App Router では `page.tsx` 1 つが 1 画面。URL を変えずにページの中で切り替わる表示をどう数えるかは、screen-list の仕様（#22）で決める | `/settings`（`src/app/settings/page.tsx`） |
 | ダイアログ | 画面の上に開く部品で、独立した URL を持たないもの | 削除の確認ダイアログ |
-| 画面 ID | screen-list が画面とダイアログに付ける識別子。URL のパスなどソースコード上の場所から機械的に作り、画面名を変えても変わらない。作り方は [data-flow.md](data-flow.md) の「画面 ID」 | `web/catalog` |
+| 画面 ID | screen-list が画面とダイアログに付ける識別子。URL のパスなどソースコード上の場所から機械的に作り、画面名を変えても変わらない。作り方は [data-flow.md](data-flow.md) の「画面 ID」 | `web/settings` |
 | 未解決マーカー | 情報が足りず決められなかった箇所に書く文字列。`[未解決: 理由]` の形 | `[未解決: fixture の中身が分からない]` |
 
 ## ツール名

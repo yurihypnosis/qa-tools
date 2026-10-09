@@ -12,7 +12,7 @@
       "id": "source",
       "type": "external",
       "label": "ソースコード",
-      "sublabel": "サンプル：my-learning-app",
+      "sublabel": "例：サンプルアプリ",
       "pos": [
         60,
         140

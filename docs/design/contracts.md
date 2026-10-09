@@ -58,19 +58,19 @@
 
 | キー | 意味 | 例（code-map でサンプルアプリを読む） |
 | --- | --- | --- |
-| `source` | 何を読むか | `repo = "my-learning-app"`、`root = "src"` |
+| `source` | 何を読むか | `repo = "sample-app"`、`root = "src"` |
 | `output` | どこに書くか | `dir = "output/code-map"` |
 | `platform` | どの方式で作るか（ツールごとに選べる値が決まっている） | `"typescript"` |
 | `checks` | どの検査を実行するか。型は表で固定：`run` に検査の名前の配列を書き、検査ごとの設定が要るときは `[checks.<名前>]` に書く | `[checks]` の下に `run = ["public-files"]` |
 
 3. `source.repo` は、読むソースがどこにあるかを名前で指す
    - 利用側プロジェクトそのものを読むときは `repo = "."`
-   - 別のリポジトリを読むときは名前を書き（例：`repo = "my-learning-app"`）、その絶対パスを**個人設定ファイル** `.qa/local.toml` に書く。共有の設定ファイルに絶対パスを書くのは禁止
+   - 別のリポジトリを読むときは名前を書き（例：`repo = "sample-app"`）、その絶対パスを**個人設定ファイル** `.qa/local.toml` に書く。共有の設定ファイルに絶対パスを書くのは禁止
 
 ```toml
 # .qa/local.toml（git に入れない）
 [repos]
-my-learning-app = "/Users/me/work/my-learning-app"
+sample-app = "/Users/me/work/sample-app"
 ```
 
 4. 設定ファイルが無い、またはキーが足りないときは、既定値で続けずに止まり、`init` を実行するよう伝える
@@ -108,9 +108,9 @@ output/
 {
   "tool": "screen-list",
   "version": 1,
-  "source": { "repo": "my-learning-app", "commit": "3f2a9c1" },
+  "source": { "repo": "sample-app", "commit": "3f2a9c1" },
   "config_hash": "sha256:9b1e0c…",
-  "inputs": { "code-map": { "repo": "my-learning-app", "commit": "3f2a9c1" } },
+  "inputs": { "code-map": { "repo": "sample-app", "commit": "3f2a9c1" } },
   "generated_at": "2026-10-09T10:00:00+09:00",
   "generated_by": { "claude": 10, "script": 0, "carried": 0, "local": 0 },
   "items": 10
@@ -165,7 +165,7 @@ output/
 
 1. `python3 -m unittest discover -s tests -t .` が通る
 2. `claude plugin validate .` が通る
-3. E2E を 1 回以上実行し、出力例を置く。ソースコードを読むツールはサンプルアプリ（my-learning-app）で実行し `examples/my-learning-app/sample-output/<ツール名>/` に、テストケースを読むツールは `examples/dummy-product/` で実行し `examples/dummy-product/sample-output/<ツール名>/` に置く
+3. E2E を 1 回以上実行し、出力例を置く。ソースコードを読むツールはサンプルアプリで実行し `examples/sample-app/sample-output/<ツール名>/` に、テストケースを読むツールは `examples/dummy-product/` で実行し `examples/dummy-product/sample-output/<ツール名>/` に置く
 4. `skills/<ツール名>/evals/evals.json` に挙動評価のケースを 2 つ以上書く
 5. README の「構成」と使い方を更新する。ツールの受け渡しが変わったら `docs/architecture/` の図も更新する
 6. `.claude-plugin/plugin.json` の `version` を上げる
