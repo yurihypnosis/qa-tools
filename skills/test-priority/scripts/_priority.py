@@ -3,12 +3,16 @@
 判定の計算（決定・規模・代表）は、AI の判断と設定だけから決まる純粋な関数にしてある。
 列名や書式など、テストケースの形式に依存する部分は platforms/<名前>/ に置く（contracts.md の C9）。
 """
+import sys
+
+if sys.version_info < (3, 11):  # 設定ファイルの TOML を読む tomllib は 3.11 から標準
+    raise SystemExit(f"Python 3.11 以上が必要（今は {sys.version.split()[0]}）")
+
 import csv
 import glob
 import hashlib
 import importlib.util
 import json
-import sys
 import tomllib
 from pathlib import Path
 
@@ -158,7 +162,15 @@ def read_jsonl(path):
     path = Path(path)
     if not path.is_file():
         return []
-    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    rows = []
+    for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        if not line.strip():
+            continue
+        try:
+            rows.append(json.loads(line))
+        except json.JSONDecodeError as error:
+            raise InputError(f"{path.name} の {number} 行目を JSON として読めない: {error}。{path} を作り直す（build）") from None
+    return rows
 
 
 def write_jsonl(path, rows):
@@ -497,7 +509,12 @@ def plan_path(config):
 
 def read_plan(config):
     path = plan_path(config)
-    return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+    if not path.is_file():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        raise InputError(f"{path.name} を JSON として読めない: {error}。load_cases.py を実行し直す") from None
 
 
 def write_plan(config, **parts):

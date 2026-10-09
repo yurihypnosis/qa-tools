@@ -408,6 +408,18 @@ class HardeningTest(unittest.TestCase):
                 self.assertEqual(code, 2, err)
                 self.assertIn("T-1", err)
 
+    def test_a_corrupt_judgments_file_is_an_input_error_naming_file_and_line(self):
+        self.p.write_judgments()
+        path = self.p.out / "_raw" / "judgments.jsonl"
+        lines = path.read_text(encoding="utf-8").splitlines()
+        lines[1] = "{壊れた"
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        code, _, err = self.p.run("decide.py")
+        self.assertEqual(code, 2)
+        self.assertIn("judgments.jsonl", err)
+        self.assertIn("2 行目", err)
+        self.assertNotIn("Traceback", err)
+
     def test_a_valid_adjudication_is_accepted(self):
         code, out, err = self.adjudicate({"T-1": {"重要度": "R1", "規模": "smoke", "理由": "監査対象"}})
         self.assertEqual(code, 0, err)
