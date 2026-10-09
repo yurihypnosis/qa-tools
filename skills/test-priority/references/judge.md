@@ -4,7 +4,7 @@
 
 | 項目 | 内容 |
 | --- | --- |
-| 入力 | `output/test-priority/_raw/cases.jsonl`（1 ケース 1 行：`case` `title` `area` `feature` `screen` `existing` `body`） |
+| 入力 | `output/test-priority/_raw/pending.jsonl`（`plan.py judge` が書く、判断が要るケースだけ。1 ケース 1 行：`case` `title` `area` `feature` `screen` `existing` `body`） |
 | 出力 | 下書き `output/test-priority/_raw/judge.draft.jsonl` → `apply_judgments.py judge` で `judgments.jsonl` に取り込む |
 | 検査 | `apply_judgments.py` が、語彙・ケースの存在・キーを検査する（1 行でも誤りがあれば何も書かない） |
 | 次 | decide（`build.md` の手順 3） |
@@ -15,7 +15,7 @@ QA エンジニアとして、テストケース 1 件が「何を確かめて�
 
 ## 手順
 
-1. `cases.jsonl` を 50 行ずつ読む（Read の offset と limit）。
+1. `pending.jsonl` を 50 行ずつ読む（Read の offset と limit）。
 2. 各ケースを、`title` と `body` に書かれていることだけを根拠に、次の 3 つについて判断する。
 3. 下書きに、1 ケース 1 行の JSON を書く。キーは `case` `axes` `impact` `kind` の 4 つだけ。
    ```json

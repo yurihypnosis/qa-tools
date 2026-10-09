@@ -28,7 +28,7 @@ test-case-generator の「重要度/Priority」列（High / Medium / Low）は�
 | 書き出し | `export` | スクリプト | 上のすべて | import.csv、review.csv、manifest.json |
 
 - AI がするのは、意味の判断（リスク軸・影響範囲・代表か応用か・理由文）だけ。重要度と規模は、AI の判断と設定から**スクリプトが計算する**（P3）
-- 入力と設定が同じなら、2 回目の出力は 1 バイトも変わらない（P6）。AI の判断は judgments.jsonl に残し、ケースの内容が変わっていなければ使い回す
+- 入力と設定が同じなら、2 回目の出力は 1 バイトも変わらない（P6）。AI の判断は judgments.jsonl に残し、ケースの内容が変わっていなければ使い回す（`update`。12）
 
 ## 3. 入力：プラットフォーム定義 `tcg-markdown`
 
@@ -176,6 +176,7 @@ run = ["import-clean", "examples"]
 - 判定不可のケースは、裁定で `重要度` を書けば判定できる
 - 入力に無い `case` を指していたら、check が `ADJUDICATION_UNKNOWN_CASE` を返す
 - 次回以降の実行でも、裁定は残る（上書きしない）
+- 裁定は `adjudicate.py` で記録・削除する（`core/carry.py` の `record` と `forget`）。`build` は裁定を消さない
 
 ## 8. 出力
 
@@ -273,3 +274,17 @@ expect = { level = "R2", scale = "smoke" }
 | 上げ下げの幅 | ±1 段 |
 | 規模の表（6.2） | 上の表のとおり |
 | 影響範囲 `cosmetic` のとき、有効なリスク軸が 0 個なら下げる | 下げる |
+
+## 12. update：何を引き継ぎ、何をやり直すか
+
+| 変わったもの | AI がやり直すもの | スクリプトがやり直すもの |
+| --- | --- | --- |
+| ケースの内容（`fingerprint`）が変わった、または新しいケース | 判断（judge）と理由文（explain） | 計算 |
+| 設定ファイルの規則、または人の裁定 | 重要度が変わったケースの理由文だけ（`reason_level` と決定した重要度が違うもの） | 全ケースの計算 |
+| 入力からケースが消えた | なし（判断を捨てる） | 計算 |
+| 何も変わらない | なし | 計算（結果は前回と同じ） |
+
+- 前回と今回の比較は `core/carry.py` の `split`（キーは `case`、ハッシュは `fingerprint`）が行う。`plan.py judge` が判断し直すケースを、`plan.py explain` が理由文を書き直すケースを決める
+- `plan.py` が挙げたケース以外の判断と理由文は、書き換えない。その行は、前回の `review.csv` と 1 バイトも変わらない
+- `plan.py` の結果は `_raw/plan.json` に残る。`finish.py` は、載らなかったケースを `generated_by.carried` と数える。`plan.json` が無い（`build`）ときは、全ケースを `claude` と数える
+- 入力から消えたケースに裁定が残っていたら、検査が `ADJUDICATION_UNKNOWN_CASE` で止まる。人が `adjudicate.py --remove` で消す

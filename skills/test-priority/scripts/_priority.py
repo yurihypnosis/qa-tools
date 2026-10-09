@@ -13,6 +13,9 @@ import tomllib
 from pathlib import Path
 
 SKILL_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(SKILL_DIR.parent.parent / "core"))  # contracts.md の C7
+import carry  # noqa: E402
+import manifest  # noqa: E402
 LEVELS = (1, 2, 3, 4)
 SCALES = ("sanity", "smoke", "light", "full")
 EXCLUDED = "対象外"
@@ -404,8 +407,6 @@ def check(config, skip_manifest=False):
         if not path.is_file():
             findings.append(_finding("MANIFEST", path, 1, message="manifest.json が無い"))
         else:
-            sys.path.insert(0, str(SKILL_DIR.parent.parent / "core"))
-            import manifest
             findings += [_finding("MANIFEST", path, 1, message=m) for m in manifest.validate(json.loads(path.read_text(encoding="utf-8")))]
     return findings, stats
 
@@ -486,3 +487,81 @@ def survey(platform_name, root, cases_glob):
         area["features"][rec["feature"]] = area["features"].get(rec["feature"], 0) + 1
         area["screens"][rec["screen"]] = area["screens"].get(rec["screen"], 0) + 1
     return {"cases": sum(a["cases"] for a in areas.values()), "areas": areas}
+
+
+# --- update：何を作り直すか ------------------------------------------------------
+
+def plan_path(config):
+    return raw_dir(config) / "plan.json"
+
+
+def read_plan(config):
+    path = plan_path(config)
+    return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+
+
+def write_plan(config, **parts):
+    plan = {**read_plan(config), **parts}
+    plan_path(config).parent.mkdir(parents=True, exist_ok=True)
+    plan_path(config).write_text(json.dumps(plan, ensure_ascii=False, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+
+
+def plan_judge(config):
+    """前回の判断と今回のケースを比べ、AI が判断し直すケースを _raw/pending.jsonl に書く。消えたケースの判断は捨てる。"""
+    cases = load_cases(config)
+    path = raw_dir(config) / "judgments.jsonl"
+    stored = read_jsonl(path)
+    result = carry.split({j["case"]: j["fingerprint"] for j in stored}, {c["case"]: c["fingerprint"] for c in cases})
+    kept = [j for j in stored if j["case"] not in set(result["removed"])]
+    if len(kept) != len(stored):
+        write_jsonl(path, sorted(kept, key=lambda j: j["case"]))
+    by_case = {c["case"]: c for c in cases}
+    write_jsonl(raw_dir(config) / "pending.jsonl", [by_case[k] for k in result["changed"]])
+    write_plan(config, judge=result["changed"], explain=[])
+    return {"pending": result["changed"], "carried": len(result["carried"]), "removed": result["removed"]}
+
+
+def plan_explain(config):
+    """決定した重要度と、理由文を書いたときの重要度を比べ、理由文を書き直すケースを _raw/explain_input.jsonl に書く。"""
+    rows = decide_from_files(config)
+    pending = [r for r in rows if not r["judgment"].get("reason") or r["judgment"].get("reason_level") != (r["level"] or 0)]
+    write_jsonl(raw_dir(config) / "explain_input.jsonl", [{
+        "case": r["case"], "title": r["rec"]["title"], "body": r["rec"]["body"],
+        "axes": r["judgment"]["axes"], "impact": r["judgment"]["impact"], "kind": r["judgment"]["kind"],
+        "start": level_name(r["start"]) or None, "level": level_name(r["level"]) or None, "scale": r["scale"],
+        "representative": r["representative"], "marks": r["marks"], "effective_axes": r["effective_axes"],
+        "blocked_by": r["blocked_by"], "adjudicated": bool(r["adjudication"]),
+    } for r in pending])
+    names = [r["case"] for r in pending]
+    write_plan(config, explain=names)
+    return {"pending": names}
+
+
+def carried_count(config, cases):
+    """AI が今回何も作らなかったケースの数。plan.json が無い（build）なら 0。"""
+    if not plan_path(config).is_file():
+        return 0
+    plan = read_plan(config)
+    touched = set(plan.get("judge", [])) | set(plan.get("explain", []))
+    return sum(1 for c in cases if c["case"] not in touched)
+
+
+def adjudicate(config, case, level=None, scale=None, reason=None):
+    cases = {c["case"] for c in load_cases(config)}
+    if case not in cases:
+        raise InputError(f"入力に無いケース: {case}")
+    if not (reason and reason.strip()):
+        raise InputError("--reason が必須")
+    if level is None and scale is None:
+        raise InputError("--level か --scale のどちらかが必要")
+    value = {"理由": reason}
+    if level is not None:
+        if level not in tuple(level_name(l) for l in LEVELS):
+            raise InputError(f"--level は R1〜R4: {level!r}")
+        value["重要度"] = level
+    if scale is not None:
+        if scale not in (*SCALES, EXCLUDED):
+            raise InputError(f"--scale は {[*SCALES, EXCLUDED]} のどれか: {scale!r}")
+        value["規模"] = scale
+    carry.record(config["out_dir"] / "adjudications.json", case, value)
+    return value

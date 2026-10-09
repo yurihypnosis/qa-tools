@@ -42,6 +42,35 @@
         "1 度に複数の領域をまとめて質問していない",
         "既に .qa/test-priority.toml がある場合は、上書きしてよいかを先に確かめている"
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "前回の build の出力が output/test-priority/ にある。DUMMY-001-TC-010 のタイトルだけを書き換えたので、/qa-tools:test-priority update を実行して。",
+      "expected_output": "plan.py が挙げたケース（TC-010）だけを判断し直し、理由文も TC-010（と、重要度が変わったケースがあればそれ）だけ書き直す。ほかのケースの行は前回の review.csv と 1 バイトも変わらない。報告に、判断し直した件数と引き継いだ件数がある。",
+      "files": [
+        "../../examples/dummy-product"
+      ],
+      "expectations": [
+        "plan.py judge の出力の pending が 1 件（DUMMY-001-TC-010）である",
+        "TC-010 以外のケースの判断を書き直していない（下書きに TC-010 だけがある）",
+        "TC-010 以外の review.csv の行が、前回と 1 バイトも変わっていない",
+        "manifest.json の generated_by の claude が 1 以上で、carried が 46 以下である",
+        "完了報告に、判断し直した件数と引き継いだ件数が書かれている"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "DUMMY-001-TC-045 は、管理者の操作の確認だから R2 にしてほしい。理由は「管理者の他人のタスク操作は監査の対象のため」。",
+      "expected_output": "adjudicate.py で裁定を記録し（adjudications.json を直接書かない）、続けて update を実行して、TC-045 が R2 になり、理由文が『人が決めた』と書き直される。ほかのケースの行は変わらない。",
+      "files": [
+        "../../examples/dummy-product"
+      ],
+      "expectations": [
+        "adjudications.json への記録に adjudicate.py を使い、Edit や Write で直接書いていない",
+        "TC-045 の重要度が R2 になっている",
+        "TC-045 の理由文に、人が決めたことが書かれている",
+        "TC-045 以外の review.csv の行が変わっていない"
+      ]
     }
   ]
 }

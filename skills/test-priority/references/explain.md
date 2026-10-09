@@ -4,7 +4,7 @@
 
 | 項目 | 内容 |
 | --- | --- |
-| 入力 | `decide.py` の出力（1 ケース 1 行：`case` `start` `level` `scale` `representative` `marks` `effective_axes` `blocked_by` `adjudicated`）、`_raw/cases.jsonl`、`_raw/judgments.jsonl` |
+| 入力 | `output/test-priority/_raw/explain_input.jsonl`（`plan.py explain` が書く、理由文が要るケースだけ。1 ケース 1 行：`case` `title` `body` `axes` `impact` `kind`（AI の判断）と、`start` `level` `scale` `representative` `marks` `effective_axes` `blocked_by` `adjudicated`（計算の結果）） |
 | 出力 | 下書き `output/test-priority/_raw/explain.draft.jsonl` → `apply_judgments.py explain` で `judgments.jsonl` に取り込む |
 | 検査 | `apply_judgments.py` が、ケースの存在と理由が空でないことを検査する |
 | 次 | export（`build.md` の手順 5） |
@@ -15,7 +15,7 @@ QA エンジニアとして、決まった重要度と規模の**理由を、読
 
 ## 手順
 
-1. `decide.py` の出力を、ケースごとに `cases.jsonl` と `judgments.jsonl` の同じケースと突き合わせる。
+1. `explain_input.jsonl` を 50 行ずつ読む（Read の offset と limit）。
 2. 各ケースの理由文を書く。形は `assets/reason.template.md` に従う。
 3. 下書きに、1 ケース 1 行の JSON を書く。キーは `case` と `reason` の 2 つだけ。理由文の中の改行は `\n` と書く。
    ```json
@@ -29,9 +29,9 @@ QA エンジニアとして、決まった重要度と規模の**理由を、読
 
 ## 「だからこの重要度」の根拠
 
-理由は、`decide.py` が出した事実だけから書く。重要度が決まった本当の原因と違う説明を、もっともらしく作らない。
+理由は、`explain_input.jsonl` の「計算の結果」の事実だけから書く。重要度が決まった本当の原因と違う説明を、もっともらしく作らない。
 
-| `decide.py` の出力 | 書くこと |
+| `explain_input.jsonl` の値 | 書くこと |
 | --- | --- |
 | `level` が `start` より小さい（上がった） | `effective_axes` の軸と、影響範囲（`impact`）を理由にする |
 | `level` が `start` より大きい（下がった） | 影響範囲が見た目だけで、有効なリスク軸が無いことを理由にする |
@@ -41,6 +41,8 @@ QA エンジニアとして、決まった重要度と規模の**理由を、読
 | `adjudicated` が `true` | 人が決めた値であることを書く（元の計算は書かない） |
 
 ## 書き方のルール
+
+- 言語は SKILL.md の「言語」に従う。以下の見出し語（`何を確認する？：` など）は、日本語で書くときの形
 
 - 1 行目は結論：「重要度と規模 ＋ どう流すか」。例：`R2・smoke で毎回確認する。`
 - 2〜4 行目は、`何を確認する？：` `壊れると何が困る？：` `だからこの重要度：` で始める。各 1 文。
