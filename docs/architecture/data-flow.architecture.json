@@ -1,0 +1,245 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "qa-tools：ツール同士の受け渡し",
+    "locale": "ja",
+    "output": "docs/architecture/data-flow.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    {
+      "id": "source",
+      "type": "external",
+      "label": "ソースコード",
+      "sublabel": "対象リポジトリ",
+      "pos": [
+        60,
+        140
+      ],
+      "size": [
+        140,
+        64
+      ]
+    },
+    {
+      "id": "e2e",
+      "type": "external",
+      "label": "Playwright spec",
+      "sublabel": "e2e/**/*.spec.ts",
+      "pos": [
+        60,
+        500
+      ],
+      "size": [
+        140,
+        64
+      ]
+    },
+    {
+      "id": "pbi",
+      "type": "external",
+      "label": "PBI の資料",
+      "sublabel": "PBI/{ID}/",
+      "pos": [
+        60,
+        660
+      ],
+      "size": [
+        140,
+        64
+      ]
+    },
+    {
+      "id": "codemap",
+      "type": "backend",
+      "label": "code-map",
+      "sublabel": "索引と要約（lookup/）",
+      "tag": "コードの地図",
+      "pos": [
+        340,
+        130
+      ],
+      "size": [
+        200,
+        84
+      ]
+    },
+    {
+      "id": "screenlist",
+      "type": "backend",
+      "label": "screen-list",
+      "sublabel": "screens.csv",
+      "tag": "画面 ID の持ち主",
+      "pos": [
+        340,
+        310
+      ],
+      "size": [
+        200,
+        84
+      ]
+    },
+    {
+      "id": "teststeps",
+      "type": "backend",
+      "label": "test-steps",
+      "sublabel": "手順書 *.md",
+      "tag": "操作の地図",
+      "pos": [
+        340,
+        490
+      ],
+      "size": [
+        200,
+        84
+      ]
+    },
+    {
+      "id": "tcg",
+      "type": "backend",
+      "label": "test-case-generator",
+      "sublabel": "4-testcases.md（15 列）",
+      "pos": [
+        340,
+        650
+      ],
+      "size": [
+        200,
+        84
+      ]
+    },
+    {
+      "id": "priority",
+      "type": "backend",
+      "label": "test-priority",
+      "sublabel": "重要度・規模の CSV",
+      "pos": [
+        680,
+        570
+      ],
+      "size": [
+        200,
+        84
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "入力（利用側プロジェクト）",
+      "wraps": [
+        "source",
+        "e2e",
+        "pbi"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "qa-tools のツール",
+      "wraps": [
+        "codemap",
+        "screenlist",
+        "teststeps",
+        "tcg",
+        "priority"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "src-cm",
+      "from": "source",
+      "to": "codemap",
+      "label": "読む"
+    },
+    {
+      "id": "src-sl",
+      "from": "source",
+      "to": "screenlist",
+      "label": "画面の有無と名前"
+    },
+    {
+      "id": "e2e-ts",
+      "from": "e2e",
+      "to": "teststeps",
+      "label": "読む"
+    },
+    {
+      "id": "pbi-tcg",
+      "from": "pbi",
+      "to": "tcg",
+      "label": "読む"
+    },
+    {
+      "id": "cm-sl",
+      "from": "codemap",
+      "to": "screenlist",
+      "label": "F1 routes.jsonl",
+      "variant": "emphasis"
+    },
+    {
+      "id": "sl-ts",
+      "from": "screenlist",
+      "to": "teststeps",
+      "label": "F3 画面ID・URL",
+      "variant": "emphasis"
+    },
+    {
+      "id": "sl-pr",
+      "from": "screenlist",
+      "to": "priority",
+      "label": "F7 画面ID・画面名",
+      "variant": "emphasis"
+    },
+    {
+      "id": "ts-pr",
+      "from": "teststeps",
+      "to": "priority",
+      "label": "F6 手順書"
+    },
+    {
+      "id": "tcg-pr",
+      "from": "tcg",
+      "to": "priority",
+      "label": "F5 テストケース"
+    },
+    {
+      "id": "cm-ts",
+      "from": "codemap",
+      "to": "teststeps",
+      "label": "F4 tree.md",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "right"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "矢印の F1〜F7",
+      "items": [
+        "data-flow.md の「公開ファイルの一覧」の ID",
+        "他のツールが読んでよいのはこれだけ"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "update の順番",
+      "items": [
+        "1. code-map",
+        "2. screen-list",
+        "3. test-steps",
+        "4. test-priority"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "図に無いもの",
+      "items": [
+        "core/：全ツールが使う共通処理",
+        "code-map は screen-list を読まない（循環させない）"
+      ]
+    }
+  ]
+}
