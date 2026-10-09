@@ -23,20 +23,6 @@
       ]
     },
     {
-      "id": "help",
-      "type": "external",
-      "label": "ヘルプ記事",
-      "sublabel": "任意",
-      "pos": [
-        60,
-        320
-      ],
-      "size": [
-        140,
-        64
-      ]
-    },
-    {
       "id": "e2e",
       "type": "external",
       "label": "Playwright spec",
@@ -159,7 +145,6 @@
       "label": "入力（利用側プロジェクト）",
       "wraps": [
         "source",
-        "help",
         "e2e",
         "pbi"
       ]
@@ -188,13 +173,6 @@
       "from": "source",
       "to": "screenlist",
       "label": "画面の有無"
-    },
-    {
-      "id": "help-sl",
-      "from": "help",
-      "to": "screenlist",
-      "label": "目的",
-      "variant": "dashed"
     },
     {
       "id": "e2e-ts",
