@@ -1,0 +1,19 @@
+platform = ["typescript"]
+
+[source]
+repo = "sample-app"
+root = "src"
+exclude = ["**/*.test.ts", "**/*.test.tsx"]
+
+[output]
+dir = "output/code-map"
+
+[rules]
+module_depth = 2
+representatives = 5
+
+[rules.typescript]
+tsconfig = "tsconfig.json"
+
+[checks]
+run = ["public-files"]

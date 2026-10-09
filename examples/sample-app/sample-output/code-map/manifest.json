@@ -1,0 +1,18 @@
+{
+  "tool": "code-map",
+  "version": 1,
+  "source": {
+    "repo": "sample-app",
+    "commit": "f8f641c"
+  },
+  "config_hash": "sha256:c52289c34536521bb5d1ebe404de3a5e6e947729205c684081c3bee24da2b49c",
+  "inputs": {},
+  "generated_at": "2026-10-09T23:49:46+09:00",
+  "generated_by": {
+    "claude": 14,
+    "script": 0,
+    "carried": 0,
+    "local": 0
+  },
+  "items": 14
+}

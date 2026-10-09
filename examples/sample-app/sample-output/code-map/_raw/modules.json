@@ -1,0 +1,1908 @@
+{
+ "(root)": {
+  "depended_by": {},
+  "depends_on": {
+   "shared/lib": 1
+  },
+  "files": [
+   "src/proxy.ts"
+  ],
+  "hash": "e281850e42435a514aa8d3318323821533ea4189cacb97242d756417544d532f",
+  "representatives": [
+   {
+    "imported_by": 0,
+    "path": "src/proxy.ts"
+   }
+  ],
+  "symbols": [
+   {
+    "file": "src/proxy.ts",
+    "kind": "function",
+    "line": 4,
+    "name": "proxy"
+   },
+   {
+    "file": "src/proxy.ts",
+    "kind": "const",
+    "line": 8,
+    "name": "config"
+   }
+  ]
+ },
+ "app": {
+  "depended_by": {},
+  "depends_on": {},
+  "files": [
+   "src/app/layout.tsx"
+  ],
+  "hash": "386634377553250760351cc7b57049d5a557985c092d8f906d2cf0a700656678",
+  "representatives": [
+   {
+    "imported_by": 0,
+    "path": "src/app/layout.tsx"
+   }
+  ],
+  "symbols": [
+   {
+    "file": "src/app/layout.tsx",
+    "kind": "const",
+    "line": 4,
+    "name": "metadata"
+   },
+   {
+    "file": "src/app/layout.tsx",
+    "kind": "const",
+    "line": 10,
+    "name": "viewport"
+   },
+   {
+    "file": "src/app/layout.tsx",
+    "kind": "function",
+    "line": 16,
+    "name": "RootLayout"
+   }
+  ]
+ },
+ "app/(auth)": {
+  "depended_by": {},
+  "depends_on": {
+   "shared/lib": 2
+  },
+  "files": [
+   "src/app/(auth)/layout.tsx",
+   "src/app/(auth)/login/page.tsx",
+   "src/app/(auth)/register/page.tsx"
+  ],
+  "hash": "21cdc80e626801357dbfdbd06d409a2788b625d0ef873e65279e7e2c2f7eb518",
+  "representatives": [
+   {
+    "imported_by": 0,
+    "path": "src/app/(auth)/layout.tsx"
+   },
+   {
+    "imported_by": 0,
+    "path": "src/app/(auth)/login/page.tsx"
+   },
+   {
+    "imported_by": 0,
+    "path": "src/app/(auth)/register/page.tsx"
+   }
+  ],
+  "symbols": [
+   {
+    "file": "src/app/(auth)/layout.tsx",
+    "kind": "function",
+    "line": 1,
+    "name": "AuthLayout"
+   },
+   {
+    "file": "src/app/(auth)/login/page.tsx",
+    "kind": "function",
+    "line": 8,
+    "name": "LoginPage"
+   },
+   {
+    "file": "src/app/(auth)/register/page.tsx",
+    "kind": "function",
+    "line": 8,
+    "name": "RegisterPage"
+   }
+  ]
+ },
+ "app/(main)": {
+  "depended_by": {
+   "features/quiz": 1
+  },
+  "depends_on": {
+   "features/code-tour": 2,
+   "features/flashcards": 6,
+   "features/g-kentei-cheatsheet": 2,
+   "features/mindset": 1,
+   "features/quiz": 38,
+   "features/roadmap": 2,
+   "shared/components": 9,
+   "shared/lib": 7,
+   "types": 1
+  },
+  "files": [
+   "src/app/(main)/catalog/catalog-client.tsx",
+   "src/app/(main)/catalog/page.tsx",
+   "src/app/(main)/code-tour/code-tour-client.tsx",
+   "src/app/(main)/code-tour/page.tsx",
+   "src/app/(main)/flashcards/flashcards-client.tsx",
+   "src/app/(main)/flashcards/page.tsx",
+   "src/app/(main)/g-kentei/cheatsheet/page.tsx",
+   "src/app/(main)/layout.tsx",
+   "src/app/(main)/learning-app.tsx",
+   "src/app/(main)/log/build-days.ts",
+   "src/app/(main)/log/log-client.tsx",
+   "src/app/(main)/log/page.tsx",
+   "src/app/(main)/mindset/mindset-client.tsx",
+   "src/app/(main)/mindset/page.tsx",
+   "src/app/(main)/overview-dashboard.tsx",
+   "src/app/(main)/page.tsx",
+   "src/app/(main)/roadmap/page.tsx",
+   "src/app/(main)/roadmap/roadmap-client.tsx"
+  ],
+  "hash": "599a190f715724b1caccf5b546b7ee10666dcb241b7bb4a3816f0dff34db73c2",
+  "representatives": [
+   {
+    "imported_by": 2,
+    "path": "src/app/(main)/learning-app.tsx"
+   },
+   {
+    "imported_by": 2,
+    "path": "src/app/(main)/log/build-days.ts"
+   },
+   {
+    "imported_by": 1,
+    "path": "src/app/(main)/catalog/catalog-client.tsx"
+   },
+   {
+    "imported_by": 1,
+    "path": "src/app/(main)/code-tour/code-tour-client.tsx"
+   },
+   {
+    "imported_by": 1,
+    "path": "src/app/(main)/flashcards/flashcards-client.tsx"
+   }
+  ],
+  "symbols": [
+   {
+    "file": "src/app/(main)/catalog/catalog-client.tsx",
+    "kind": "function",
+    "line": 37,
+    "name": "CatalogClient"
+   },
+   {
+    "file": "src/app/(main)/catalog/page.tsx",
+    "kind": "const",
+    "line": 6,
+    "name": "dynamic"
+   },
+   {
+    "file": "src/app/(main)/catalog/page.tsx",
+    "kind": "function",
+    "line": 8,
+    "name": "CatalogPage"
+   },
+   {
+    "file": "src/app/(main)/code-tour/code-tour-client.tsx",
+    "kind": "function",
+    "line": 38,
+    "name": "CodeTourClient"
+   },
+   {
+    "file": "src/app/(main)/code-tour/page.tsx",
+    "kind": "function",
+    "line": 3,
+    "name": "CodeTourPage"
+   },
+   {
+    "file": "src/app/(main)/flashcards/flashcards-client.tsx",
+    "kind": "function",
+    "line": 13,
+    "name": "FlashcardsClient"
+   },
+   {
+    "file": "src/app/(main)/flashcards/page.tsx",
+    "kind": "const",
+    "line": 4,
+    "name": "dynamic"
+   },
+   {
+    "file": "src/app/(main)/flashcards/page.tsx",
+    "kind": "function",
+    "line": 6,
+    "name": "FlashcardsPage"
+   },
+   {
+    "file": "src/app/(main)/g-kentei/cheatsheet/page.tsx",
+    "kind": "function",
+    "line": 6,
+    "name": "GKenteiCheatsheetPage"
+   },
+   {
+    "file": "src/app/(main)/layout.tsx",
+    "kind": "function",
+    "line": 9,
+    "name": "MainLayout"
+   },
+   {
+    "file": "src/app/(main)/learning-app.tsx",
+    "kind": "function",
+    "line": 69,
+    "name": "LearningApp"
+   },
+   {
+    "file": "src/app/(main)/log/build-days.ts",
+    "kind": "interface",
+    "line": 4,
+    "name": "AnswerEvent"
+   },
+   {
+    "file": "src/app/(main)/log/build-days.ts",
+    "kind": "interface",
+    "line": 13,
+    "name": "DayEntry"
+   },
+   {
+    "file": "src/app/(main)/log/build-days.ts",
+    "kind": "const",
+    "line": 24,
+    "name": "WEEKDAYS"
+   },
+   {
+    "file": "src/app/(main)/log/build-days.ts",
+    "kind": "function",
+    "line": 30,
+    "name": "toDateKey"
+   },
+   {
+    "file": "src/app/(main)/log/build-days.ts",
+    "kind": "function",
+    "line": 41,
+    "name": "shiftKey"
+   },
+   {
+    "file": "src/app/(main)/log/build-days.ts",
+    "kind": "function",
+    "line": 47,
+    "name": "buildDays"
+   },
+   {
+    "file": "src/app/(main)/log/build-days.ts",
+    "kind": "function",
+    "line": 103,
+    "name": "calcStreak"
+   },
+   {
+    "file": "src/app/(main)/log/log-client.tsx",
+    "kind": "function",
+    "line": 107,
+    "name": "LogClient"
+   },
+   {
+    "file": "src/app/(main)/log/page.tsx",
+    "kind": "const",
+    "line": 6,
+    "name": "dynamic"
+   },
+   {
+    "file": "src/app/(main)/log/page.tsx",
+    "kind": "function",
+    "line": 15,
+    "name": "LogPage"
+   },
+   {
+    "file": "src/app/(main)/mindset/mindset-client.tsx",
+    "kind": "function",
+    "line": 22,
+    "name": "MindsetClient"
+   },
+   {
+    "file": "src/app/(main)/mindset/page.tsx",
+    "kind": "function",
+    "line": 3,
+    "name": "MindsetPage"
+   },
+   {
+    "file": "src/app/(main)/overview-dashboard.tsx",
+    "kind": "function",
+    "line": 27,
+    "name": "OverviewDashboard"
+   },
+   {
+    "file": "src/app/(main)/page.tsx",
+    "kind": "const",
+    "line": 16,
+    "name": "dynamic"
+   },
+   {
+    "file": "src/app/(main)/page.tsx",
+    "kind": "function",
+    "line": 81,
+    "name": "HomePage"
+   },
+   {
+    "file": "src/app/(main)/roadmap/page.tsx",
+    "kind": "const",
+    "line": 12,
+    "name": "dynamic"
+   },
+   {
+    "file": "src/app/(main)/roadmap/page.tsx",
+    "kind": "function",
+    "line": 14,
+    "name": "RoadmapPage"
+   },
+   {
+    "file": "src/app/(main)/roadmap/roadmap-client.tsx",
+    "kind": "function",
+    "line": 55,
+    "name": "RoadmapClient"
+   }
+  ]
+ },
+ "app/api": {
+  "depended_by": {},
+  "depends_on": {
+   "features/quiz": 2,
+   "shared/lib": 2
+  },
+  "files": [
+   "src/app/api/fsrs/backfill/route.ts",
+   "src/app/api/questions/route.ts"
+  ],
+  "hash": "42150fda06e47d4550ff434bcb75604ad7b981da7e153d7f7c83ac8313fdbc4b",
+  "representatives": [
+   {
+    "imported_by": 0,
+    "path": "src/app/api/fsrs/backfill/route.ts"
+   },
+   {
+    "imported_by": 0,
+    "path": "src/app/api/questions/route.ts"
+   }
+  ],
+  "symbols": [
+   {
+    "file": "src/app/api/fsrs/backfill/route.ts",
+    "kind": "const",
+    "line": 5,
+    "name": "dynamic"
+   },
+   {
+    "file": "src/app/api/fsrs/backfill/route.ts",
+    "kind": "function",
+    "line": 11,
+    "name": "POST"
+   },
+   {
+    "file": "src/app/api/questions/route.ts",
+    "kind": "function",
+    "line": 6,
+    "name": "POST"
+   }
+  ]
+ },
+ "features/code-tour": {
+  "depended_by": {
+   "app/(main)": 2
+  },
+  "depends_on": {},
+  "files": [
+   "src/features/code-tour/components/diagrams.tsx",
+   "src/features/code-tour/lib/code-tour.ts"
+  ],
+  "hash": "a465b3364709d5c711761b6051247ad9e96fc65a28aeb8ce2d8ba6701e37ecc2",
+  "representatives": [
+   {
+    "imported_by": 1,
+    "path": "src/features/code-tour/components/diagrams.tsx"
+   },
+   {
+    "imported_by": 1,
+    "path": "src/features/code-tour/lib/code-tour.ts"
+   }
+  ],
+  "symbols": [
+   {
+    "file": "src/features/code-tour/components/diagrams.tsx",
+    "kind": "function",
+    "line": 55,
+    "name": "DiagramHierarchy"
+   },
+   {
+    "file": "src/features/code-tour/components/diagrams.tsx",
+    "kind": "function",
+    "line": 82,
+    "name": "DiagramFolders"
+   },
+   {
+    "file": "src/features/code-tour/components/diagrams.tsx",
+    "kind": "function",
+    "line": 153,
+    "name": "DiagramServerClient"
+   },
+   {
+    "file": "src/features/code-tour/components/diagrams.tsx",
+    "kind": "function",
+    "line": 211,
+    "name": "DiagramDataFlow"
+   },
+   {
+    "file": "src/features/code-tour/components/diagrams.tsx",
+    "kind": "function",
+    "line": 245,
+    "name": "DiagramFeatureAnatomy"
+   },
+   {
+    "file": "src/features/code-tour/components/diagrams.tsx",
+    "kind": "function",
+    "line": 278,
+    "name": "DiagramSupabaseClients"
+   },
+   {
+    "file": "src/features/code-tour/components/diagrams.tsx",
+    "kind": "function",
+    "line": 323,
+    "name": "DiagramTestAsSpec"
+   },
+   {
+    "file": "src/features/code-tour/components/diagrams.tsx",
+    "kind": "function",
+    "line": 356,
+    "name": "DiagramUnknownCodeFlow"
+   },
+   {
+    "file": "src/features/code-tour/lib/code-tour.ts",
+    "kind": "type",
+    "line": 5,
+    "name": "CtSection"
+   },
+   {
+    "file": "src/features/code-tour/lib/code-tour.ts",
+    "kind": "const",
+    "line": 7,
+    "name": "SECTION_META"
+   },
+   {
+    "file": "src/features/code-tour/lib/code-tour.ts",
+    "kind": "interface",
+    "line": 14,
+    "name": "CtExercise"
+   },
+   {
+    "file": "src/features/code-tour/lib/code-tour.ts",
+    "kind": "const",
+    "line": 24,
+    "name": "CODE_TOUR_EXERCISES"
+   },
+   {
+    "file": "src/features/code-tour/lib/code-tour.ts",
+    "kind": "interface",
+    "line": 72,
+    "name": "CtTopic"
+   },
+   {
+    "file": "src/features/code-tour/lib/code-tour.ts",
+    "kind": "const",
+    "line": 84,
+    "name": "CODE_TOUR_DATA"
+   }
+  ]
+ },
+ "features/flashcards": {
+  "depended_by": {
+   "app/(main)": 6
+  },
+  "depends_on": {
+   "features/quiz": 1
+  },
+  "files": [
+   "src/features/flashcards/components/filter-chip.tsx",
+   "src/features/flashcards/hooks/use-deck-filter.ts",
+   "src/features/flashcards/hooks/use-flashcard-session.ts",
+   "src/features/flashcards/hooks/use-term-progress.ts",
+   "src/features/flashcards/lib/constants.ts",
+   "src/features/flashcards/lib/flashcards.ts",
+   "src/features/flashcards/screens/done-screen.tsx",
+   "src/features/flashcards/screens/session-screen.tsx",
+   "src/features/flashcards/screens/setup-screen.tsx"
+  ],
+  "hash": "25fba743ee49ecccbfd9d6d7058cb55391162d14442112341f1b5c100e7f50c1",
+  "representatives": [
+   {
+    "imported_by": 5,
+    "path": "src/features/flashcards/lib/flashcards.ts"
+   },
+   {
+    "imported_by": 4,
+    "path": "src/features/flashcards/hooks/use-deck-filter.ts"
+   },
+   {
+    "imported_by": 3,
+    "path": "src/features/flashcards/hooks/use-flashcard-session.ts"
+   },
+   {
+    "imported_by": 3,
+    "path": "src/features/flashcards/lib/constants.ts"
+   },
+   {
+    "imported_by": 2,
+    "path": "src/features/flashcards/hooks/use-term-progress.ts"
+   }
+  ],
+  "symbols": [
+   {
+    "file": "src/features/flashcards/components/filter-chip.tsx",
+    "kind": "function",
+    "line": 1,
+    "name": "FilterChip"
+   },
+   {
+    "file": "src/features/flashcards/hooks/use-deck-filter.ts",
+    "kind": "type",
+    "line": 7,
+    "name": "Scope"
+   },
+   {
+    "file": "src/features/flashcards/hooks/use-deck-filter.ts",
+    "kind": "function",
+    "line": 14,
+    "name": "useDeckFilter"
+   },
+   {
+    "file": "src/features/flashcards/hooks/use-flashcard-session.ts",
+    "kind": "type",
+    "line": 16,
+    "name": "Phase"
+   },
+   {
+    "file": "src/features/flashcards/hooks/use-flashcard-session.ts",
+    "kind": "function",
+    "line": 95,
+    "name": "useFlashcardSession"
+   },
+   {
+    "file": "src/features/flashcards/hooks/use-term-progress.ts",
+    "kind": "type",
+    "line": 10,
+    "name": "TermRow"
+   },
+   {
+    "file": "src/features/flashcards/hooks/use-term-progress.ts",
+    "kind": "type",
+    "line": 17,
+    "name": "TermStat"
+   },
+   {
+    "file": "src/features/flashcards/hooks/use-term-progress.ts",
+    "kind": "type",
+    "line": 18,
+    "name": "DeckProgress"
+   },
+   {
+    "file": "src/features/flashcards/hooks/use-term-progress.ts",
+    "kind": "type",
+    "line": 19,
+    "name": "Store"
+   },
+   {
+    "file": "src/features/flashcards/hooks/use-term-progress.ts",
+    "kind": "type",
+    "line": 20,
+    "name": "Status"
+   },
+   {
+    "file": "src/features/flashcards/hooks/use-term-progress.ts",
+    "kind": "function",
+    "line": 28,
+    "name": "useTermProgress"
+   },
+   {
+    "file": "src/features/flashcards/lib/constants.ts",
+    "kind": "const",
+    "line": 1,
+    "name": "MASTERED"
+   },
+   {
+    "file": "src/features/flashcards/lib/constants.ts",
+    "kind": "const",
+    "line": 2,
+    "name": "WEAK"
+   },
+   {
+    "file": "src/features/flashcards/lib/constants.ts",
+    "kind": "const",
+    "line": 4,
+    "name": "wrap"
+   },
+   {
+    "file": "src/features/flashcards/lib/constants.ts",
+    "kind": "const",
+    "line": 5,
+    "name": "container"
+   },
+   {
+    "file": "src/features/flashcards/lib/constants.ts",
+    "kind": "const",
+    "line": 6,
+    "name": "lbl"
+   },
+   {
+    "file": "src/features/flashcards/lib/flashcards.ts",
+    "kind": "interface",
+    "line": 7,
+    "name": "FlashCard"
+   },
+   {
+    "file": "src/features/flashcards/lib/flashcards.ts",
+    "kind": "interface",
+    "line": 17,
+    "name": "FlashDeck"
+   },
+   {
+    "file": "src/features/flashcards/lib/flashcards.ts",
+    "kind": "const",
+    "line": 24,
+    "name": "FLASHCARD_CATEGORY_ORDER"
+   },
+   {
+    "file": "src/features/flashcards/lib/flashcards.ts",
+    "kind": "const",
+    "line": 27,
+    "name": "FLASHCARD_CATEGORY_COLOR"
+   },
+   {
+    "file": "src/features/flashcards/lib/flashcards.ts",
+    "kind": "function",
+    "line": 38,
+    "name": "categoryColor"
+   },
+   {
+    "file": "src/features/flashcards/lib/flashcards.ts",
+    "kind": "const",
+    "line": 346,
+    "name": "FLASHCARD_DECKS"
+   },
+   {
+    "file": "src/features/flashcards/lib/flashcards.ts",
+    "kind": "function",
+    "line": 352,
+    "name": "deckByKey"
+   },
+   {
+    "file": "src/features/flashcards/screens/done-screen.tsx",
+    "kind": "function",
+    "line": 10,
+    "name": "DoneScreen"
+   },
+   {
+    "file": "src/features/flashcards/screens/session-screen.tsx",
+    "kind": "function",
+    "line": 11,
+    "name": "SessionScreen"
+   },
+   {
+    "file": "src/features/flashcards/screens/setup-screen.tsx",
+    "kind": "function",
+    "line": 16,
+    "name": "SetupScreen"
+   }
+  ]
+ },
+ "features/g-kentei-cheatsheet": {
+  "depended_by": {
+   "app/(main)": 2
+  },
+  "depends_on": {},
+  "files": [
+   "src/features/g-kentei-cheatsheet/lib/types.ts",
+   "src/features/g-kentei-cheatsheet/screens/cheatsheet-screen.tsx"
+  ],
+  "hash": "6c789b27dd6749624402249f313654715a879f227c16e10a0222598ac90f6aa7",
+  "representatives": [
+   {
+    "imported_by": 2,
+    "path": "src/features/g-kentei-cheatsheet/lib/types.ts"
+   },
+   {
+    "imported_by": 1,
+    "path": "src/features/g-kentei-cheatsheet/screens/cheatsheet-screen.tsx"
+   }
+  ],
+  "symbols": [
+   {
+    "file": "src/features/g-kentei-cheatsheet/lib/types.ts",
+    "kind": "interface",
+    "line": 1,
+    "name": "TermExample"
+   },
+   {
+    "file": "src/features/g-kentei-cheatsheet/lib/types.ts",
+    "kind": "interface",
+    "line": 7,
+    "name": "TermEntry"
+   },
+   {
+    "file": "src/features/g-kentei-cheatsheet/lib/types.ts",
+    "kind": "interface",
+    "line": 18,
+    "name": "ComparisonGroup"
+   },
+   {
+    "file": "src/features/g-kentei-cheatsheet/screens/cheatsheet-screen.tsx",
+    "kind": "function",
+    "line": 172,
+    "name": "CheatsheetScreen"
+   }
+  ]
+ },
+ "features/mindset": {
+  "depended_by": {
+   "app/(main)": 1
+  },
+  "depends_on": {},
+  "files": [
+   "src/features/mindset/lib/mindset.ts"
+  ],
+  "hash": "98c96ff773d66f968f9eaeca17a476a0b683c916af3d520fe593391096a1f7b3",
+  "representatives": [
+   {
+    "imported_by": 1,
+    "path": "src/features/mindset/lib/mindset.ts"
+   }
+  ],
+  "symbols": [
+   {
+    "file": "src/features/mindset/lib/mindset.ts",
+    "kind": "type",
+    "line": 7,
+    "name": "MCategory"
+   },
+   {
+    "file": "src/features/mindset/lib/mindset.ts",
+    "kind": "interface",
+    "line": 9,
+    "name": "MPrinciple"
+   },
+   {
+    "file": "src/features/mindset/lib/mindset.ts",
+    "kind": "const",
+    "line": 21,
+    "name": "CATEGORY_META"
+   },
+   {
+    "file": "src/features/mindset/lib/mindset.ts",
+    "kind": "const",
+    "line": 31,
+    "name": "MINDSET_DATA"
+   }
+  ]
+ },
+ "features/quiz": {
+  "depended_by": {
+   "app/(main)": 38,
+   "app/api": 2,
+   "features/flashcards": 1
+  },
+  "depends_on": {
+   "app/(main)": 1,
+   "shared/lib": 1,
+   "types": 1
+  },
+  "files": [
+   "src/features/quiz/components/dashboard-parts.tsx",
+   "src/features/quiz/components/rich-explanation.tsx",
+   "src/features/quiz/components/theme-practice.tsx",
+   "src/features/quiz/components/trend-card.tsx",
+   "src/features/quiz/hooks/use-csv-export.ts",
+   "src/features/quiz/hooks/use-exam-goal.ts",
+   "src/features/quiz/hooks/use-fsrs-backfill.ts",
+   "src/features/quiz/hooks/use-menu-settings.ts",
+   "src/features/quiz/hooks/use-now.ts",
+   "src/features/quiz/hooks/use-progress.ts",
+   "src/features/quiz/hooks/use-quiz-session.ts",
+   "src/features/quiz/hooks/use-readiness.ts",
+   "src/features/quiz/hooks/use-screen.ts",
+   "src/features/quiz/hooks/use-supabase-client.ts",
+   "src/features/quiz/hooks/use-textbooks.ts",
+   "src/features/quiz/lib/constants.ts",
+   "src/features/quiz/lib/csv.ts",
+   "src/features/quiz/lib/format.ts",
+   "src/features/quiz/lib/fsrs.ts",
+   "src/features/quiz/lib/grading.ts",
+   "src/features/quiz/lib/readiness.ts",
+   "src/features/quiz/lib/selection.ts",
+   "src/features/quiz/lib/server-data.ts",
+   "src/features/quiz/lib/stats.ts",
+   "src/features/quiz/lib/streak.ts",
+   "src/features/quiz/lib/types.ts",
+   "src/features/quiz/screens/analysis-screen.tsx",
+   "src/features/quiz/screens/done-screen.tsx",
+   "src/features/quiz/screens/export-screen.tsx",
+   "src/features/quiz/screens/goal-screen.tsx",
+   "src/features/quiz/screens/menu-screen.tsx",
+   "src/features/quiz/screens/quiz-screen.tsx"
+  ],
+  "hash": "13d73b2922e60b5b0ae86647a7a8b396166e14593b77a560d11f804b0c728138",
+  "representatives": [
+   {
+    "imported_by": 21,
+    "path": "src/features/quiz/lib/types.ts"
+   },
+   {
+    "imported_by": 19,
+    "path": "src/features/quiz/lib/stats.ts"
+   },
+   {
+    "imported_by": 16,
+    "path": "src/features/quiz/lib/selection.ts"
+   },
+   {
+    "imported_by": 7,
+    "path": "src/features/quiz/hooks/use-screen.ts"
+   },
+   {
+    "imported_by": 4,
+    "path": "src/features/quiz/hooks/use-supabase-client.ts"
+   }
+  ],
+  "symbols": [
+   {
+    "file": "src/features/quiz/components/dashboard-parts.tsx",
+    "kind": "interface",
+    "line": 6,
+    "name": "WeeklyBar"
+   },
+   {
+    "file": "src/features/quiz/components/dashboard-parts.tsx",
+    "kind": "function",
+    "line": 12,
+    "name": "Ico"
+   },
+   {
+    "file": "src/features/quiz/components/dashboard-parts.tsx",
+    "kind": "function",
+    "line": 29,
+    "name": "StatCard"
+   },
+   {
+    "file": "src/features/quiz/components/dashboard-parts.tsx",
+    "kind": "interface",
+    "line": 65,
+    "name": "Totals"
+   },
+   {
+    "file": "src/features/quiz/components/dashboard-parts.tsx",
+    "kind": "function",
+    "line": 73,
+    "name": "StatGrid"
+   },
+   {
+    "file": "src/features/quiz/components/dashboard-parts.tsx",
+    "kind": "function",
+    "line": 152,
+    "name": "ActivityCard"
+   },
+   {
+    "file": "src/features/quiz/components/dashboard-parts.tsx",
+    "kind": "function",
+    "line": 220,
+    "name": "ProgressTable"
+   },
+   {
+    "file": "src/features/quiz/components/rich-explanation.tsx",
+    "kind": "function",
+    "line": 66,
+    "name": "RichExplanation"
+   },
+   {
+    "file": "src/features/quiz/components/theme-practice.tsx",
+    "kind": "function",
+    "line": 23,
+    "name": "ThemePractice"
+   },
+   {
+    "file": "src/features/quiz/components/trend-card.tsx",
+    "kind": "interface",
+    "line": 5,
+    "name": "TrendDay"
+   },
+   {
+    "file": "src/features/quiz/components/trend-card.tsx",
+    "kind": "function",
+    "line": 120,
+    "name": "TrendCard"
+   },
+   {
+    "file": "src/features/quiz/hooks/use-csv-export.ts",
+    "kind": "function",
+    "line": 17,
+    "name": "useCsvExport"
+   },
+   {
+    "file": "src/features/quiz/hooks/use-exam-goal.ts",
+    "kind": "function",
+    "line": 15,
+    "name": "useExamGoal"
+   },
+   {
+    "file": "src/features/quiz/hooks/use-fsrs-backfill.ts",
+    "kind": "function",
+    "line": 7,
+    "name": "useFsrsBackfill"
+   },
+   {
+    "file": "src/features/quiz/hooks/use-menu-settings.ts",
+    "kind": "function",
+    "line": 22,
+    "name": "useMenuSettings"
+   },
+   {
+    "file": "src/features/quiz/hooks/use-now.ts",
+    "kind": "function",
+    "line": 7,
+    "name": "useNow"
+   },
+   {
+    "file": "src/features/quiz/hooks/use-progress.ts",
+    "kind": "function",
+    "line": 17,
+    "name": "useProgress"
+   },
+   {
+    "file": "src/features/quiz/hooks/use-progress.ts",
+    "kind": "type",
+    "line": 100,
+    "name": "PersistFn"
+   },
+   {
+    "file": "src/features/quiz/hooks/use-progress.ts",
+    "kind": "type",
+    "line": 101,
+    "name": "RecordAnswerFn"
+   },
+   {
+    "file": "src/features/quiz/hooks/use-quiz-session.ts",
+    "kind": "type",
+    "line": 11,
+    "name": "SessionResult"
+   },
+   {
+    "file": "src/features/quiz/hooks/use-quiz-session.ts",
+    "kind": "function",
+    "line": 87,
+    "name": "sessionReducer"
+   },
+   {
+    "file": "src/features/quiz/hooks/use-quiz-session.ts",
+    "kind": "function",
+    "line": 156,
+    "name": "useQuizSession"
+   },
+   {
+    "file": "src/features/quiz/hooks/use-readiness.ts",
+    "kind": "function",
+    "line": 35,
+    "name": "useReadiness"
+   },
+   {
+    "file": "src/features/quiz/hooks/use-screen.ts",
+    "kind": "type",
+    "line": 5,
+    "name": "Screen"
+   },
+   {
+    "file": "src/features/quiz/hooks/use-screen.ts",
+    "kind": "function",
+    "line": 18,
+    "name": "useScreen"
+   },
+   {
+    "file": "src/features/quiz/hooks/use-supabase-client.ts",
+    "kind": "function",
+    "line": 9,
+    "name": "useSupabaseClient"
+   },
+   {
+    "file": "src/features/quiz/hooks/use-textbooks.ts",
+    "kind": "function",
+    "line": 15,
+    "name": "useTextbooks"
+   },
+   {
+    "file": "src/features/quiz/lib/constants.ts",
+    "kind": "const",
+    "line": 5,
+    "name": "WEAK_SESSION_MAX"
+   },
+   {
+    "file": "src/features/quiz/lib/constants.ts",
+    "kind": "const",
+    "line": 7,
+    "name": "VERDICT_META"
+   },
+   {
+    "file": "src/features/quiz/lib/constants.ts",
+    "kind": "const",
+    "line": 15,
+    "name": "CONFIDENCE_LABELS"
+   },
+   {
+    "file": "src/features/quiz/lib/constants.ts",
+    "kind": "const",
+    "line": 19,
+    "name": "CONFIDENCE_COLORS"
+   },
+   {
+    "file": "src/features/quiz/lib/constants.ts",
+    "kind": "const",
+    "line": 24,
+    "name": "COMPREHENSION_LEVELS"
+   },
+   {
+    "file": "src/features/quiz/lib/csv.ts",
+    "kind": "type",
+    "line": 6,
+    "name": "ExportMode"
+   },
+   {
+    "file": "src/features/quiz/lib/csv.ts",
+    "kind": "function",
+    "line": 21,
+    "name": "buildCSV"
+   },
+   {
+    "file": "src/features/quiz/lib/csv.ts",
+    "kind": "function",
+    "line": 62,
+    "name": "downloadCSV"
+   },
+   {
+    "file": "src/features/quiz/lib/format.ts",
+    "kind": "function",
+    "line": 2,
+    "name": "fmtLastStudied"
+   },
+   {
+    "file": "src/features/quiz/lib/format.ts",
+    "kind": "function",
+    "line": 16,
+    "name": "accuracyColor"
+   },
+   {
+    "file": "src/features/quiz/lib/format.ts",
+    "kind": "function",
+    "line": 24,
+    "name": "statusOf"
+   },
+   {
+    "file": "src/features/quiz/lib/fsrs.ts",
+    "kind": "type",
+    "line": 11,
+    "name": "Grade"
+   },
+   {
+    "file": "src/features/quiz/lib/fsrs.ts",
+    "kind": "interface",
+    "line": 13,
+    "name": "Card"
+   },
+   {
+    "file": "src/features/quiz/lib/fsrs.ts",
+    "kind": "interface",
+    "line": 23,
+    "name": "FsrsParams"
+   },
+   {
+    "file": "src/features/quiz/lib/fsrs.ts",
+    "kind": "const",
+    "line": 30,
+    "name": "DEFAULT_WEIGHTS"
+   },
+   {
+    "file": "src/features/quiz/lib/fsrs.ts",
+    "kind": "const",
+    "line": 35,
+    "name": "DEFAULT_PARAMS"
+   },
+   {
+    "file": "src/features/quiz/lib/fsrs.ts",
+    "kind": "function",
+    "line": 49,
+    "name": "retrievability"
+   },
+   {
+    "file": "src/features/quiz/lib/fsrs.ts",
+    "kind": "function",
+    "line": 55,
+    "name": "intervalFromStability"
+   },
+   {
+    "file": "src/features/quiz/lib/fsrs.ts",
+    "kind": "function",
+    "line": 97,
+    "name": "gradeFromAnswer"
+   },
+   {
+    "file": "src/features/quiz/lib/fsrs.ts",
+    "kind": "function",
+    "line": 104,
+    "name": "newCard"
+   },
+   {
+    "file": "src/features/quiz/lib/fsrs.ts",
+    "kind": "function",
+    "line": 117,
+    "name": "review"
+   },
+   {
+    "file": "src/features/quiz/lib/fsrs.ts",
+    "kind": "function",
+    "line": 157,
+    "name": "isDue"
+   },
+   {
+    "file": "src/features/quiz/lib/fsrs.ts",
+    "kind": "function",
+    "line": 163,
+    "name": "currentRetrievability"
+   },
+   {
+    "file": "src/features/quiz/lib/grading.ts",
+    "kind": "function",
+    "line": 5,
+    "name": "arraysEqual"
+   },
+   {
+    "file": "src/features/quiz/lib/grading.ts",
+    "kind": "function",
+    "line": 10,
+    "name": "cardFromProgress"
+   },
+   {
+    "file": "src/features/quiz/lib/grading.ts",
+    "kind": "function",
+    "line": 23,
+    "name": "fsrsFields"
+   },
+   {
+    "file": "src/features/quiz/lib/readiness.ts",
+    "kind": "const",
+    "line": 13,
+    "name": "EXAM_PASS_LINE"
+   },
+   {
+    "file": "src/features/quiz/lib/readiness.ts",
+    "kind": "function",
+    "line": 22,
+    "name": "passLineFor"
+   },
+   {
+    "file": "src/features/quiz/lib/readiness.ts",
+    "kind": "function",
+    "line": 28,
+    "name": "capacityFromDailyCounts"
+   },
+   {
+    "file": "src/features/quiz/lib/readiness.ts",
+    "kind": "function",
+    "line": 36,
+    "name": "retentionEstimate"
+   },
+   {
+    "file": "src/features/quiz/lib/readiness.ts",
+    "kind": "function",
+    "line": 58,
+    "name": "itemCorrectProb"
+   },
+   {
+    "file": "src/features/quiz/lib/readiness.ts",
+    "kind": "function",
+    "line": 66,
+    "name": "poissonBinomialPMF"
+   },
+   {
+    "file": "src/features/quiz/lib/readiness.ts",
+    "kind": "function",
+    "line": 81,
+    "name": "passProbability"
+   },
+   {
+    "file": "src/features/quiz/lib/readiness.ts",
+    "kind": "function",
+    "line": 93,
+    "name": "demonstratedSkill"
+   },
+   {
+    "file": "src/features/quiz/lib/readiness.ts",
+    "kind": "function",
+    "line": 107,
+    "name": "examItemProb"
+   },
+   {
+    "file": "src/features/quiz/lib/readiness.ts",
+    "kind": "interface",
+    "line": 129,
+    "name": "ExamItem"
+   },
+   {
+    "file": "src/features/quiz/lib/readiness.ts",
+    "kind": "function",
+    "line": 139,
+    "name": "estimatePassProbability"
+   },
+   {
+    "file": "src/features/quiz/lib/readiness.ts",
+    "kind": "type",
+    "line": 165,
+    "name": "Verdict"
+   },
+   {
+    "file": "src/features/quiz/lib/readiness.ts",
+    "kind": "interface",
+    "line": 167,
+    "name": "Readiness"
+   },
+   {
+    "file": "src/features/quiz/lib/readiness.ts",
+    "kind": "interface",
+    "line": 181,
+    "name": "ReadinessInput"
+   },
+   {
+    "file": "src/features/quiz/lib/readiness.ts",
+    "kind": "function",
+    "line": 191,
+    "name": "computeReadiness"
+   },
+   {
+    "file": "src/features/quiz/lib/selection.ts",
+    "kind": "type",
+    "line": 10,
+    "name": "ProgressMap"
+   },
+   {
+    "file": "src/features/quiz/lib/selection.ts",
+    "kind": "function",
+    "line": 12,
+    "name": "getProgress"
+   },
+   {
+    "file": "src/features/quiz/lib/selection.ts",
+    "kind": "function",
+    "line": 17,
+    "name": "totalWrong"
+   },
+   {
+    "file": "src/features/quiz/lib/selection.ts",
+    "kind": "function",
+    "line": 21,
+    "name": "totalCorrect"
+   },
+   {
+    "file": "src/features/quiz/lib/selection.ts",
+    "kind": "function",
+    "line": 29,
+    "name": "isResting"
+   },
+   {
+    "file": "src/features/quiz/lib/selection.ts",
+    "kind": "function",
+    "line": 51,
+    "name": "isEligible"
+   },
+   {
+    "file": "src/features/quiz/lib/selection.ts",
+    "kind": "function",
+    "line": 55,
+    "name": "shuffle"
+   },
+   {
+    "file": "src/features/quiz/lib/selection.ts",
+    "kind": "function",
+    "line": 72,
+    "name": "referencesOptionPositions"
+   },
+   {
+    "file": "src/features/quiz/lib/selection.ts",
+    "kind": "function",
+    "line": 83,
+    "name": "shuffleOptions"
+   },
+   {
+    "file": "src/features/quiz/lib/selection.ts",
+    "kind": "function",
+    "line": 118,
+    "name": "eligibleQuestions"
+   },
+   {
+    "file": "src/features/quiz/lib/selection.ts",
+    "kind": "interface",
+    "line": 132,
+    "name": "BuildDeckArgs"
+   },
+   {
+    "file": "src/features/quiz/lib/selection.ts",
+    "kind": "function",
+    "line": 144,
+    "name": "buildDeck"
+   },
+   {
+    "file": "src/features/quiz/lib/server-data.ts",
+    "kind": "function",
+    "line": 15,
+    "name": "fetchAllRows"
+   },
+   {
+    "file": "src/features/quiz/lib/server-data.ts",
+    "kind": "interface",
+    "line": 35,
+    "name": "SubjectStatsRow"
+   },
+   {
+    "file": "src/features/quiz/lib/server-data.ts",
+    "kind": "function",
+    "line": 48,
+    "name": "fetchSubjectStats"
+   },
+   {
+    "file": "src/features/quiz/lib/server-data.ts",
+    "kind": "function",
+    "line": 125,
+    "name": "toSubjectStats"
+   },
+   {
+    "file": "src/features/quiz/lib/server-data.ts",
+    "kind": "interface",
+    "line": 146,
+    "name": "DayCount"
+   },
+   {
+    "file": "src/features/quiz/lib/server-data.ts",
+    "kind": "function",
+    "line": 158,
+    "name": "fetchDailyCounts"
+   },
+   {
+    "file": "src/features/quiz/lib/server-data.ts",
+    "kind": "function",
+    "line": 200,
+    "name": "jstDayKey"
+   },
+   {
+    "file": "src/features/quiz/lib/server-data.ts",
+    "kind": "function",
+    "line": 205,
+    "name": "fetchFamilyProgress"
+   },
+   {
+    "file": "src/features/quiz/lib/server-data.ts",
+    "kind": "interface",
+    "line": 265,
+    "name": "TrendDay"
+   },
+   {
+    "file": "src/features/quiz/lib/server-data.ts",
+    "kind": "function",
+    "line": 279,
+    "name": "fetchDailyBreakdown"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "interface",
+    "line": 7,
+    "name": "UserGoal"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "interface",
+    "line": 13,
+    "name": "Textbook"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "function",
+    "line": 23,
+    "name": "masteryFromProgress"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "function",
+    "line": 35,
+    "name": "questionMastery"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "function",
+    "line": 45,
+    "name": "weakReviewPool"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "interface",
+    "line": 69,
+    "name": "MasteryStats"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "function",
+    "line": 80,
+    "name": "calcMasteryStats"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "interface",
+    "line": 131,
+    "name": "DailyRec"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "function",
+    "line": 139,
+    "name": "calcDailyRec"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "interface",
+    "line": 171,
+    "name": "CategoryMastery"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "function",
+    "line": 181,
+    "name": "calcCategoryMastery"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "function",
+    "line": 238,
+    "name": "isSpeakFirstSubject"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "function",
+    "line": 246,
+    "name": "examGroupKey"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "function",
+    "line": 251,
+    "name": "examDisplayName"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "interface",
+    "line": 261,
+    "name": "SectionCatalogItem"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "interface",
+    "line": 268,
+    "name": "SectionMastery"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "function",
+    "line": 278,
+    "name": "calcSectionMastery"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "interface",
+    "line": 327,
+    "name": "QuestionSubjectRef"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "interface",
+    "line": 332,
+    "name": "SubjectStat"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "interface",
+    "line": 344,
+    "name": "ExamGroup"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "function",
+    "line": 357,
+    "name": "buildSubjectStats"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "function",
+    "line": 407,
+    "name": "groupSubjectsByExam"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "interface",
+    "line": 453,
+    "name": "SectionQuestionRef"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "interface",
+    "line": 461,
+    "name": "SetBreakdown"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "interface",
+    "line": 468,
+    "name": "SectionAnalysis"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "function",
+    "line": 479,
+    "name": "analyzeSections"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "interface",
+    "line": 538,
+    "name": "SectionOverview"
+   },
+   {
+    "file": "src/features/quiz/lib/stats.ts",
+    "kind": "function",
+    "line": 548,
+    "name": "sectionOverview"
+   },
+   {
+    "file": "src/features/quiz/lib/streak.ts",
+    "kind": "function",
+    "line": 1,
+    "name": "countStreak"
+   },
+   {
+    "file": "src/features/quiz/lib/types.ts",
+    "kind": "const",
+    "line": 2,
+    "name": "FLAGS"
+   },
+   {
+    "file": "src/features/quiz/lib/types.ts",
+    "kind": "const",
+    "line": 3,
+    "name": "FLAG_COLORS"
+   },
+   {
+    "file": "src/features/quiz/lib/types.ts",
+    "kind": "const",
+    "line": 5,
+    "name": "WEEK_MS"
+   },
+   {
+    "file": "src/features/quiz/lib/types.ts",
+    "kind": "const",
+    "line": 6,
+    "name": "TWO_WEEKS_MS"
+   },
+   {
+    "file": "src/features/quiz/lib/types.ts",
+    "kind": "type",
+    "line": 8,
+    "name": "QuizMode"
+   },
+   {
+    "file": "src/features/quiz/lib/types.ts",
+    "kind": "interface",
+    "line": 11,
+    "name": "ExplanationData"
+   },
+   {
+    "file": "src/features/quiz/lib/types.ts",
+    "kind": "interface",
+    "line": 34,
+    "name": "QuizQuestion"
+   },
+   {
+    "file": "src/features/quiz/lib/types.ts",
+    "kind": "interface",
+    "line": 55,
+    "name": "Progress"
+   },
+   {
+    "file": "src/features/quiz/lib/types.ts",
+    "kind": "function",
+    "line": 80,
+    "name": "emptyProgress"
+   },
+   {
+    "file": "src/features/quiz/screens/analysis-screen.tsx",
+    "kind": "function",
+    "line": 45,
+    "name": "AnalysisScreen"
+   },
+   {
+    "file": "src/features/quiz/screens/done-screen.tsx",
+    "kind": "function",
+    "line": 16,
+    "name": "DoneScreen"
+   },
+   {
+    "file": "src/features/quiz/screens/export-screen.tsx",
+    "kind": "function",
+    "line": 15,
+    "name": "ExportScreen"
+   },
+   {
+    "file": "src/features/quiz/screens/goal-screen.tsx",
+    "kind": "function",
+    "line": 14,
+    "name": "GoalScreen"
+   },
+   {
+    "file": "src/features/quiz/screens/menu-screen.tsx",
+    "kind": "function",
+    "line": 65,
+    "name": "MenuScreen"
+   },
+   {
+    "file": "src/features/quiz/screens/quiz-screen.tsx",
+    "kind": "function",
+    "line": 20,
+    "name": "QuizScreen"
+   }
+  ]
+ },
+ "features/roadmap": {
+  "depended_by": {
+   "app/(main)": 2
+  },
+  "depends_on": {},
+  "files": [
+   "src/features/roadmap/lib/roadmap.ts"
+  ],
+  "hash": "4ab114e49b9094e71578327c8a1b373159c60082c66838d47e1a3fe1f4e038f0",
+  "representatives": [
+   {
+    "imported_by": 2,
+    "path": "src/features/roadmap/lib/roadmap.ts"
+   }
+  ],
+  "symbols": [
+   {
+    "file": "src/features/roadmap/lib/roadmap.ts",
+    "kind": "type",
+    "line": 5,
+    "name": "RStatus"
+   },
+   {
+    "file": "src/features/roadmap/lib/roadmap.ts",
+    "kind": "type",
+    "line": 6,
+    "name": "RItemKind"
+   },
+   {
+    "file": "src/features/roadmap/lib/roadmap.ts",
+    "kind": "interface",
+    "line": 8,
+    "name": "RItem"
+   },
+   {
+    "file": "src/features/roadmap/lib/roadmap.ts",
+    "kind": "interface",
+    "line": 17,
+    "name": "RPhase"
+   },
+   {
+    "file": "src/features/roadmap/lib/roadmap.ts",
+    "kind": "interface",
+    "line": 27,
+    "name": "RoadmapDoc"
+   },
+   {
+    "file": "src/features/roadmap/lib/roadmap.ts",
+    "kind": "const",
+    "line": 33,
+    "name": "DEFAULT_ROADMAP"
+   },
+   {
+    "file": "src/features/roadmap/lib/roadmap.ts",
+    "kind": "function",
+    "line": 70,
+    "name": "cloneDoc"
+   },
+   {
+    "file": "src/features/roadmap/lib/roadmap.ts",
+    "kind": "function",
+    "line": 75,
+    "name": "defaultDocWithLegacyDone"
+   },
+   {
+    "file": "src/features/roadmap/lib/roadmap.ts",
+    "kind": "function",
+    "line": 86,
+    "name": "isRoadmapDoc"
+   },
+   {
+    "file": "src/features/roadmap/lib/roadmap.ts",
+    "kind": "function",
+    "line": 93,
+    "name": "newId"
+   }
+  ]
+ },
+ "shared/components": {
+  "depended_by": {
+   "app/(main)": 9
+  },
+  "depends_on": {
+   "shared/lib": 1
+  },
+  "files": [
+   "src/shared/components/app-shell.tsx"
+  ],
+  "hash": "ecb6514c56fcb3ea5243f8688ef455e1ca1c0ef68bcd03a7cb0c2894cad44418",
+  "representatives": [
+   {
+    "imported_by": 9,
+    "path": "src/shared/components/app-shell.tsx"
+   }
+  ],
+  "symbols": [
+   {
+    "file": "src/shared/components/app-shell.tsx",
+    "kind": "function",
+    "line": 32,
+    "name": "usePageHeader"
+   },
+   {
+    "file": "src/shared/components/app-shell.tsx",
+    "kind": "function",
+    "line": 41,
+    "name": "useCurrentSubject"
+   },
+   {
+    "file": "src/shared/components/app-shell.tsx",
+    "kind": "interface",
+    "line": 50,
+    "name": "ShellExam"
+   },
+   {
+    "file": "src/shared/components/app-shell.tsx",
+    "kind": "function",
+    "line": 157,
+    "name": "AppShell"
+   }
+  ]
+ },
+ "shared/lib": {
+  "depended_by": {
+   "(root)": 1,
+   "app/(auth)": 2,
+   "app/(main)": 7,
+   "app/api": 2,
+   "features/quiz": 1,
+   "shared/components": 1
+  },
+  "depends_on": {
+   "types": 3
+  },
+  "files": [
+   "src/shared/lib/supabase/client.ts",
+   "src/shared/lib/supabase/middleware.ts",
+   "src/shared/lib/supabase/server.ts",
+   "src/shared/lib/utils.ts"
+  ],
+  "hash": "ccdb31ec3df40a6ca1cf1a0827d4556f4ef5158a0f8aed9327b48e411e2b6e08",
+  "representatives": [
+   {
+    "imported_by": 8,
+    "path": "src/shared/lib/supabase/server.ts"
+   },
+   {
+    "imported_by": 5,
+    "path": "src/shared/lib/supabase/client.ts"
+   },
+   {
+    "imported_by": 1,
+    "path": "src/shared/lib/supabase/middleware.ts"
+   },
+   {
+    "imported_by": 0,
+    "path": "src/shared/lib/utils.ts"
+   }
+  ],
+  "symbols": [
+   {
+    "file": "src/shared/lib/supabase/client.ts",
+    "kind": "function",
+    "line": 4,
+    "name": "createClient"
+   },
+   {
+    "file": "src/shared/lib/supabase/middleware.ts",
+    "kind": "function",
+    "line": 5,
+    "name": "updateSession"
+   },
+   {
+    "file": "src/shared/lib/supabase/server.ts",
+    "kind": "function",
+    "line": 6,
+    "name": "createServerSupabaseClient"
+   },
+   {
+    "file": "src/shared/lib/supabase/server.ts",
+    "kind": "const",
+    "line": 33,
+    "name": "getServerSupabase"
+   },
+   {
+    "file": "src/shared/lib/supabase/server.ts",
+    "kind": "const",
+    "line": 46,
+    "name": "getSessionUser"
+   },
+   {
+    "file": "src/shared/lib/utils.ts",
+    "kind": "function",
+    "line": 4,
+    "name": "cn"
+   }
+  ]
+ },
+ "types": {
+  "depended_by": {
+   "app/(main)": 1,
+   "features/quiz": 1,
+   "shared/lib": 3
+  },
+  "depends_on": {},
+  "files": [
+   "src/types/database.ts"
+  ],
+  "hash": "dec8f01806e296868ea8ad0a08b9bf17d77aa6e64909167062c5cdc039a81391",
+  "representatives": [
+   {
+    "imported_by": 5,
+    "path": "src/types/database.ts"
+   }
+  ],
+  "symbols": [
+   {
+    "file": "src/types/database.ts",
+    "kind": "type",
+    "line": 1,
+    "name": "Json"
+   },
+   {
+    "file": "src/types/database.ts",
+    "kind": "interface",
+    "line": 9,
+    "name": "Database"
+   },
+   {
+    "file": "src/types/database.ts",
+    "kind": "type",
+    "line": 376,
+    "name": "Tables"
+   },
+   {
+    "file": "src/types/database.ts",
+    "kind": "type",
+    "line": 378,
+    "name": "InsertTables"
+   },
+   {
+    "file": "src/types/database.ts",
+    "kind": "type",
+    "line": 380,
+    "name": "UpdateTables"
+   }
+  ]
+ }
+}
