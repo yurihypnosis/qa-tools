@@ -21,6 +21,7 @@ docs/design/ の文書と、qa-tools の Issue で使う言葉の定義。**こ�
 | ツール | `skills/<ツール名>/` にある 1 つの skill。1 つの成果物を作る | screen-list（ソースコード → 画面一覧 CSV） |
 | 動詞 | ツールに渡す引数の最初の語。`init` / `build` / `update` / `check` の 4 つ | `/qa-tools:code-map build` の `build` |
 | 成果物 | ツールが出力ディレクトリに書くファイルのうち、人や他のツールが使うもの | screen-list の `output/screen-list/screens.csv` |
+| プラットフォーム定義 | アプリの種類（言語・フレームワーク・テストケースの形式）によって変わる処理をまとめたもの。`skills/<ツール名>/platforms/<名前>/` に置き、設定ファイルの `platform` で選ぶ（[contracts.md の C9](contracts.md#c9-プラットフォーム定義)） | screen-list の `nextjs-app-router` |
 | 項目 | 成果物を数える単位。ツールごとに決まっている | code-map はモジュール 1 つ、screen-list と test-priority は CSV の 1 行 |
 | 中間ファイル | 成果物を作る途中でツールが書くファイル。他のツールは読まない | code-map の `output/code-map/_raw/` |
 
@@ -40,9 +41,9 @@ docs/design/ の文書と、qa-tools の Issue で使う言葉の定義。**こ�
 
 | 用語 | 定義 | 例 |
 | --- | --- | --- |
-| 画面 | URL で開けるページ。Next.js App Router では `page.tsx` 1 つが 1 画面。URL を変えずにページの中で切り替わる表示をどう数えるかは、screen-list の仕様（#22）で決める | `/settings`（`src/app/settings/page.tsx`） |
+| 画面 | 利用者が 1 つの単位として見る表示。何を 1 画面と数えるかは、screen-list のプラットフォーム定義が決める | Next.js App Router では `page.tsx` 1 つ。Android なら Activity 1 つ |
 | ダイアログ | 画面の上に開く部品で、独立した URL を持たないもの | 削除の確認ダイアログ |
-| 画面 ID | screen-list が画面とダイアログに付ける識別子。URL のパスなどソースコード上の場所から機械的に作り、画面名を変えても変わらない。作り方は [data-flow.md](data-flow.md) の「画面 ID」 | `web/settings` |
+| 画面 ID | screen-list が画面とダイアログに付ける識別子。`<接頭辞>/<画面のキー>` の形で、どちらもプラットフォーム定義が決める。画面名を変えても変わらない | `web/settings`（Next.js App Router、キーは URL のパス） |
 | 未解決マーカー | 情報が足りず決められなかった箇所に書く文字列。`[未解決: 理由]` の形 | `[未解決: fixture の中身が分からない]` |
 
 ## ツール名

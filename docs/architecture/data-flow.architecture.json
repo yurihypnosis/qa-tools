@@ -40,7 +40,7 @@
       "id": "codemap",
       "type": "backend",
       "label": "code-map",
-      "sublabel": "索引と要約（lookup/）",
+      "sublabel": "索引と要約（言語の単位）",
       "tag": "コードの地図",
       "pos": [
         340,
@@ -126,7 +126,7 @@
       "id": "src-sl",
       "from": "source",
       "to": "screenlist",
-      "label": "画面の有無と名前"
+      "label": "画面の候補（プラットフォーム定義）"
     },
     {
       "id": "pbi-tcg",
@@ -138,27 +138,27 @@
       "id": "cm-sl",
       "from": "codemap",
       "to": "screenlist",
-      "label": "F1〜F3",
+      "label": "F1・F2 tree.md",
       "variant": "emphasis"
     },
     {
       "id": "sl-pr",
       "from": "screenlist",
       "to": "priority",
-      "label": "F5 画面ID・画面名",
+      "label": "F4 画面ID・画面名",
       "variant": "emphasis"
     },
     {
       "id": "tcg-pr",
       "from": "tcg",
       "to": "priority",
-      "label": "F4 テストケース"
+      "label": "F3 テストケース"
     }
   ],
   "cards": [
     {
       "dot": "cyan",
-      "title": "矢印の F1〜F5",
+      "title": "矢印の F1〜F4",
       "items": [
         "data-flow.md の「公開ファイルの一覧」の ID",
         "他のツールが読んでよいのはこれだけ"
@@ -175,10 +175,10 @@
     },
     {
       "dot": "rose",
-      "title": "図に無いもの",
+      "title": "アプリの種類による違い",
       "items": [
-        "core/：全ツールが使う共通処理",
-        "code-map は screen-list を読まない（循環させない）"
+        "各ツールの platforms/ にだけ置く",
+        "code-map は言語、screen-list は UI フレームワーク"
       ]
     }
   ]
