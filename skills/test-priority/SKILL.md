@@ -1,6 +1,6 @@
 ---
 name: test-priority
-description: テストケース 1 件ずつに、回帰テストとしての重要度（R1〜R4）と、実行する規模（sanity / smoke / light / full）を決め、取り込み用 CSV・レビュー用 CSV・理由文を出す。AI は意味の判断だけをして、重要度と規模は設定の規則からスクリプトが計算する。Use when the user asks to prioritize, rank, or triage test cases for regression — e.g. 「回帰テストの優先度をつけて」「どのテストを毎回流すか決めて」「smoke に入れるケースを選んで」「テストケースの重要度を判定して」. Not for writing test cases (use test-case-generator) or for running tests.
+description: テストケース 1 件ずつに、回帰テストとしての重要度（R1〜R4）と、実行する規模（sanity / smoke / light / full）を決め、取り込み用 CSV・レビュー用 CSV・理由文を出す。AI は意味の判断だけをして、重要度と規模は設定の規則からスクリプトが計算する。Use when the user asks to prioritize, rank, or triage test cases for regression — e.g. 「回帰テストの優先度をつけて」「どのテストを毎回流すか決めて」「smoke に入れるケースを選んで」「テストケースの重要度を判定して」「変わったケースだけ判定し直して」「このケースは R1 にして」. Not for writing test cases (use test-case-generator) or for running tests.
 license: MIT
 metadata:
   version: "0.5.0"

@@ -485,6 +485,15 @@ class UpdateFlowTest(unittest.TestCase):
         by = json.loads((self.p.out / "manifest.json").read_text(encoding="utf-8"))["generated_by"]
         self.assertEqual((by["claude"], by["carried"]), (0, 6))
 
+    def test_a_run_that_skips_plan_does_not_inherit_the_previous_plan(self):
+        self.edit_case("T-2", "確認", "別の確認")
+        self.update()  # plan.json に T-2 が載る
+        self.assertEqual(self.p.run("load_cases.py")[0], 0)
+        self.assertFalse((self.p.out / "_raw" / "plan.json").exists())
+        self.assertEqual(self.p.run("finish.py")[0], 0)
+        by = json.loads((self.p.out / "manifest.json").read_text(encoding="utf-8"))["generated_by"]
+        self.assertEqual((by["claude"], by["carried"]), (6, 0))
+
     def test_one_edited_case_is_rejudged_and_every_other_row_is_untouched(self):
         self.edit_case("T-2", "確認", "別の確認")
         pending, to_explain = self.update()

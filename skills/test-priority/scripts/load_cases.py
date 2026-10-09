@@ -24,6 +24,7 @@ def main(argv=None):
     except (pr.ConfigError, pr.InputError) as error:
         print(error, file=sys.stderr)
         return 2
+    pr.plan_path(config).unlink(missing_ok=True)  # 前回の plan は、今回の実行には当てはまらない
     if args.fresh:
         (pr.raw_dir(config) / "judgments.jsonl").unlink(missing_ok=True)
     pr.write_jsonl(pr.raw_dir(config) / "cases.jsonl", cases)
