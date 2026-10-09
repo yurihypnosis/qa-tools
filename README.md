@@ -59,7 +59,7 @@ skills/test-case-generator/
   scripts/               決定的な検査（標準ライブラリのみ、JSON レシート）
   evals/evals.json       挙動評価のケース（skill-creator の形式）
 examples/dummy-product/  テスト用ダミー製品
-docs/design/             設計の正本（原則・共通の契約・ツールのつながり）
+docs/design/             設計の正本（用語集・原則・共通の約束ごと・ツール同士の受け渡し）
 docs/architecture/       アーキテクチャ図（archify）
 tests/                   検査スクリプトと skill 構造のテスト
 ```

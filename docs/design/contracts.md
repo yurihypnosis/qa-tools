@@ -1,138 +1,172 @@
-# 共通の契約
+# 共通の約束ごと
 
-test-steps・test-priority・code-map・screen-list の 4 つのツールが同じ形で動くための約束ごと。ツールを作るときは、この文書だけを見れば入出力の形が分かるようにする。考え方は [principles.md](principles.md)、ツール同士の受け渡しは [data-flow.md](data-flow.md) にある。
+新しいツールを作るときに、全ツールで同じにしなければならない形（コマンド・設定・出力・記録・検査）を決める。ツールを作る人と AI は、この文書と [glossary.md](glossary.md) だけを見れば入出力の形が分かる。
 
-test-case-generator は、この契約より前に作られた。動詞と manifest にはまだ合わせていない（出力の置き場所 `output/` だけは共通）。
+- **対象**：これから作るツール（test-steps・test-priority・code-map・screen-list）
+- **対象外**：test-case-generator（v0.4.0 より前に作った）。C4 の出力ディレクトリ `output/` だけは同じで、それ以外の約束にはまだ合わせていない
+- **ルールの強さ**：「必須」「禁止」は [principles.md](principles.md) と同じ意味。外すときは PR に理由を書く
 
-## 1. 動詞
+## 一覧
 
-- **決めたこと**：1 つのツール = 1 つの skill（`skills/<tool>/`）。引数の最初の語が動詞で、`init` / `build` / `update` / `check` の 4 つだけを使う。そのツールに固有の操作だけ 5 つ目の動詞として足す（例：screen-list の `pair`）
-- **理由**：どのツールも同じ 4 語で使えれば、1 つ覚えれば他も使える。途中の段だけを動かしたいときは、動詞を増やさず `build --stage <段>` で指定する
-
-| 動詞 | やること | 書き込むもの |
+| ID | 決めること | 決めた内容（1 行） |
 | --- | --- | --- |
-| `init` | 設定を対話で作る。依存ツールも確認する | `.qa/<tool>.toml` |
-| `build` | 最初から全体を作る | `output/<tool>/` 全体 |
-| `update` | manifest の時点から変わったところだけ作り直す | 変わった項目と manifest |
-| `check` | 成果物を検証する。作り直さない | なし（結果を表示するだけ） |
+| C1 | 動詞 | `init` / `build` / `update` / `check` の 4 つだけ |
+| C2 | 実行の最後 | `build` と `update` は最後に検査を実行し、失敗したら manifest を書かない |
+| C3 | 設定ファイル | `.qa/<ツール名>.toml`。最上位のキーは `source` / `output` / `platform` / `checks` の 4 つだけ |
+| C4 | 出力ディレクトリ | `output/<ツール名>/`。ツールはここ以外に書かない |
+| C5 | manifest.json | 8 つのキーを持つ JSON |
+| C6 | 検査結果 | 既存の検査スクリプトと同じ形の JSON。終了コードは 0 / 1 / 2 |
+| C7 | core の呼び方 | `core/` はプラグイン直下。スクリプトからは `parents[3] / "core"` を import パスに足す |
+| C8 | 実行環境 | Python 3.11 以上、標準ライブラリだけ、テストは unittest |
 
-呼び方の例：`/qa-tools:test-steps build`、`/qa-tools:code-map build --stage extract`、`/qa-tools:screen-list update --local`
+---
 
-skill の中の置き方：SKILL.md には流れと動詞の分岐だけを書き、動詞ごとの手順は `references/<verb>.md` に置く。references は SKILL.md から 1 階層だけ参照する。
+## C1. 動詞
 
-## 2. 最後の check
+**ルール（必須）**
 
-- **決めたこと**：`build` と `update` は、最後に必ず `check` と同じ検査を通す。1 つでも失敗したら `manifest.json` を書き換えない
-- **理由**：失敗した成果物の時点を「前回」として記録すると、次の `update` が壊れた状態から差分を取ってしまう。manifest が古いまま残っていれば、次の update が同じ範囲をもう一度作り直せる
+1. 1 つのツールは 1 つの skill（`skills/<ツール名>/SKILL.md`）にする
+2. 引数の最初の語を動詞とし、`init` / `build` / `update` / `check` の 4 つだけを使う
+3. 動詞を増やしてよいのは、そのツールにしかない操作だけ（例：screen-list の `pair`）。途中の段だけを実行したいときは、動詞を増やさず `build --stage <段の名前>` にする
+4. SKILL.md には「動詞ごとにどの reference を読むか」だけを書き、手順は `references/<動詞>.md` に書く
 
-## 3. 設定
+| 動詞 | やること | 書き込むファイル | 書き込まないファイル |
+| --- | --- | --- | --- |
+| `init` | 人に質問しながら設定ファイルを作る。必要な外部コマンドがあるかも確かめる | `.qa/<ツール名>.toml` | `output/` |
+| `build` | 出力ディレクトリの中身を全部作り直す | `output/<ツール名>/` の全ファイル | `.qa/` |
+| `update` | manifest の `source` から変わった入力に対応する項目だけ作り直す | 変わった項目と manifest.json | 変わっていない項目 |
+| `check` | 成果物を検査して結果を表示する | なし | すべて |
 
-- **決めたこと**：利用側プロジェクトの `.qa/<tool>.toml` に書く。最上位のキーは次の 4 つだけ。個人の環境に依存する値（ローカルの絶対パスなど）は `.qa/local.toml` に分け、利用側の `.gitignore` に入れる
-- **理由**：4 つのキーがそろっていれば、どのツールの設定も同じ順に読める。個人のパスを共有の設定に混ぜると、他の人の環境で動かなくなる
+**例**：`/qa-tools:test-steps build`、`/qa-tools:code-map build --stage extract`
 
-| キー | 意味 | 例 |
+## C2. 実行の最後
+
+**ルール（必須）**：`build` と `update` は、最後に `check` と同じ検査を実行する。検査結果の `status` が `fail` なら次のようにする。
+
+1. manifest.json を書き換えない（前回の内容のまま残す）
+2. 検査結果を人に見せて止まる
+3. 自分で直して再実行するのは 1 回まで（test-case-generator のセルフレビューと同じ）
+
+**理由**：manifest が前回のまま残れば、次の `update` が同じ範囲をもう一度作り直せる（principles.md の P4）。
+
+## C3. 設定ファイル
+
+**ルール（必須）**
+
+1. 置き場所は利用側プロジェクトの `.qa/<ツール名>.toml`
+2. 最上位のキーは次の 4 つだけ。ツールごとに違うのは、各キーの下の中身
+
+| キー | 意味 | 例（test-steps） |
 | --- | --- | --- |
-| `source` | 何を読むか。他のツールの出力を読むときは `source.inputs` | `spec_glob = "e2e/**/*.spec.ts"` |
-| `output` | どこに何を出すか | `dir = "output/test-steps"` |
-| `platform` | どう描くか（ツールごとの描き方の選択） | `"web-react"` |
-| `checks` | 何で検証するか | `checks = [{ coverage = { mode = "exact" } }]` |
+| `source` | 何を読むか | `repo = "."`、`spec_glob = "app/e2e/**/*.spec.ts"` |
+| `output` | どこに書くか | `dir = "output/test-steps"` |
+| `platform` | どの方式で作るか（ツールごとに選べる値が決まっている） | `"playwright-ts"` |
+| `checks` | どの検査を実行するか | `checks = ["sections", "one-to-one"]` |
 
-`local.toml` には、`[repos]` の下に「名前 = 絶対パス」を書く。共有の設定は `repo = "dummy-app"` のように名前で参照する。利用側プロジェクト自身を読むときは `repo = "."` と書き、`local.toml` は要らない。
+3. `source.repo` は、読むソースがどこにあるかを名前で指す
+   - 利用側プロジェクトそのものを読むときは `repo = "."`（ダミー製品はこれ）
+   - 別のリポジトリを読むときは名前を書き（例：`repo = "other-app"`）、その絶対パスを**個人設定ファイル** `.qa/local.toml` に書く。共有の設定ファイルに絶対パスを書くのは禁止
 
 ```toml
 # .qa/local.toml（git に入れない）
 [repos]
-dummy-app = "/Users/me/work/dummy-app"
+other-app = "/Users/me/work/other-app"
 ```
 
-## 4. 出力の置き場所
+4. 設定ファイルが無い、またはキーが足りないときは、既定値で続けずに止まり、`init` を実行するよう伝える
 
-- **決めたこと**：利用側プロジェクトの `output/<tool>/`。プラグインのディレクトリには書かない
-- **理由**：test-case-generator が `output/{PBI ID}/` に書いているので、それに合わせる。プラグインのディレクトリは読み取り専用で読み込まれることがある
+## C4. 出力ディレクトリ
+
+**ルール（必須）**：ツールが書き込むのは利用側プロジェクトの `output/<ツール名>/` だけ。プラグインのディレクトリには書き込まない（読み取り専用で読み込まれることがある）。
 
 ```
 output/
-├── DUMMY-001/          test-case-generator（PBI ごと）
-├── test-steps/         manifest.json ＋ 手順書 *.md ＋ index.md
-├── test-priority/      manifest.json ＋ 取り込み用 CSV ＋ レビュー用 CSV
-├── code-map/           manifest.json ＋ KB
-└── screen-list/        manifest.json ＋ screens.csv
+├── DUMMY-001/        test-case-generator（PBI ごと。この約束より前からある形）
+├── test-steps/       manifest.json、index.md、手順書 *.md
+├── test-priority/    manifest.json、取り込み用 CSV、レビュー用 CSV、adjudications.json
+├── code-map/         manifest.json、index.md、modules/、lookup/、_raw/（中間ファイル）
+└── screen-list/      manifest.json、screens.csv、adjudications.json
 ```
 
-## 5. manifest.json
+## C5. manifest.json
 
-- **決めたこと**：すべての `output/<tool>/` に、同じ形の `manifest.json` を 1 つ置く。これが成果物の身元書きで、`update` の起点になる
-- **理由**：ツールごとに身元書きの形が違うと、鮮度の確認と差分の計画をツールごとに書くことになる
+**ルール（必須）**：`output/<ツール名>/manifest.json` に、次の 8 つのキーを持つ JSON を書く。読み書きは `core/manifest.py` だけが行い、ツールが直接書かない。
+
+| キー | 型 | 内容 |
+| --- | --- | --- |
+| `tool` | 文字列 | ツール名 |
+| `version` | 整数 | manifest の形の版。今は `1` |
+| `source` | オブジェクト | 入力が git のファイルなら `{"repo": "<名前>", "commit": "<コミット>"}`。git に無いファイルなら `{"files": "<グロブ>", "hash": "sha256:<内容のハッシュ>"}` |
+| `config_hash` | 文字列 | 設定ファイル `.qa/<ツール名>.toml` の sha256。個人設定ファイルは含めない（人によって違うため） |
+| `inputs` | オブジェクト | 他のツールの公開ファイルを読んだとき、そのツールの manifest の `source` を写したもの。読んでいなければ `{}` |
+| `generated_at` | 文字列 | 書いた日時（ISO 8601、タイムゾーン付き） |
+| `generated_by` | オブジェクト | 項目を何で作ったかの件数。キーは `claude`（AI）、`script`（スクリプト）、`carried`（前回から引き継ぎ）、`local`（ローカル LLM、experimental） |
+| `items` | 整数 | 項目の数。`generated_by` の合計と一致する |
+
+**例**（screen-list、ダミー製品で build した直後）
 
 ```json
 {
   "tool": "screen-list",
   "version": 1,
-  "source": { "repo": "dummy-app", "commit": "3f2a9c1" },
-  "config_hash": "sha256:9b1e…",
-  "inputs": { "code-map": { "commit": "3f2a9c1" } },
+  "source": { "repo": ".", "commit": "3f2a9c1" },
+  "config_hash": "sha256:9b1e0c…",
+  "inputs": { "code-map": { "repo": ".", "commit": "3f2a9c1" } },
   "generated_at": "2026-10-09T10:00:00+09:00",
-  "generated_by": { "claude": 6, "local": 0, "script": 2 },
+  "generated_by": { "claude": 8, "script": 0, "carried": 0, "local": 0 },
   "items": 8
 }
 ```
 
-| 項目 | 内容 |
+**使い方**：`update` は `source.commit` から今のコミットまでの変更を調べる。`inputs` のコミットが、読む先のツールの今の manifest と違えば、入力が古いことを人に伝えてから進める。
+
+## C6. 検査結果
+
+**ルール（必須）**：検査スクリプトは、既存の `skills/test-case-generator/scripts/_markdown.py` の `emit()` と同じ形の JSON を標準出力に 1 行で出す。
+
+| キー | 内容 |
 | --- | --- |
-| `tool` / `version` | ツール名と manifest の形の版（今は 1） |
-| `source` | 入力が git なら `repo` と `commit`。ファイルなら `files`（パスのグロブ）と `hash`（内容をまとめたハッシュ） |
-| `config_hash` | `.qa/<tool>.toml` のハッシュ。`local.toml` は含めない（人によって違うため） |
-| `inputs` | 他のツールの出力を読んだとき、その manifest の `source` を写したもの。入力の地図が古くなっていないかを確かめるのに使う |
-| `generated_by` | 項目を誰が作ったかの件数（AI・ローカル LLM・スクリプト・前回からの引き継ぎは `carried`） |
-| `items` | 成果物の項目数（手順書の本数、CSV の行数、モジュール数） |
+| `check` | 検査の名前（スクリプト名から `.py` を除いたもの） |
+| `file` | 検査したファイルかディレクトリ |
+| `status` | 指摘が 0 件なら `"ok"`、1 件以上なら `"fail"` |
+| `findings` | 指摘の配列。各要素は `code`（大文字の短い識別子）と `line`（行番号）を必ず持つ。ディレクトリを検査したときは `file` も持つ |
+| `stats` | 件数など、指摘ではない数（任意） |
 
-読み書きは `core/manifest.py` だけが行う。
-
-## 6. check の結果
-
-- **決めたこと**：検査スクリプトは、既存の `skills/test-case-generator/scripts/` と同じ JSON レシートを返す。終了コードは 0=OK / 1=指摘あり / 2=入力エラー
-- **理由**：skill はレシートの `status` だけで次に進むかを決められる。指摘の中身は `findings` に行番号付きで入るので、人も AI も直す場所が分かる
+終了コード：`0` = 指摘なし、`1` = 指摘あり、`2` = 入力エラー（ファイルが無いなど）
 
 ```json
-{
-  "check": "check_steps",
-  "file": "output/test-steps",
-  "status": "fail",
-  "findings": [
-    { "code": "SECTION", "file": "e2e/login.md", "line": 12, "section": "補足" }
-  ],
-  "stats": { "documents": 3, "unresolved": 2 }
-}
+{"check": "check_steps", "file": "output/test-steps", "status": "fail", "findings": [{"code": "SECTION", "file": "app/e2e/login.md", "line": 12, "section": "補足"}], "stats": {"documents": 3, "unresolved": 2}}
 ```
 
-`findings` の各要素は、`code`（大文字の短い識別子）と、場所を示す `file` / `line` を必ず持つ。
+## C7. core の呼び方
 
-## 7. core の置き場所
+**ルール（必須）**
 
-- **決めたこと**：ツールをまたいで使う処理は、プラグイン直下の `core/` に置く。skill からは `python3 <skill>/../../core/<name>.py` で呼ぶ
-- **スクリプトから使うとき**：既存の `check_viewpoints.py` と同じく `sys.path` に足してから import する。`sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "core"))`（`skills/<tool>/scripts/<name>.py` から 3 階層上がプラグインの直下）
-- **理由**：プラグインの中の配置は変わらないので、相対パスで届く。CLI の呼び方と import の両方を、テストで確かめる
-- **切り出す時期**：2 つ目のツールが同じ処理を必要としたときに core に移す。1 つ目のツールしか使わないうちは、そのツールの `scripts/` に置く
+1. 2 つ以上のツールが使う処理は、プラグイン直下の `core/<名前>.py` に置く（principles.md の P1）
+2. skill の手順から実行するとき：`python3 <skill>/../../core/<名前>.py`（`<skill>` は `skills/<ツール名>/`）
+3. ツールのスクリプトから import するとき：先頭で `sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "core"))` を実行する（`skills/<ツール名>/scripts/<名前>.py` から 3 階層上がプラグイン直下）
+4. 2 と 3 のパスが正しいことを `tests/` のテストで確かめる
 
-| モジュール | やること | 最初に使うツール |
+| ファイル | やること | 最初に使うツール（Issue） |
 | --- | --- | --- |
-| `core/manifest.py` | manifest.json の読み書き、設定のハッシュ | test-steps |
-| `core/plan.py` | manifest の commit から今までの変更ファイルを列挙する | test-steps |
-| `core/carry.py` | 前回の行を「キー ＋ 内容のハッシュ」で引き継ぎ、裁定を記録する | test-priority |
-| `core/screen_id.py` | 画面 ID の発行と逆引き | screen-list |
+| `core/manifest.py` | manifest.json の読み書き、設定ファイルのハッシュ | test-steps（#10） |
+| `core/plan.py` | manifest のコミットから今までに変わったファイルの一覧 | test-steps（#11） |
+| `core/carry.py` | 前回の項目を「キー ＋ 内容のハッシュ」で比べて引き継ぐ。裁定の記録 | test-priority（#15） |
+| `core/screen_id.py` | 画面 ID を作る・画面 ID から CSV の行を引く | screen-list（#24） |
 
-## 8. 実行環境
+## C8. 実行環境
 
-- **決めたこと**：Python 3.11 以上、標準ライブラリだけ。テストは `unittest`（pytest は使わない）
-- **理由**：TOML を読む `tomllib` が 3.11 から標準に入った。利用側で `pip install` を求めないので、プラグインを入れればそのまま動く
+**ルール（必須）**：Python 3.11 以上、標準ライブラリだけを使う。テストは `unittest` で書く（pytest は使わない）。
+
+**理由**：設定ファイルを読む `tomllib` は Python 3.11 から標準ライブラリにある。標準ライブラリだけなら、利用側で `pip install` が要らない。
 
 ## 完了の定義
 
-ツールの `build` を作る Issue は、次がそろって完了とする。
+ツールの `build` を作る Issue は、次の 6 つがすべて満たされたら完了とする。
 
-1. テストが通る：`python3 -m unittest discover -s tests -t .`
-2. マニフェストの検証が通る：`claude plugin validate .`
-3. ダミー製品で E2E を 1 回以上動かし、出力を `examples/dummy-product/sample-output/<tool>/` に残す
-4. `skills/<tool>/evals/evals.json` に挙動評価のケースを 2 つ以上足す
-5. README の「構成」と使い方、必要なら `docs/architecture/` の図を更新する
+1. `python3 -m unittest discover -s tests -t .` が通る
+2. `claude plugin validate .` が通る
+3. ダミー製品で E2E を 1 回以上実行し、出力を `examples/dummy-product/sample-output/<ツール名>/` に置く
+4. `skills/<ツール名>/evals/evals.json` に挙動評価のケースを 2 つ以上書く
+5. README の「構成」と使い方を更新する。ツールの受け渡しが変わったら `docs/architecture/` の図も更新する
 6. `.claude-plugin/plugin.json` の `version` を上げる

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "diagram_type": "architecture",
   "meta": {
-    "title": "qa-tools：ツールのつながり",
+    "title": "qa-tools：ツール同士の受け渡し",
     "locale": "ja",
     "output": "docs/architecture/data-flow.html",
     "quality_profile": "showcase"
@@ -54,7 +54,7 @@
       "id": "codemap",
       "type": "backend",
       "label": "code-map",
-      "sublabel": "KB（lookup/routes.jsonl）",
+      "sublabel": "索引と要約（lookup/）",
       "tag": "コードの地図",
       "pos": [
         340,
@@ -122,21 +122,6 @@
         200,
         84
       ]
-    },
-    {
-      "id": "core",
-      "type": "security",
-      "label": "core/",
-      "sublabel": "manifest / plan / carry / screen_id",
-      "tag": "全ツール共通の骨格",
-      "pos": [
-        680,
-        290
-      ],
-      "size": [
-        220,
-        84
-      ]
     }
   ],
   "boundaries": [
@@ -172,7 +157,7 @@
       "id": "src-sl",
       "from": "source",
       "to": "screenlist",
-      "label": "画面の有無"
+      "label": "画面の有無と名前"
     },
     {
       "id": "e2e-ts",
@@ -190,69 +175,70 @@
       "id": "cm-sl",
       "from": "codemap",
       "to": "screenlist",
-      "label": "routes.jsonl",
+      "label": "F1 routes.jsonl",
       "variant": "emphasis"
     },
     {
       "id": "sl-ts",
       "from": "screenlist",
       "to": "teststeps",
-      "label": "画面 ID",
+      "label": "F3 画面ID・URL",
       "variant": "emphasis"
     },
     {
       "id": "sl-pr",
       "from": "screenlist",
       "to": "priority",
-      "label": "画面 ID",
+      "label": "F7 画面ID・画面名",
       "variant": "emphasis"
     },
     {
       "id": "ts-pr",
       "from": "teststeps",
       "to": "priority",
-      "label": "自動テストの手順書"
+      "label": "F6 手順書"
     },
     {
       "id": "tcg-pr",
       "from": "tcg",
       "to": "priority",
-      "label": "手動のテストケース"
+      "label": "F5 テストケース"
     },
     {
-      "id": "core-sl",
-      "from": "core",
-      "to": "screenlist",
-      "label": "全ツールが使う",
-      "variant": "dashed"
+      "id": "cm-ts",
+      "from": "codemap",
+      "to": "teststeps",
+      "label": "F4 tree.md",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "right"
     }
   ],
   "cards": [
     {
       "dot": "cyan",
-      "title": "画面 ID",
+      "title": "矢印の F1〜F7",
       "items": [
-        "発行するのは screen-list だけ",
-        "実装の場所から作る（名前を変えても不変）",
-        "特定できなければ [未解決]"
+        "data-flow.md の「公開ファイルの一覧」の ID",
+        "他のツールが読んでよいのはこれだけ"
       ]
     },
     {
       "dot": "emerald",
       "title": "update の順番",
       "items": [
-        "code-map",
-        "screen-list",
-        "test-steps",
-        "test-priority"
+        "1. code-map",
+        "2. screen-list",
+        "3. test-steps",
+        "4. test-priority"
       ]
     },
     {
       "dot": "rose",
-      "title": "契約",
+      "title": "図に無いもの",
       "items": [
-        "他ツールが読むのは契約のファイルだけ",
-        "_raw/ などの中間データは読まない"
+        "core/：全ツールが使う共通処理",
+        "code-map は screen-list を読まない（循環させない）"
       ]
     }
   ]
