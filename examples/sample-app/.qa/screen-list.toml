@@ -1,0 +1,33 @@
+platform = "nextjs-app-router"
+
+[source]
+repo = "sample-app"
+root = "src"
+code_map = "output/code-map"
+
+[output]
+dir = "output/screen-list"
+
+[rules]
+dialog_imports = []
+roles = ["ログイン済みユーザー"]
+exclude = []
+
+# URL を変えずに切り替わる画面（クイズ画面の ?screen= で開けるもの）
+[[rules.extra]]
+key = "index?screen=analysis"
+source = "src/features/quiz/screens/analysis-screen.tsx"
+parent = "web/index"
+
+[[rules.extra]]
+key = "index?screen=export"
+source = "src/features/quiz/screens/export-screen.tsx"
+parent = "web/index"
+
+[[rules.extra]]
+key = "index?screen=goal"
+source = "src/features/quiz/screens/goal-screen.tsx"
+parent = "web/index"
+
+[checks]
+run = ["coverage"]

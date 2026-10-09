@@ -1,0 +1,24 @@
+# .qa/screen-list.toml（init が、質問の答えで埋める。<> の部分は置き換える）
+platform = "<UI フレームワークのプラットフォーム定義の名前>"
+
+[source]
+repo = "<. か、.qa/local.toml の [repos] に書いた名前（code-map と同じ）>"
+root = "<code-map の source.root と同じ>"   # 未コミットの変更を調べる範囲（repo からの相対）
+code_map = "output/code-map"         # code-map の出力（利用側プロジェクトからの相対）
+
+[output]
+dir = "output/screen-list"
+
+[rules]
+dialog_imports = []                  # ダイアログ部品のパスの前方一致のリスト。無ければ []
+roles = []                           # ロールの名前の配列。無ければ []（ロールは 全員 か [未解決] になる）
+exclude = []                         # 候補から外す画面 ID。理由はコメントに書く
+
+# URL を変えずに切り替わる画面は、1 つずつ書く（要るときだけ）
+# [[rules.extra]]
+# key = "<画面 ID の後半。一意>"
+# source = "<そのコンポーネントのファイル>"
+# parent = "<開く画面の ID>"
+
+[checks]
+run = ["coverage"]

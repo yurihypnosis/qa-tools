@@ -1,0 +1,13 @@
+{"fingerprint": "9259bbd06e15c58ffa4a733c6132b3dceb343294246a6143ef5be30744c28542", "id": "web/catalog", "name": "問題集一覧", "roles": ["ログイン済みユーザー"]}
+{"fingerprint": "bc9537f2593579fdbebbe3fecf9c5175a5c8c4806384372480fc60f8a42a59ac", "id": "web/code-tour", "name": "コードの読み方", "roles": ["ログイン済みユーザー"]}
+{"fingerprint": "5b1d22fb72c63e33bb26515ebbe91b65e7228a4e3e1bf10a7cc184fa32ce67d8", "id": "web/flashcards", "name": "単語カード", "roles": ["ログイン済みユーザー"]}
+{"fingerprint": "a24402bf7eb7176f0691ea1a451c684917919c22c55d14c61d7e30713f67e79f", "id": "web/g-kentei/cheatsheet", "name": "G検定チートシート", "roles": ["ログイン済みユーザー"]}
+{"fingerprint": "675fe0c61e56d424ee67a3ca04fc52e526a064ad80e8f3b4e90cf66a96be4bd0", "id": "web/index", "name": "ダッシュボード", "roles": ["ログイン済みユーザー"]}
+{"fingerprint": "7559209a60a15e14e77d81b167b7413a661b776326a85fcf242877abeeea1588", "id": "web/index?screen=analysis", "name": "苦手分析", "roles": ["ログイン済みユーザー"]}
+{"fingerprint": "695753236a1ee8a6c465c1a4cd95f6aa6faba84a717db80f1cc8b778fed6079f", "id": "web/index?screen=export", "name": "書き出し", "roles": ["ログイン済みユーザー"]}
+{"fingerprint": "2ec6bb5c6d4ebfcc8262c07ef62f23d8c0d011a4419ee8693249df4a17f261de", "id": "web/index?screen=goal", "name": "目標設定", "roles": ["ログイン済みユーザー"]}
+{"fingerprint": "15778f80f60b14a260944382306bdba1e95c54c719a6a804128168b4687c9ff9", "id": "web/log", "name": "学習ログ", "roles": ["ログイン済みユーザー"]}
+{"fingerprint": "9b8e4c9be7c352dc3d3e641b732706a17e4b3c102176c1d2d16016f94269c75d", "id": "web/login", "name": "ログイン", "roles": ["全員"]}
+{"fingerprint": "1719a2660ecdd8a7149e0ab27a75a53c4228b8dab5fe0eeb068d3a631913193b", "id": "web/mindset", "name": "思考フレーム", "roles": ["ログイン済みユーザー"]}
+{"fingerprint": "8fef0c71e2ea905b0f54b5c58ae1922d68f4ed4c9b7cde0ea5636baf11a223ec", "id": "web/register", "name": "新規登録", "roles": ["全員"]}
+{"fingerprint": "a7412c454803f9a97eb91babfae90409399fdb539c9528858dc3dfdb9d2f3405", "id": "web/roadmap", "name": "ロードマップ", "roles": ["ログイン済みユーザー"]}

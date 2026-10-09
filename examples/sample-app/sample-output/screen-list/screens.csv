@@ -1,0 +1,14 @@
+﻿画面ID,画面名,種別,ロール,URL,ソース,モジュール,親画面ID
+web/catalog,問題集一覧,画面,ログイン済みユーザー,/catalog,src/app/(main)/catalog/page.tsx:8,app/(main),
+web/code-tour,コードの読み方,画面,ログイン済みユーザー,/code-tour,src/app/(main)/code-tour/page.tsx:3,app/(main),
+web/flashcards,単語カード,画面,ログイン済みユーザー,/flashcards,src/app/(main)/flashcards/page.tsx:6,app/(main),
+web/g-kentei/cheatsheet,G検定チートシート,画面,ログイン済みユーザー,/g-kentei/cheatsheet,src/app/(main)/g-kentei/cheatsheet/page.tsx:6,app/(main),
+web/index,ダッシュボード,画面,ログイン済みユーザー,/,src/app/(main)/page.tsx:81,app/(main),
+web/index?screen=analysis,苦手分析,画面,ログイン済みユーザー,,src/features/quiz/screens/analysis-screen.tsx:1,features/quiz,web/index
+web/index?screen=export,書き出し,画面,ログイン済みユーザー,,src/features/quiz/screens/export-screen.tsx:1,features/quiz,web/index
+web/index?screen=goal,目標設定,画面,ログイン済みユーザー,,src/features/quiz/screens/goal-screen.tsx:1,features/quiz,web/index
+web/log,学習ログ,画面,ログイン済みユーザー,/log,src/app/(main)/log/page.tsx:15,app/(main),
+web/login,ログイン,画面,全員,/login,src/app/(auth)/login/page.tsx:8,app/(auth),
+web/mindset,思考フレーム,画面,ログイン済みユーザー,/mindset,src/app/(main)/mindset/page.tsx:3,app/(main),
+web/register,新規登録,画面,全員,/register,src/app/(auth)/register/page.tsx:8,app/(auth),
+web/roadmap,ロードマップ,画面,ログイン済みユーザー,/roadmap,src/app/(main)/roadmap/page.tsx:14,app/(main),

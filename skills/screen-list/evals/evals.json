@@ -1,0 +1,48 @@
+{
+  "skill_name": "screen-list",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/qa-tools:screen-list build",
+      "expected_output": "code-map の出力を読み、ソースの置き場所から画面の候補を列挙し、全画面の名前とロールを書いて、screens.csv と manifest.json を作る。画面の数は候補の数と一致し、検査に通る。報告に件数と、候補の列挙の正しさは確かめていないことがある。",
+      "files": [
+        "../../examples/sample-app"
+      ],
+      "expectations": [
+        "output/screen-list/screens.csv と manifest.json ができている",
+        "行数が candidates の件数と一致している",
+        "名前を、ナビゲーションの文言を探して決めている（見出しだけに頼っていない）",
+        "ロールを、認証・認可の処理を読んで決め、根拠が無いものは [未解決: 理由] にしている",
+        "screens.csv を Write や Edit で直接書いていない",
+        "完了報告に、検査が通っても候補の列挙の正しさは確かめていない、という一言がある"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "ソースを変えたあとで、/qa-tools:screen-list update を実行して。code-map はまだ更新していない。",
+      "expected_output": "candidates が、code-map が古いと止まり、code-map update を先に実行するよう伝える。勝手に古い code-map で続けない。",
+      "files": [
+        "../../examples/sample-app"
+      ],
+      "expectations": [
+        "終了コード 2 のメッセージを見せて止まっている",
+        "code-map update を先に実行するよう伝えている",
+        "古い code-map のまま names や merge に進んでいない"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "/qa-tools:screen-list init",
+      "expected_output": "読むリポジトリ・UI フレームワーク・code-map の場所・ダイアログ部品・ロール・ページの中で切り替わる画面を 1 つずつ聞き、source.root を code-map と同じにして、設定を作り、candidates が動くことを確かめる。",
+      "files": [
+        "../../examples/sample-app"
+      ],
+      "expectations": [
+        "質問を 1 度に 1 つずつしている",
+        "UI フレームワークの選択肢を platforms/ のディレクトリ一覧から出している",
+        "source.root を code-map の設定と同じにしている",
+        "ページの中で切り替わる画面があるかを聞き、あれば rules.extra に書いている"
+      ]
+    }
+  ]
+}

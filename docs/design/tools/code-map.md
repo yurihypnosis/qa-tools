@@ -167,7 +167,7 @@ run = ["public-files"]
 
 | キー | 値 |
 | --- | --- |
-| `source` | `{"repo": <設定の repo>, "commit": <先頭 7 桁>}`。`source.root` の下に未コミットの変更があれば `"<コミット>+dirty"`（`core/gitinfo.py`） |
+| `source` | `{"repo": <設定の repo>, "commit": <先頭 7 桁>}`。`source.root` の下に未コミットの変更があれば `"<コミット>+dirty"`（`core/gitinfo.py`）。screen-list は、この文字列が自分の見たソースの版と同じかで、code-map が古いかを判断する |
 | `generated_by` | `claude`：今回 AI が役割を書いたモジュール数。`carried`：前回の役割を使い回した数。`script`：0 |
 | `items` | モジュール数 |
 | `inputs` | `{}` |
