@@ -25,3 +25,14 @@ def run_json(script, *args):
 
 def codes(receipt):
     return sorted(f["code"] for f in receipt["findings"])
+
+
+def run_path(script, *args, cwd=None):
+    """任意のスクリプトを `python3 -I` で実行する（core/ や他の skill 用）。"""
+    proc = subprocess.run(
+        [sys.executable, "-I", str(script), *map(str, args)],
+        capture_output=True,
+        text=True,
+        cwd=cwd,
+    )
+    return proc.returncode, proc.stdout, proc.stderr

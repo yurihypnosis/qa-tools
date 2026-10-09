@@ -1,0 +1,39 @@
+# .qa/test-priority.toml（init が、質問の答えで埋める。<> の部分は置き換える）
+platform = "<プラットフォーム定義の名前>"
+
+[source]
+repo = "."
+cases_glob = "<テストケースの glob>"
+
+[output]
+dir = "output/test-priority"
+
+[rules]
+group_by = "<screen か feature>"   # 代表を 1 件に絞る単位
+
+# 領域ごとに、次の 2 つの節を書く（領域コードは、テストケースに書かれている値）
+[rules.areas.<領域コード>]
+emphasis = ["<data / permission / blast から選ぶ>"]   # この領域で、重要度を上げる根拠にするリスク軸
+default = <1〜4>                                       # 機能が下の表に無いときの開始点（1 が最も重要）
+
+[rules.areas.<領域コード>.weights]
+"<機能名>" = <1〜4>                                    # 機能ごとの開始点
+
+[rules.exclude]
+features = []                                          # 規模を「対象外」にする機能名
+
+[checks]
+run = ["import-clean", "examples"]
+
+# 計算例：規則を変えたときに、結果が意図どおりかを確かめる（check の `examples`）
+[checks.examples]
+[[checks.examples.case]]
+name = "<例の名前>"
+area = "<領域コード>"
+feature = "<機能名>"
+axes = ["data"]
+impact = "stop"
+kind = "代表"
+existing = "high"
+representative = true
+expect = { level = "R2", scale = "smoke" }

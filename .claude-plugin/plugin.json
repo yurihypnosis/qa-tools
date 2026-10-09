@@ -1,7 +1,7 @@
 {
   "name": "qa-tools",
-  "version": "0.1.0",
-  "description": "QA エンジニア向けの AI テスト設計ツール。PBI からテスト分析・観点・テストケースをレビューゲート付きで段階生成する。",
+  "version": "0.5.0",
+  "description": "QA エンジニア向けの AI テスト設計ツール。PBI からテストケースを段階生成し、テストケースごとに回帰の重要度と規模を決める。",
   "author": {
     "name": "yurihypnosis"
   },

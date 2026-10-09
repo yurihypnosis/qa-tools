@@ -9,9 +9,11 @@
 | --- | --- |
 | `.qa/product.md` | 製品コンテキスト（チケット接頭辞・領域コード・ロール） |
 | `.qa/knowledge/` | 既存機能のナレッジ（画面名・ボタン名・エラー文言の出典） |
+| `.qa/test-priority.toml` | test-priority の設定（領域ごとの重み・リスク軸） |
 | `PBI/DUMMY-001/` | サンプル PBI |
 | `output/` | 成果物の出力先（git 管理外） |
 | `sample-output/DUMMY-001/` | 実際に実行して得た出力例。検査スクリプトの回帰テストにも使う |
+| `sample-output/test-priority/` | test-priority の出力例（`DUMMY-001` の 47 件）。CSV には注記を入れられないので、ここに書く：テスト用のダミー情報から生成した出力である |
 
 サンプル PBI には、動作確認のために次の 2 点をわざと入れてある。
 

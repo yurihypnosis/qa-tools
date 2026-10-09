@@ -1,0 +1,47 @@
+{
+  "skill_name": "test-priority",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "examples/dummy-product の sample-output/DUMMY-001 を output/DUMMY-001 にコピーしてから、/qa-tools:test-priority build を実行して。",
+      "expected_output": "設定ファイル .qa/test-priority.toml を読み、47 件すべてに重要度と規模を付けて output/test-priority/ に import.csv・review.csv・manifest.json を作り、検査の結果と人が見るべき行を報告する。",
+      "files": [
+        "../../examples/dummy-product"
+      ],
+      "expectations": [
+        "output/test-priority/import.csv と review.csv と manifest.json が作られている",
+        "import.csv の列が ケースを指す列・重要度・規模の 3 つで、重要度は R1〜R4、規模は sanity・smoke・light・full のどれかである",
+        "review.csv の各行に理由文があり、内部の記号（data・permission・blast）を使っていない",
+        "重要度と規模を AI が直接書かず、decide.py と export.py の出力から作っている",
+        "完了報告に check_priority.py のレシートに基づく規模ごとの件数と、要レビューの印がある行が書かれている"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "output/DUMMY-001 を用意して、/qa-tools:test-priority build を実行して。ただし .qa/test-priority.toml の rules.areas から DMY-TASK を消してある。",
+      "expected_output": "DMY-TASK のケースはすべて判定不可になる。推測で別の領域の値を使わず、規模を判定不可にして理由に決められない理由を書き、import.csv には入れない。報告で判定不可のケースと、人に決めてほしいことを挙げる。",
+      "files": [
+        "../../examples/dummy-product"
+      ],
+      "expectations": [
+        "DMY-TASK のケースの規模が判定不可になっている",
+        "import.csv に DMY-TASK のケースが 1 行も無い",
+        "review.csv の理由に、領域が設定に無いことと、人に決めてほしいことが書かれている",
+        "完了報告に判定不可のケースが挙がっている"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "/qa-tools:test-priority init",
+      "expected_output": "プラットフォーム定義の選択肢を platforms/ のディレクトリ一覧から出し、テストケースの置き場所を聞き、survey.py で件数を調べてから、領域ごとに 1 つずつ質問し、.qa/test-priority.toml を作る。",
+      "files": [
+        "../../examples/dummy-product"
+      ],
+      "expectations": [
+        "設定ファイルを作る前に、領域ごとにリスク軸と開始点を QA に質問している",
+        "1 度に複数の領域をまとめて質問していない",
+        "既に .qa/test-priority.toml がある場合は、上書きしてよいかを先に確かめている"
+      ]
+    }
+  ]
+}

@@ -46,6 +46,7 @@ test-case-generator の「重要度/Priority」列（High / Medium / Low）は�
 | `fingerprint` | 内容のハッシュ（sha256）。引き継ぎ（P6）の判定に使う | `title` `area` `feature` `screen` `body` をつなげたもの |
 
 - 読むファイルは設定の `source.cases_glob`（例：`output/*/4-testcases.md`）で指す
+- import.csv と review.csv の、ケースを指す列の名前（8 で `CaseNo.` と書く列）も、プラットフォーム定義が `CASE_COLUMN` として返す。共通部分にはこの名前を書かない
 - `case` が複数のファイルで重複したら、止まる（終了コード 2、`DUPLICATE`）
 
 ## 4. 重要度の決め方
@@ -227,7 +228,7 @@ run = ["import-clean", "examples"]
 | `COLUMNS` | import.csv の列が 3 つ（`CaseNo.` `重要度` `規模`）と違う |
 | `VALUE` | `重要度` か `規模` が決めた語彙の外 |
 | `EXCLUDED_ROW` | import.csv に、対象外・判定不可のケースがある |
-| `COVERAGE` | 入力のケースが、review.csv に 1 行ずつ無い（欠けている、または重複） |
+| `COVERAGE` | 入力のケースが review.csv に 1 行ずつ無い（欠けている、または重複）。または、import.csv の行が、review.csv で規模が決まったケースと一致しない |
 | `ADJUDICATION_UNKNOWN_CASE` | 7 の裁定が、入力に無いケースを指している |
 | `EXAMPLE` | `[checks.examples]` の計算例が、規則どおりの結果にならない |
 | `MANIFEST` | manifest.json が無い、または必須のキーが欠けている |
