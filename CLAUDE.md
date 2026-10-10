@@ -7,6 +7,7 @@
 - skill は `skills/<name>/SKILL.md`。frontmatter の `name` はディレクトリ名と一致させ、`description` は 1024 字以内（[Agent Skills 仕様](https://agentskills.io/specification)）
 - SKILL.md は 500 行未満に保ち、詳細は `references/` に分ける。references は SKILL.md から 1 階層だけ参照する
 - references の冒頭には `## 契約`（入力・出力・検査・次）を必ず置く
+- skill を書く・レビューするときの基準は [docs/design/skill-authoring.md](docs/design/skill-authoring.md)（Anthropic の best practices を当てはめたもの）
 - 出力形式は `assets/` の雛形を正とし、references に雛形を重複させない
 - 製品固有の値（チケット接頭辞・領域・ロール）を skill に書かない。利用側の `.qa/product.md` から読む
 - ダミー製品のファイルには、冒頭にダミーである旨の注記を入れる

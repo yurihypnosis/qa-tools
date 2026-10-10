@@ -33,7 +33,7 @@ JUDGMENTS = {  # 仕様書 §10 の 6 つの例
 }
 EXPECTED = {  # case: (重要度, 規模)
     "T-1": ("R2", "smoke"), "T-2": ("R4", "full"), "T-3": ("R3", "full"),
-    "C-1": ("R1", "sanity"), "C-2": ("R1", "smoke"), "X-1": ("", "判定不可"),
+    "C-1": ("R1", "sanity"), "C-2": ("R1", "sanity"), "X-1": ("", "判定不可"),   # C-2 は、グループ「ヘッダー」の 1 件だけなので代表
 }
 
 
@@ -166,7 +166,7 @@ class CheckTest(unittest.TestCase):
         self.assertEqual(receipt["stats"]["cases"], 6)
         self.assertEqual(receipt["stats"]["decided"], 5)
         self.assertEqual(receipt["stats"]["unresolved"], 1)
-        self.assertEqual(receipt["stats"]["sanity"], 1)
+        self.assertEqual(receipt["stats"]["sanity"], 2)   # C-1 と C-2（グループ「ヘッダー」の 1 件だけで代表）
 
     def test_wrong_import_columns(self):
         self.edit_csv("import.csv", lambda rows: [["CaseNo.", "重要度"]] + [r[:2] for r in rows[1:]])
@@ -222,8 +222,9 @@ class FinishTest(unittest.TestCase):
         self.assertEqual(run_path(ROOT / "core" / "manifest.py", "check", self.p.out)[0], 0)
         self.assertEqual(self.p.run("check_priority.py")[0], 0)
 
-    def test_finish_counts_carried_cases(self):
-        self.assertEqual(self.p.run("finish.py", "--carried", "4")[0], 0)
+    def test_finish_counts_cases_untouched_by_the_ai_as_carried(self):
+        (self.p.out / "_raw" / "plan.json").write_text(json.dumps({"judge": ["T-1"], "explain": ["T-1", "C-2"]}), encoding="utf-8")
+        self.assertEqual(self.p.run("finish.py")[0], 0)
         by = json.loads(self.manifest.read_text(encoding="utf-8"))["generated_by"]
         self.assertEqual((by["claude"], by["carried"]), (2, 4))
 
@@ -407,6 +408,18 @@ class HardeningTest(unittest.TestCase):
                 self.assertEqual(code, 2, err)
                 self.assertIn("T-1", err)
 
+    def test_a_corrupt_judgments_file_is_an_input_error_naming_file_and_line(self):
+        self.p.write_judgments()
+        path = self.p.out / "_raw" / "judgments.jsonl"
+        lines = path.read_text(encoding="utf-8").splitlines()
+        lines[1] = "{壊れた"
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        code, _, err = self.p.run("decide.py")
+        self.assertEqual(code, 2)
+        self.assertIn("judgments.jsonl", err)
+        self.assertIn("2 行目", err)
+        self.assertNotIn("Traceback", err)
+
     def test_a_valid_adjudication_is_accepted(self):
         code, out, err = self.adjudicate({"T-1": {"重要度": "R1", "規模": "smoke", "理由": "監査対象"}})
         self.assertEqual(code, 0, err)
@@ -428,3 +441,200 @@ class HardeningTest(unittest.TestCase):
                 self.assertEqual(code, 2)
                 self.assertNotIn("Traceback", err)
                 self.p.build()
+
+
+class RealisticSampleTest(unittest.TestCase):
+    """複数の機能・画面にまたがる 31 件のサンプル（examples/sample-app/）。毎回流す段が、グループ数で抑えられていることを確かめる。"""
+
+    SAMPLE = ROOT / "examples" / "sample-app"
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        (self.root / ".qa").mkdir()
+        shutil.copy(self.SAMPLE / ".qa" / "test-priority.toml", self.root / ".qa" / "test-priority.toml")
+        shutil.copytree(self.SAMPLE / "sample-output" / "test-cases" / "PBI-1", self.root / "output" / "PBI-1")
+        shutil.copytree(self.SAMPLE / "sample-output" / "test-priority", self.root / "output" / "test-priority")
+        self.config = self.root / ".qa" / "test-priority.toml"
+
+    def run_cli(self, name, *args):
+        return run_path(script(name), "--config", self.config, *args, cwd=self.root)
+
+    def test_export_reproduces_the_committed_csvs_and_the_output_passes_every_check(self):
+        out = self.root / "output" / "test-priority"
+        for name in ("import.csv", "review.csv"):
+            (out / name).unlink()
+        self.assertEqual(self.run_cli("export.py")[0], 0)
+        for name in ("import.csv", "review.csv"):
+            self.assertEqual((out / name).read_bytes(), (self.SAMPLE / "sample-output" / "test-priority" / name).read_bytes())
+        self.assertEqual(self.run_cli("check_priority.py")[0], 0)
+
+    def test_the_every_run_tiers_are_bounded_by_the_number_of_groups_and_are_small(self):
+        code, out, _ = self.run_cli("check_priority.py", "--json")
+        stats = json.loads(out)["stats"]
+        config = pr.load_config(self.config)
+        cases = pr.load_cases(config)
+        groups = {pr.group_key(config["rules"], c) for c in cases}
+        every_run = stats["sanity"] + stats["smoke"]
+        self.assertLessEqual(every_run, len(groups))
+        self.assertLessEqual(every_run / stats["cases"], 0.35)       # 毎回流すのは、全体の 1/3 以下
+        self.assertGreaterEqual(stats["sanity"], 1)                   # 最小の動作確認が、空ではない
+        reps = [r for r in pr.decide_from_files(config) if r["representative"]]
+        self.assertEqual(len(reps), len(groups))                      # どのグループにも、代表が 1 件
+
+
+class UpdateFlowTest(unittest.TestCase):
+    """変わったケースだけを判定し直し、ほかは 1 バイトも変えない（仕様書 2・7）。"""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.p = Project(self.tmp.name)
+        self.p.build()
+        self.assertEqual(self.p.run("finish.py")[0], 0)
+        self.before = self.review()
+        self.md = self.p.root / "output" / "PBI-1" / "4-testcases.md"
+
+    def review(self):
+        rows = self.p.read_csv("review.csv")
+        return {r[0]: r for r in rows[1:]}
+
+    def plan(self, which):
+        code, out, err = self.p.run("plan.py", which)
+        self.assertEqual(code, 0, err)
+        return json.loads(out)
+
+    def draft(self, *lines):
+        path = self.p.root / "draft.jsonl"
+        path.write_text("".join(json.dumps(l, ensure_ascii=False) + "\n" for l in lines), encoding="utf-8")
+        return path
+
+    def edit_case(self, case, old, new):
+        text = self.md.read_text(encoding="utf-8")
+        lines = [l.replace(old, new) if l.startswith(f"| {case} ") else l for l in text.splitlines()]
+        self.md.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+    def update(self, judged=()):
+        """update の手順を、AI の下書きだけ差し替えて通しで行う。"""
+        self.assertEqual(self.p.run("load_cases.py")[0], 0)
+        pending = self.plan("judge")["pending"]
+        if pending:
+            axes, impact, kind = JUDGMENTS[pending[0]]
+            lines = [{"case": c, "axes": JUDGMENTS[c][0], "impact": JUDGMENTS[c][1], "kind": JUDGMENTS[c][2]} for c in pending]
+            self.assertEqual(self.p.run("apply_judgments.py", "judge", self.draft(*lines))[0], 0)
+        self.assertEqual(self.p.run("decide.py")[0], 0)
+        to_explain = self.plan("explain")["pending"]
+        if to_explain:
+            self.assertEqual(self.p.run("apply_judgments.py", "explain", self.draft(*[{"case": c, "reason": f"新しい理由 {c}"} for c in to_explain]))[0], 0)
+        self.assertEqual(self.p.run("export.py")[0], 0)
+        self.assertEqual(self.p.run("finish.py")[0], 0)
+        return pending, to_explain
+
+    def test_nothing_changed_means_nothing_to_do_and_identical_output(self):
+        pending, to_explain = self.update()
+        self.assertEqual((pending, to_explain), ([], []))
+        self.assertEqual(self.review(), self.before)
+        by = json.loads((self.p.out / "manifest.json").read_text(encoding="utf-8"))["generated_by"]
+        self.assertEqual((by["claude"], by["carried"]), (0, 6))
+
+    def test_a_run_that_skips_plan_does_not_inherit_the_previous_plan(self):
+        self.edit_case("T-2", "確認", "別の確認")
+        self.update()  # plan.json に T-2 が載る
+        self.assertEqual(self.p.run("load_cases.py")[0], 0)
+        self.assertFalse((self.p.out / "_raw" / "plan.json").exists())
+        self.assertEqual(self.p.run("finish.py")[0], 0)
+        by = json.loads((self.p.out / "manifest.json").read_text(encoding="utf-8"))["generated_by"]
+        self.assertEqual((by["claude"], by["carried"]), (6, 0))
+
+    def test_one_edited_case_is_rejudged_and_every_other_row_is_untouched(self):
+        self.edit_case("T-2", "確認", "別の確認")
+        pending, to_explain = self.update()
+        self.assertEqual((pending, to_explain), (["T-2"], ["T-2"]))
+        after = self.review()
+        self.assertEqual({c: r for c, r in after.items() if c != "T-2"}, {c: r for c, r in self.before.items() if c != "T-2"})
+        reason_column = self.p.read_csv("review.csv")[0].index("理由")
+        self.assertEqual(after["T-2"][reason_column], "新しい理由 T-2")
+        by = json.loads((self.p.out / "manifest.json").read_text(encoding="utf-8"))["generated_by"]
+        self.assertEqual((by["claude"], by["carried"]), (1, 5))
+
+    def test_plan_judge_lists_new_cases_and_forgets_removed_ones(self):
+        text = self.md.read_text(encoding="utf-8")
+        removed = "\n".join(l for l in text.splitlines() if not l.startswith("| X-1 ")) + "\n"
+        self.md.write_text(removed.rstrip("\n") + "\n" + row("N-1", "High", **TASK) + "\n", encoding="utf-8")
+        self.assertEqual(self.p.run("load_cases.py")[0], 0)
+        plan = self.plan("judge")
+        self.assertEqual((plan["pending"], plan["removed"], plan["carried"]), (["N-1"], ["X-1"], 5))
+        stored = {j["case"] for j in pr.read_jsonl(self.p.out / "_raw" / "judgments.jsonl")}
+        self.assertNotIn("X-1", stored)
+        pending = [json.loads(l)["case"] for l in (self.p.out / "_raw" / "pending.jsonl").read_text(encoding="utf-8").splitlines()]
+        self.assertEqual(pending, ["N-1"])
+
+    def test_a_config_change_redoes_only_the_reasons_whose_level_changed(self):
+        text = self.p.config.read_text(encoding="utf-8").replace("default = 2", "default = 3")  # DMY-COMMON の既定値
+        self.p.config.write_text(text, encoding="utf-8")
+        pending, to_explain = self.update()
+        self.assertEqual(pending, [])
+        self.assertEqual(to_explain, ["C-2"])  # 機能が表に無い C-2 だけ、開始点が変わって R1 → R2
+        after = self.review()
+        for case in ("T-1", "T-2", "T-3", "C-1", "X-1"):
+            self.assertEqual(after[case], self.before[case])
+        level_column = self.p.read_csv("review.csv")[0].index("重要度")
+        self.assertEqual((self.before["C-2"][level_column], after["C-2"][level_column]), ("R1", "R2"))
+
+    def test_explain_input_carries_the_facts_the_reason_must_be_based_on(self):
+        self.assertEqual(self.p.run("load_cases.py")[0], 0)
+        self.plan("judge")
+        self.p.write_judgments()
+        self.assertEqual(self.p.run("decide.py")[0], 0)
+        pr.write_jsonl(self.p.out / "_raw" / "judgments.jsonl", [dict(j, reason="", reason_level=0) for j in pr.read_jsonl(self.p.out / "_raw" / "judgments.jsonl")])
+        self.plan("explain")
+        rows = {r["case"]: r for r in pr.read_jsonl(self.p.out / "_raw" / "explain_input.jsonl")}
+        t3 = rows["T-3"]
+        self.assertEqual((t3["blocked_by"], t3["effective_axes"], t3["level"], t3["start"], t3["scale"]), ("existing_low", ["data"], "R3", "R3", "full"))
+        self.assertTrue({"title", "body", "axes", "impact", "kind", "marks", "representative", "adjudicated"} <= set(t3))
+
+    def test_plan_explain_before_every_case_is_judged_is_an_input_error(self):
+        (self.p.out / "_raw" / "judgments.jsonl").unlink()
+        code, _, err = self.p.run("plan.py", "explain")
+        self.assertEqual(code, 2)
+        self.assertIn("判断が無い", err)
+
+
+class AdjudicateTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.p = Project(self.tmp.name)
+        self.p.build()
+        self.assertEqual(self.p.run("finish.py")[0], 0)
+        self.file = self.p.out / "adjudications.json"
+
+    def adjudicate(self, *args):
+        return self.p.run("adjudicate.py", *args)
+
+    def test_recording_a_level_changes_the_decision_and_the_reason_is_redone(self):
+        code, out, err = self.adjudicate("T-3", "--level", "R1", "--reason", "監査の対象")
+        self.assertEqual(code, 0, err)
+        self.assertEqual(json.loads(self.file.read_text(encoding="utf-8"))["T-3"], {"重要度": "R1", "理由": "監査の対象"})
+        self.assertEqual(self.p.decided_levels()["T-3"], "R1")
+        self.assertEqual(json.loads(self.p.run("plan.py", "explain")[1])["pending"], ["T-3"])
+
+    def test_adjudications_survive_a_fresh_build(self):
+        self.adjudicate("X-1", "--level", "R2", "--reason", "管理者")
+        self.assertEqual(self.p.run("load_cases.py", "--fresh")[0], 0)
+        self.assertIn("X-1", json.loads(self.file.read_text(encoding="utf-8")))
+
+    def test_invalid_requests_are_rejected_and_nothing_is_written(self):
+        for args in (("NOPE", "--level", "R1", "--reason", "x"), ("T-1", "--reason", "x"), ("T-1", "--level", "R1"),
+                     ("T-1", "--level", "R9", "--reason", "x"), ("T-1", "--scale", "huge", "--reason", "x")):
+            with self.subTest(args=args):
+                self.assertEqual(self.adjudicate(*args)[0], 2)
+                self.assertFalse(self.file.exists())
+
+    def test_remove_deletes_one_entry_and_complains_when_there_is_none(self):
+        self.adjudicate("T-3", "--scale", "対象外", "--reason", "別 PBI")
+        self.adjudicate("X-1", "--level", "R2", "--reason", "x")
+        self.assertEqual(self.adjudicate("--remove", "T-3")[0], 0)
+        self.assertEqual(sorted(json.loads(self.file.read_text(encoding="utf-8"))), ["X-1"])
+        self.assertEqual(self.adjudicate("--remove", "T-3")[0], 2)

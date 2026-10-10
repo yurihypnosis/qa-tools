@@ -1,6 +1,6 @@
 ---
 name: test-priority
-description: テストケース 1 件ずつに、回帰テストとしての重要度（R1〜R4）と、実行する規模（sanity / smoke / light / full）を決め、取り込み用 CSV・レビュー用 CSV・理由文を出す。AI は意味の判断だけをして、重要度と規模は設定の規則からスクリプトが計算する。Use when the user asks to prioritize, rank, or triage test cases for regression — e.g. 「回帰テストの優先度をつけて」「どのテストを毎回流すか決めて」「smoke に入れるケースを選んで」「テストケースの重要度を判定して」. Not for writing test cases (use test-case-generator) or for running tests.
+description: テストケース 1 件ずつに、回帰テストとしての重要度（R1〜R4）と、実行する規模（sanity / smoke / light / full）を決め、取り込み用 CSV・レビュー用 CSV・理由文を出す。AI は意味の判断だけをして、重要度と規模は設定の規則からスクリプトが計算する。Use when the user asks to prioritize, rank, or triage test cases for regression — e.g. 「回帰テストの優先度をつけて」「どのテストを毎回流すか決めて」「smoke に入れるケースを選んで」「テストケースの重要度を判定して」「変わったケースだけ判定し直して」「このケースは R1 にして」. Not for writing test cases (use test-case-generator) or for running tests.
 license: MIT
 metadata:
   version: "0.5.0"
@@ -15,7 +15,18 @@ metadata:
 - **重要度** `R1`〜`R4`：壊れたときに困る度合い（R1 が最も重要）
 - **規模** `sanity` ⊂ `smoke` ⊂ `light` ⊂ `full`：そのケースを含む最小の実行単位
 
-AI がするのは意味の判断（リスク軸・影響範囲・代表か応用か・理由文）だけである。重要度と規模は、その判断と設定ファイルから**スクリプトが計算する**。同じ入力なら、2 回目の出力は 1 バイトも変わらない。
+AI がするのは意味の**判断**（リスク軸・影響範囲・代表か応用か・理由文）だけである。重要度と規模は、その判断と設定ファイルから**スクリプトが決定する**（計算する）。同じ入力なら、2 回目の出力は 1 バイトも変わらない。
+
+## 言葉
+
+この skill の中では、次の使い分けで書く。
+
+| 言葉 | 意味 | 誰が |
+| --- | --- | --- |
+| 判断（judge） | ケース 1 件の、リスク軸・影響範囲・種別（代表か応用か）を決めること | AI |
+| 決定（decide） | 判断と設定から、重要度・規模・代表・要レビューを計算すること | スクリプト |
+| 判定 | 判断と決定を合わせた全体（「全ケースを判定する」） | — |
+| 判定不可 | 領域が設定に無いなど、情報が足りず決定できないこと。規模の値でもある | — |
 
 仕様の正本は `docs/design/tools/test-priority.md`、言葉の定義は `docs/design/glossary.md` にある（プラグインのリポジトリ側。利用側プロジェクトには無い）。この skill の手順だけで動くように書いてあるが、迷ったら仕様書に従う。
 
@@ -33,11 +44,18 @@ AI がするのは意味の判断（リスク軸・影響範囲・代表か応�
 | --- | --- | --- |
 | `init` | 質問に答えて `.qa/test-priority.toml` を作る | [references/init.md](references/init.md) |
 | `build` | 全ケースを判定し、CSV 2 つと manifest.json を作る | [references/build.md](references/build.md) |
-| `check` | 出力を検査する。作り直さない | 下の「検査スクリプト」 |
-
-`update`（変わったケースだけを判定し直す）はまだ無い。頼まれたら、`build` が全ケースを判定し直す（前回の判断は使い回さない）と伝えて、続けてよいか確かめる。
+| `update` | 前回から変わったケースだけを判断し直し、ほかは前回の結果を使い回す | [references/update.md](references/update.md) |
+| `adjudicate` | 人が決めた重要度・規模を記録する | [references/adjudicate.md](references/adjudicate.md) |
+| `check` | 出力を検査する。作り直さない | 下の「スクリプト」の `check_priority.py` |
 
 その動詞に入ってから、対応する reference を読む。他の動詞の reference は先に読まない。
+
+`build` と `update` は、途中の段で、次の 2 つも読む（AI が書く段の手順）。
+
+| 段 | 読む reference |
+| --- | --- |
+| judge（意味の判断を下書きに書く） | [references/judge.md](references/judge.md) |
+| explain（理由文を下書きに書く） | [references/explain.md](references/explain.md) |
 
 ## 入力の契約
 
@@ -47,7 +65,7 @@ AI がするのは意味の判断（リスク軸・影響範囲・代表か応�
 | --- | --- | --- |
 | `.qa/test-priority.toml` | `init` 以外で必須 | 設定ファイル（書き方は `assets/test-priority.template.toml`） |
 | テストケースの表 | ✅ | 設定の `source.cases_glob` で指すファイル |
-| `output/test-priority/adjudications.json` | | 人の裁定。あれば `build` でも消さず、規則より優先する |
+| `output/test-priority/adjudications.json` | | 人の裁定。`adjudicate.py` で記録する。`build` でも消さず、規則より優先する |
 
 プラットフォーム定義（テストケースの表の形式）は、`platforms/` のディレクトリ名で選ぶ。選べるものは `ls <skill>/platforms/` で調べる。
 
@@ -64,19 +82,25 @@ AI がするのは意味の判断（リスク軸・影響範囲・代表か応�
 
 ## スクリプト
 
-標準ライブラリだけで動く。`python3 <skill>/scripts/<名前>.py --config .qa/test-priority.toml` の形で実行する。終了コードは 0=OK、1=検査の指摘あり、2=設定か入力のエラー。
+Python 3.11 以上と標準ライブラリだけで動く（設定ファイルの TOML を読む `tomllib` が 3.11 から標準にあるため。`pip install` は要らない）。`<skill>` は、この SKILL.md があるディレクトリ（skill の読み込み時に示される Base directory）を指す。`python3 <skill>/scripts/<名前>.py --config .qa/test-priority.toml` の形で実行する。終了コードは 0=OK、1=検査の指摘あり、2=設定か入力のエラー。
 
 | スクリプト | やること |
 | --- | --- |
 | `survey.py` | `init` 用。領域・機能・確認画面ごとの件数を JSON で出す（設定ファイルは要らない） |
 | `load_cases.py [--fresh]` | テストケースを読み、`_raw/cases.jsonl` を書く。`--fresh` は前回の判断を消す |
+| `plan.py judge\|explain` | `update` 用。判断・理由文をやり直すケースだけを `_raw/pending.jsonl` `_raw/explain_input.jsonl` に書く（`build` も、全ケースを対象にして使う） |
 | `apply_judgments.py judge\|explain <下書き>` | AI の下書きを `_raw/judgments.jsonl` に取り込む（fingerprint などは補う） |
 | `decide.py` | 判断と設定から、重要度・規模・代表・要レビューを計算して JSON Lines で出す |
 | `export.py` | `import.csv` と `review.csv` を書く |
 | `check_priority.py [--json] [--no-manifest]` | 出力を検査する。読み取り専用 |
-| `finish.py` | 検査に通ったときだけ `manifest.json` を書く |
+| `adjudicate.py` | 人の裁定を記録する・消す |
+| `finish.py` | 検査に通ったときだけ `manifest.json` を書く。`plan.json` に載らなかったケースを「引き継ぎ」と数える |
 
 報告は、必ずスクリプトの出力（終了コードと `--json` のレシート）を根拠にする。実行していない検査を「OK」と言わない。
+
+## 言語
+
+理由文と完了報告は、`.qa/product.md` に「出力言語」があればその言語、無ければ日本語で書く。列名と値（`R1` `smoke` `判定不可` など）は、言語によらず変えない（取り込み先との約束のため）。
 
 ## 完了報告
 
@@ -97,13 +121,15 @@ AI がするのは意味の判断（リスク軸・影響範囲・代表か応�
 | 「import.csv に判定不可の行があるので、手で消す」 | 手で消す運用は、混入の原因になる。`export.py` が入れない。入っていたら検査が止める |
 | 「検査に通らないが、manifest だけ書いておく」 | manifest が前回のままなら、次の実行が同じ範囲をやり直せる。通っていないものを最新と記録しない |
 | 「既存の重要度（High / Medium / Low）と食い違うので書き換える」 | 既存の列は書き換えない。判定の材料にするだけで、結果は別のファイルに出す |
+| 「変わっていないケースも、念のため判断し直す」 | 判断し直すと、同じケースでも結果が変わる。`update` は `plan.py` が挙げたケースだけを判断する |
 
 ## Red Flags
 
 - 重要度や規模を、スクリプトを通さずに AI が書いた
 - `import.csv` や `review.csv` を、Write や Edit で直接書いた（`export.py` が書く）
 - 下書きに `fingerprint` や `reason_level` を書いた（取り込みスクリプトが補う）
-- `adjudications.json` を `build` で消した、または上書きした
+- `adjudications.json` を `build` で消した、または Edit で直接書いた（`adjudicate.py` で記録する）
+- `plan.py` が挙げていないケースを判断し直した、または理由文を書き直した
 - 理由文に、`data` `permission` `blast` などの内部の記号を書いた
 - 検査のレシートを見ずに「OK」と報告した
 - 検査に通らないのに `finish.py` 以外の方法で `manifest.json` を書いた
@@ -115,4 +141,5 @@ AI がするのは意味の判断（リスク軸・影響範囲・代表か応�
 - [ ] `check_priority.py --json` を最後に実行し、`status` を確認した
 - [ ] `finish.py` が成功し、`manifest.json` の `items` が `stats.cases` と一致する
 - [ ] 判定不可のケースを、報告に挙げた
-- [ ] `adjudications.json` が `build` の前後で変わっていない
+- [ ] `adjudications.json` が `build` と `update` の前後で変わっていない（`adjudicate` の操作を除く）
+- [ ] `update` では、`plan.py` が挙げたケース以外の行が、前回の `review.csv` と 1 バイトも変わっていない

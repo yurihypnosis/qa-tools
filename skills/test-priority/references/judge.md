@@ -4,10 +4,10 @@
 
 | 項目 | 内容 |
 | --- | --- |
-| 入力 | `output/test-priority/_raw/cases.jsonl`（1 ケース 1 行：`case` `title` `area` `feature` `screen` `existing` `body`） |
+| 入力 | `output/test-priority/_raw/pending.jsonl`（`plan.py judge` が書く、判断が要るケースだけ。1 ケース 1 行：`case` `title` `area` `feature` `screen` `existing` `body`） |
 | 出力 | 下書き `output/test-priority/_raw/judge.draft.jsonl` → `apply_judgments.py judge` で `judgments.jsonl` に取り込む |
 | 検査 | `apply_judgments.py` が、語彙・ケースの存在・キーを検査する（1 行でも誤りがあれば何も書かない） |
-| 次 | decide（`build.md` の手順 3） |
+| 次 | `decide.py` を実行する |
 
 ## ロール
 
@@ -15,7 +15,7 @@ QA エンジニアとして、テストケース 1 件が「何を確かめて�
 
 ## 手順
 
-1. `cases.jsonl` を 50 行ずつ読む（Read の offset と limit）。
+1. `pending.jsonl` を 50 行ずつ読む（Read の offset と limit）。1 回に読む量が多いと、後ろのケースの判断が雑になりやすいため、目安として 50 件にしている。
 2. 各ケースを、`title` と `body` に書かれていることだけを根拠に、次の 3 つについて判断する。
 3. 下書きに、1 ケース 1 行の JSON を書く。キーは `case` `axes` `impact` `kind` の 4 つだけ。
    ```json
@@ -25,7 +25,7 @@ QA エンジニアとして、テストケース 1 件が「何を確かめて�
    ```bash
    python3 <skill>/scripts/apply_judgments.py judge output/test-priority/_raw/judge.draft.jsonl --config .qa/test-priority.toml
    ```
-   終了コードが 2 なら、メッセージが示す行だけを直して、1 回だけ再実行する。
+   終了コードが 2 なら、メッセージが示す行だけを直して、1 回だけ再実行する（直しても通らないなら、下書きの作り方が間違っているので、人に報告して止める）。
 
 ## 判断 1：リスク軸 `axes`（0 個以上）
 
@@ -54,8 +54,40 @@ QA エンジニアとして、テストケース 1 件が「何を確かめて�
 | `代表` | その機能の基本的な正常系の操作を確かめている |
 | `応用` | 境界値・異常系・条件の組み合わせを変えたものを確かめている。迷ったらこちら |
 
+## 例
+
+<examples>
+<example>
+入力：`{"case": "T-1", "title": "タスク名が空のとき保存できない", "body": "…「保存」を押す\n・エラー「タスク名を入力してください」が表示される"}`
+出力：`{"case": "T-1", "axes": ["data"], "impact": "stop", "kind": "応用"}`
+理由：空の名前が保存されると値が壊れる（`data`）。作業が止まる（`stop`）。異常系なので `応用`。
+</example>
+<example>
+入力：`{"case": "T-2", "title": "タスク名を 10 文字入力して保存できる", "body": "…「保存」を押す\n・タスクが一覧に表示される"}`
+出力：`{"case": "T-2", "axes": ["data"], "impact": "stop", "kind": "代表"}`
+理由：基本の正常系なので `代表`。保存できないと作業が止まる。
+</example>
+<example>
+入力：`{"case": "T-3", "title": "一般ユーザーが他人のタスクを削除できない", "body": "…ロール = 一般ユーザー\n・「削除」が無効になっている"}`
+出力：`{"case": "T-3", "axes": ["permission"], "impact": "harm", "kind": "応用"}`
+理由：他人のデータを消せると権限の実害になる（`permission`、`harm`）。拒否される異常系なので `応用`。
+</example>
+<example>
+入力：`{"case": "T-4", "title": "完了したタスクの文字が灰色で表示される", "body": "…完了にする\n・タスク名が灰色になる"}`
+出力：`{"case": "T-4", "axes": [], "impact": "cosmetic", "kind": "応用"}`
+理由：見た目だけが変わる（`cosmetic`）。壊れても作業は止まらず、データも権限も関係しない（軸は無し）。
+</example>
+<example>
+入力：`{"case": "T-5", "title": "担当者を変えると、担当者別の一覧にも反映される", "body": "…担当者を変更して保存する\n・担当者別の一覧で、新しい担当者の下に表示される"}`
+出力：`{"case": "T-5", "axes": ["blast"], "impact": "stop", "kind": "代表"}`
+理由：別の画面（担当者別の一覧）にも影響が出る（`blast`）。反映されないと業務が止まる。基本の操作なので `代表`。
+</example>
+</examples>
+
+この例は、判断の基準の見本である。ケースの本文に書かれていることだけを根拠にする点は、どの例も同じ。
+
 ## ルール
 
 - `fingerprint` や `reason` は書かない（取り込みスクリプトが補う）。
-- 領域・機能・画面から重要度を推測しない。判断するのは上の 3 つだけ。
-- 下書きは Write で書く。
+- 判断するのは上の 3 つだけにする。領域・機能・画面から重要度を推測すると、設定の重みと二重に数えてしまうため。
+- 下書きは Write で書く。Write なら書いた内容が人に見え、取り込む前に確認できる。

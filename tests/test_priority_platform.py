@@ -86,6 +86,18 @@ class PlatformSeparationTest(unittest.TestCase):
             offenders += [f"{path.relative_to(ROOT)}: {word}" for word in self.FORBIDDEN if word in text]
         self.assertEqual(offenders, [])
 
+    def test_the_runtime_requirement_is_documented_and_checked_before_tomllib_is_imported(self):
+        self.assertIn("Python 3.11", (SKILL / "SKILL.md").read_text(encoding="utf-8"))
+        source = (SKILL / "scripts" / "_priority.py").read_text(encoding="utf-8")
+        self.assertLess(source.index("sys.version_info < (3, 11)"), source.index("import tomllib"))
+
+    def test_a_reference_does_not_point_to_another_references_steps(self):
+        """reference 同士が「〜の手順 N」と指し合うと、部分的にしか読まれず、手順が抜ける。"""
+        for reference in (SKILL / "references").glob("*.md"):
+            with self.subTest(reference=reference.name):
+                text = reference.read_text(encoding="utf-8")
+                self.assertNotRegex(text, r"(build|update|init|adjudicate|judge|explain)\.md`? の手順")
+
     def test_unknown_platform_is_a_config_error_listing_the_choices(self):
         with self.assertRaises(pr.ConfigError) as ctx:
             pr.load_platform("nope")

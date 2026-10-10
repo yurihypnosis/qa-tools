@@ -49,6 +49,8 @@ claude --plugin-dir <このリポジトリの絶対パス>
 
 Claude Code の中で `/qa-tools:test-priority build` を実行する。設定は `.qa/test-priority.toml`（自分のプロジェクトでは `/qa-tools:test-priority init` で質問に答えて作る）。
 
+テストケースを書き換えたあとは `/qa-tools:test-priority update` で、変わったケースだけを判定し直す（ほかの行は 1 バイトも変わらない）。人が重要度を決めたいときは、「TC-045 は R2 にして。理由は…」と頼むと裁定が記録され、`build` でも消えない。
+
 `output/test-priority/` に、取り込み用の `import.csv`、レビュー用の `review.csv`（理由と要レビューの印つき）、`manifest.json` ができる。出力例は `examples/dummy-product/sample-output/test-priority/`、仕様は [docs/design/tools/test-priority.md](docs/design/tools/test-priority.md) にある。
 
 ## 自分のプロジェクトで使う
