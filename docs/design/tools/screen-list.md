@@ -69,6 +69,8 @@ UTF-8 BOM 付き。1 行 1 件。行は `画面ID` の昇順。
 
 URL を変えずに、ページの中の状態で切り替わる表示は、ファイルの置き場所からは見つけられない。数えたいものは、**人が設定に書く**（AI が勝手に増やさない）。
 
+**申告漏れに気づくためのヒント**：プラットフォーム定義の `hints(repo, root, rules)` が、画面らしいファイル（既定：`screens/` の下、`*-screen.tsx`、`*Screen.tsx`。`rules.screen_hints` の glob で置き換えられる）のうち、候補のどのファイルにも当たらないものを返す。`candidates` の出力の `hints`、`_raw/hints.json`、`check` の `stats.hints` に出る。確定ではなく**確認してほしい候補**で、失敗にはしない（ページ本体の部品も当たる）。
+
 ```toml
 [[rules.extra]]
 key = "index?screen=analysis"     # 画面 ID の後半。一意

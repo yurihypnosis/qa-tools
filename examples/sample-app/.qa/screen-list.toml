@@ -29,5 +29,34 @@ key = "index?screen=goal"
 source = "src/features/quiz/screens/goal-screen.tsx"
 parent = "web/index"
 
+# 単語カードの流れ（設定 → 出題 → 結果）。URL は /flashcards のまま
+[[rules.extra]]
+key = "flashcards?step=setup"
+source = "src/features/flashcards/screens/setup-screen.tsx"
+parent = "web/flashcards"
+
+[[rules.extra]]
+key = "flashcards?step=session"
+source = "src/features/flashcards/screens/session-screen.tsx"
+parent = "web/flashcards"
+
+[[rules.extra]]
+key = "flashcards?step=done"
+source = "src/features/flashcards/screens/done-screen.tsx"
+parent = "web/flashcards"
+
+# クイズの出題と結果（?screen= では開けないが、画面として見える）
+[[rules.extra]]
+key = "index?screen=quiz"
+source = "src/features/quiz/screens/quiz-screen.tsx"
+parent = "web/index"
+
+[[rules.extra]]
+key = "index?screen=done"
+source = "src/features/quiz/screens/done-screen.tsx"
+parent = "web/index"
+
+# 残るヒント（menu-screen と cheatsheet-screen）は、web/index と web/g-kentei/cheatsheet の本体なので、申告しない
+
 [checks]
 run = ["coverage"]

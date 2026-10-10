@@ -27,6 +27,8 @@ APP = {
     "src/components/shell.tsx": 'import { Dialog } from "@/components/ui/dialog";\nexport function Shell() { return null; }\n',
     "src/features/tasks/task-list.tsx": 'import { DeleteDialog } from "./delete-dialog";\nexport function TaskList() { return null; }\n',
     "src/features/tasks/delete-dialog.tsx": 'import { Dialog } from "@/components/ui/dialog";\nexport function DeleteDialog() { return null; }\n',
+    "src/features/tasks/screens/detail-screen.tsx": "export function DetailScreen() { return null; }\n",
+    "src/features/tasks/wizard-view.tsx": "export function Wizard() { return null; }\n",
     "src/features/tasks/edit-dialog.tsx": 'import { Dialog } from "@/components/ui/dialog";\nexport function EditDialog() { return null; }\n',
 }
 CODEMAP_TOML = """platform = ["typescript"]
@@ -164,6 +166,28 @@ class CandidatesTest(unittest.TestCase):
         self.assertEqual(got["web/index"]["file"] + ":" + str(got["web/index"]["line"]), "src/app/page.tsx:3")
         self.assertEqual(got["web/login"]["line"], 1)
         self.assertEqual(got["web#src/features/tasks/delete-dialog"]["line"], 1)
+
+    def test_files_that_look_like_screens_but_are_not_candidates_are_reported_as_hints(self):
+        result = self.s.candidates()
+        self.assertEqual(result["hints"], ["src/features/tasks/screens/detail-screen.tsx"])   # screens/ の下のもの。wizard-view は慣習の外
+        self.assertEqual(json.loads((self.s.out / "_raw" / "hints.json").read_text(encoding="utf-8")), {"hints": result["hints"]})
+
+    def test_declaring_a_hinted_file_as_an_extra_screen_removes_the_hint(self):
+        text = SCREENS_TOML.replace("[checks]", '[[rules.extra]]\nkey = "tasks?step=detail"\nsource = "src/features/tasks/screens/detail-screen.tsx"\nparent = "web/tasks"\n\n[checks]')
+        (self.s.root / ".qa" / "screen-list.toml").write_text(text, encoding="utf-8")
+        result = self.s.candidates("--fresh")
+        self.assertEqual(result["hints"], [])
+        self.assertIn("web/tasks?step=detail", result["pending"])
+
+    def test_hint_globs_can_be_replaced_in_the_config(self):
+        text = SCREENS_TOML.replace('exclude = []', 'exclude = []\nscreen_hints = ["**/*-view.tsx"]')
+        (self.s.root / ".qa" / "screen-list.toml").write_text(text, encoding="utf-8")
+        self.assertEqual(self.s.candidates("--fresh")["hints"], ["src/features/tasks/wizard-view.tsx"])
+
+    def test_check_reports_the_number_of_hints_without_failing(self):
+        self.s.build()
+        code, out, _ = self.s.run("check", "--json")
+        self.assertEqual((code, json.loads(out)["stats"]["hints"]), (0, 1))
 
     def test_no_dialog_imports_means_no_dialog_candidates(self):
         self.s.candidates()
@@ -425,7 +449,7 @@ class SampleOutputTest(unittest.TestCase):
         self.assertEqual(code, 0, out)
         stats = json.loads(out)["stats"]
         manifest = json.loads((self.out / "manifest.json").read_text(encoding="utf-8"))
-        self.assertEqual((stats["candidates"], stats["rows"], manifest["items"]), (13, 13, 13))
+        self.assertEqual((stats["candidates"], stats["rows"], manifest["items"], stats["hints"]), (18, 18, 18, 2))
         self.assertEqual(manifest["inputs"]["code-map"]["commit"], manifest["source"]["commit"])
 
 

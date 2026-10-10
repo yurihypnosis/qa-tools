@@ -1,4 +1,5 @@
 """プラットフォーム定義 nextjs-app-router：Next.js の App Router の画面とダイアログの候補を列挙する（docs/design/tools/screen-list.md の 3）。"""
+import fnmatch
 import os
 import posixpath
 import re
@@ -8,6 +9,9 @@ PAGE = re.compile(r"^page\.(tsx|jsx|ts|js)$")
 GROUP = re.compile(r"^\(.*\)$")                 # ルートグループ (auth)
 INTERCEPTING = re.compile(r"^\(\.{1,3}\)")       # 割り込みルート (.)photo
 DEFAULT_EXPORT = re.compile(r"^export\s+default\b", re.M)
+# 画面らしいファイルの、よくある置き方。ページの中で切り替わる画面（申告が要るもの）の見落としに気づくための目印（確定ではない）
+HINT_GLOBS = ("*/screens/*.tsx", "*/screens/*.jsx", "*-screen.tsx", "*Screen.tsx")
+SKIP_DIRS = {".git", "node_modules", ".next", "dist", "build"}
 
 
 def _page_ids(repo, app_dir):
@@ -63,6 +67,19 @@ def candidates(repo, rules, reverse_imports):
                     dialogs[file] = {"key": posixpath.splitext(file)[0], "kind": "ダイアログ", "file": file, "line": 1, "url": "",
                                      "parents": _parents(file, reverse_imports, page_ids)}
     return list(pages.values()) + list(dialogs.values())
+
+
+def hints(repo, root, rules):
+    """画面らしいファイル（`rules.screen_hints` の glob。無ければ既定）を返す。候補に入っているかは、呼び出し側が見る。"""
+    globs = rules.get("screen_hints", HINT_GLOBS)
+    found = []
+    for folder, dirs, names in os.walk(repo / root):
+        dirs[:] = sorted(d for d in dirs if d not in SKIP_DIRS)
+        for name in sorted(names):
+            path = posixpath.relpath(os.path.join(folder, name), repo)
+            if any(fnmatch.fnmatch(path, g) for g in globs):
+                found.append(path)
+    return sorted(found)
 
 
 def id_of(candidate):

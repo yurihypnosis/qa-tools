@@ -53,6 +53,8 @@ def load_config(path):
         raise ValueError("rules.roles が必須（ロールの名前の配列。無ければ []）。init を実行する")
     if any(";" in r for r in rules["roles"]):
         raise ValueError("rules.roles のロール名に ; は使えない（CSV のロール列の区切りのため）")
+    if not (isinstance(rules.get("screen_hints", []), list) and all(isinstance(g, str) for g in rules.get("screen_hints", []))):
+        raise ValueError("rules.screen_hints は glob の文字列の配列")
     extra = rules.get("extra", [])
     for item in extra:
         if not (isinstance(item, dict) and all(isinstance(item.get(k), str) for k in ("key", "source", "parent"))):
@@ -106,12 +108,15 @@ def candidates(config, fresh=False):
         digest = hashlib.sha256(path.read_bytes() + b"\n" + ";".join(sorted(c["parents"])).encode("utf-8")).hexdigest()
         rows.append({"id": cid, "kind": c["kind"], "url": c["url"], "file": c["file"], "line": c["line"], "source": f"{c['file']}:{c['line']}",
                      "module": code_map["tree"].get(c["file"], ""), "parents": sorted(c["parents"]), "fingerprint": digest})
+    covered = {c["file"] for c in found}
+    hints = [h for h in platform.hints(config["repo"], config["root"], config["rules"]) if h not in covered]
     unknown = [i for i in config["exclude"] if i not in seen]
     if unknown:
         raise ValueError("rules.exclude に、候補に無い画面 ID がある: " + ", ".join(unknown))
     rows = sorted((r for r in rows if r["id"] not in config["exclude"]), key=lambda r: r["id"])
     raw = config["out"] / "_raw"
     jsonl.write(raw / "candidates.jsonl", rows)
+    (raw / "hints.json").write_text(json.dumps({"hints": hints}, ensure_ascii=False) + "\n", encoding="utf-8")
     names_path = raw / "names.jsonl"
     if fresh:
         names_path.unlink(missing_ok=True)
@@ -121,7 +126,7 @@ def candidates(config, fresh=False):
     by_id = {r["id"]: r for r in rows}
     jsonl.write(raw / "pending.jsonl", [{k: by_id[i][k] for k in ("id", "kind", "url", "source", "parents")} for i in plan["changed"]])
     (raw / "plan.json").write_text(json.dumps({"pending": plan["changed"]}, ensure_ascii=False) + "\n", encoding="utf-8")
-    return {"candidates": len(rows), "dialogs": sum(1 for r in rows if r["kind"] == "ダイアログ"), "pending": plan["changed"]}
+    return {"candidates": len(rows), "dialogs": sum(1 for r in rows if r["kind"] == "ダイアログ"), "pending": plan["changed"], "hints": hints}
 
 
 def read_draft(path, config):
@@ -211,7 +216,9 @@ def check(config, skip_manifest=False):
             findings.append(_finding("MANIFEST", mpath, message="manifest.json が無い"))
         else:
             findings += [_finding("MANIFEST", mpath, message=m) for m in manifest.validate(json.loads(mpath.read_text(encoding="utf-8")))]
-    stats = {"candidates": len(expected), "rows": len(table), "dialogs": sum(1 for r in table if r.get("種別") == "ダイアログ"),
+    hints_path = out / "_raw" / "hints.json"
+    hints = json.loads(hints_path.read_text(encoding="utf-8"))["hints"] if hints_path.is_file() else []
+    stats = {"candidates": len(expected), "rows": len(table), "hints": len(hints), "dialogs": sum(1 for r in table if r.get("種別") == "ダイアログ"),
              "unresolved": sum(1 for r in table if "[未解決" in r.get("画面名", "") + r.get("ロール", ""))}
     return findings, stats
 
