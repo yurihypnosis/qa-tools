@@ -37,12 +37,12 @@
 ```markdown
 # ファイルツリー
 
-| ファイル | モジュール | 言語 | 行数 |
-| --- | --- | --- | --- |
-| src/features/quiz/lib/streak.ts | features/quiz | typescript | 54 |
+| ファイル | モジュール | 言語 | 行数 | ハッシュ |
+| --- | --- | --- | --- | --- |
+| src/features/quiz/lib/streak.ts | features/quiz | typescript | 54 | 3f2a9c1b04de |
 ```
 
-見出しと列は固定。他のツールは、この表からファイルのモジュールを引く（F1）。
+見出しと列は固定。`ハッシュ` は、ファイルの内容の sha256 の先頭 12 桁。他のツールは、この表から、ファイルのモジュールを引き（F1）、**自分が読むファイルが、code-map が読んだときから変わっていないか**を、git に頼らずに調べる。対象は、`source.root` の下のファイル（ドットで始まるフォルダは読まない）。
 
 ### 3.2 `lookup/symbol_index.tsv`
 
@@ -131,9 +131,6 @@ dir = "output/code-map"
 module_depth = 2
 representatives = 5             # 仮（12）
 
-[rules.typescript]
-tsconfig = "tsconfig.json"      # repo からの相対
-
 [checks]
 run = ["public-files"]
 ```
@@ -150,7 +147,10 @@ run = ["public-files"]
 | `load(repo, options)` | その言語の準備（例：tsconfig を読む）。`analyze` に渡す `context` を返す |
 | `analyze(repo, path, text, context)` | `{"imports": [リポジトリ内の import 先のパス], "unresolved": 解決できなかった相対 import の数, "symbols": [{"name","kind","line"}]}` |
 
-最初の 2 つ（仮の方式。12）：`typescript` は正規表現で `import … from` `export … from` `import(` `require(` を抜き、相対パスと tsconfig の `paths`（`baseUrl` があればそれも）で解決する。`python` は標準ライブラリの `ast` で、`root` からの絶対 import と相対 import を解決する。
+最初の 2 つ（仮の方式。12）：
+
+- `typescript`：正規表現で `import … from` `export … from` `import(` `require(` を抜く。解決は、相対パス → **そのファイルにいちばん近い祖先の `tsconfig.json` の `paths`（`baseUrl`）**（ファイルごと。`extends` は辿らない）→ **ワークスペースのパッケージ**（`package.json` の `name`。`main` `module` `types` `exports` の `dist/` を `src/` に読み替えた先、無ければ `src/index`。`@scope/pkg/sub` は `src/sub`）の順。`logo.svg?url` のようなクエリは外し、資産（JSON・画像）は数えない。`.d.ts` も解決する
+- `python`：標準ライブラリの `ast`。絶対 import は、そのファイルが属するパッケージの 1 つ上（`__init__.py` を辿った先）、ファイルのディレクトリ、設定の `root` の順に探す。相対 import は、そのファイルから解決する
 
 ## 9. 検査 `check`（C6 の形）
 
@@ -167,7 +167,7 @@ run = ["public-files"]
 
 | キー | 値 |
 | --- | --- |
-| `source` | `{"repo": <設定の repo>, "commit": <先頭 7 桁>}`。`source.root` の下に未コミットの変更があれば `"<コミット>+dirty"`（`core/gitinfo.py`）。screen-list は、この文字列が自分の見たソースの版と同じかで、code-map が古いかを判断する |
+| `source` | git なら `{"repo": <設定の repo>, "commit": <先頭 7 桁>}`。`source.root` の下に未コミットの変更があれば `"<コミット>+dirty"`（`core/gitinfo.py`）。**git でなければ** `{"files": "<root>/**", "hash": "sha256:…"}`（`tree.md` の（パス、ハッシュ）の組から作る。C5） |
 | `generated_by` | `claude`：今回 AI が役割を書いたモジュール数。`carried`：前回の役割を使い回した数。`script`：0 |
 | `items` | モジュール数 |
 | `inputs` | `{}` |

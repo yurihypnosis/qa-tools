@@ -12,8 +12,5 @@ dir = "output/code-map"
 module_depth = 2
 representatives = 5
 
-[rules.typescript]
-tsconfig = "tsconfig.json"
-
 [checks]
 run = ["public-files"]

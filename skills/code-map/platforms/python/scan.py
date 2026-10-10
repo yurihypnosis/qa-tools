@@ -17,17 +17,28 @@ def _module_file(base, files):
     return None
 
 
+def _roots(path, files, root):
+    """絶対 import を解決する起点：ファイルが属するパッケージの 1 つ上（`__init__.py` を辿った先）、ファイルのディレクトリ、設定の root。"""
+    folder, top = posixpath.dirname(path), None
+    while folder and posixpath.join(folder, "__init__.py") in files:
+        top, folder = folder, posixpath.dirname(folder)
+    roots = [posixpath.dirname(top) if top else None, posixpath.dirname(path), root]
+    return [r for i, r in enumerate(roots) if r is not None and r not in roots[:i]]
+
+
 def analyze(repo, path, text, context):
     files, root = context["files"], context["root"]
     try:
         tree = ast.parse(text)
     except SyntaxError:
         return {"imports": [], "unresolved": 0, "symbols": []}
+    roots = _roots(path, files, root)
+    first = lambda candidates: next((h for h in (_module_file(c, files) for c in candidates) if h), None)
     imports, unresolved = set(), 0
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
-                hit = _module_file(posixpath.normpath(posixpath.join(root, alias.name.replace(".", "/"))), files)
+                hit = first(posixpath.normpath(posixpath.join(r, alias.name.replace(".", "/"))) for r in roots)
                 if hit:
                     imports.add(hit)
         elif isinstance(node, ast.ImportFrom):
@@ -35,12 +46,11 @@ def analyze(repo, path, text, context):
                 base = posixpath.dirname(path)
                 for _ in range(node.level - 1):
                     base = posixpath.dirname(base)
+                bases = [base]
             else:
-                base = root
-            module = posixpath.normpath(posixpath.join(base, node.module.replace(".", "/"))) if node.module else base
-            hits = [_module_file(posixpath.join(module, a.name), files) for a in node.names]  # from x import 部分モジュール
-            hits = [h for h in hits if h] or [_module_file(module, files)]
-            hits = [h for h in hits if h]
+                bases = roots
+            modules = [posixpath.normpath(posixpath.join(b, node.module.replace(".", "/"))) if node.module else posixpath.normpath(b) for b in bases]
+            hits = [h for h in (first([posixpath.join(m, a.name)]) for m in modules for a in node.names) if h] or [h for h in [first(modules)] if h]
             if hits:
                 imports.update(hits)
             elif node.level:

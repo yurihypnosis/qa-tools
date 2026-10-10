@@ -104,10 +104,13 @@ class ExtractTest(unittest.TestCase):
         result = self.p.extract()
         self.assertEqual(result["modules"], ["(root)", "app", "features/mindset", "features/quiz"])
         rows = (self.p.out / "lookup" / "tree.md").read_text(encoding="utf-8").splitlines()
-        self.assertEqual(rows[:4], ["# ファイルツリー", "", "| ファイル | モジュール | 言語 | 行数 |", "| --- | --- | --- | --- |"])
+        self.assertEqual(rows[:4], ["# ファイルツリー", "", "| ファイル | モジュール | 言語 | 行数 | ハッシュ |", "| --- | --- | --- | --- | --- |"])
         table = [r for r in rows[4:] if r.startswith("|")]
-        self.assertIn("| src/features/quiz/lib/streak.ts | features/quiz | typescript | 4 |", table)
-        self.assertIn("| src/proxy.ts | (root) | typescript | 2 |", table)
+        self.assertTrue(any(r.startswith("| src/features/quiz/lib/streak.ts | features/quiz | typescript | 4 | ") for r in table))
+        self.assertTrue(any(r.startswith("| src/proxy.ts | (root) | typescript | 2 | ") for r in table))
+        import hashlib
+        digest = hashlib.sha256((self.p.root / "src" / "proxy.ts").read_bytes()).hexdigest()[:12]
+        self.assertTrue(any(r == f"| src/proxy.ts | (root) | typescript | 2 | {digest} |" for r in table))   # 内容の sha256 の先頭 12 桁
         self.assertFalse([r for r in table if "globals.css" in r])
         self.assertEqual(table, sorted(table))
 
@@ -355,6 +358,35 @@ class UpdateTest(unittest.TestCase):
         self.assertNotIn("features/mindset", roles)
 
 
+class NotAGitRepoTest(unittest.TestCase):
+    def test_a_source_that_is_not_a_git_repo_gets_a_files_and_hash_source_that_follows_the_content(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for name, text in TS_FILES.items():
+                (root / name).parent.mkdir(parents=True, exist_ok=True)
+                (root / name).write_text(text, encoding="utf-8")
+            (root / ".qa").mkdir()
+            (root / ".qa" / "code-map.toml").write_text(CONFIG, encoding="utf-8")
+            run = lambda *a: run_path(CLI, *a, "--config", root / ".qa" / "code-map.toml", cwd=root)
+            pending = json.loads(run("extract", "--fresh")[1])["pending"]
+            draft = root / "d.jsonl"
+            draft.write_text("".join(json.dumps({"module": m, "role": "役割。"}, ensure_ascii=False) + "\n" for m in pending), encoding="utf-8")
+            self.assertEqual(run("apply", draft)[0], 0)
+            self.assertEqual(run("assemble")[0], 0)
+            code, out, err = run("finish")
+            self.assertEqual(code, 0, err + out)
+            first = json.loads((root / "output" / "code-map" / "manifest.json").read_text(encoding="utf-8"))["source"]
+            self.assertEqual(sorted(first), ["files", "hash"])
+            self.assertTrue(first["hash"].startswith("sha256:"))
+            (root / "src" / "proxy.ts").write_text("export const p = 9;\n", encoding="utf-8")
+            run("extract")
+            pending = json.loads(run("extract")[1])["pending"]
+            draft.write_text("".join(json.dumps({"module": m, "role": "新しい。"}, ensure_ascii=False) + "\n" for m in pending), encoding="utf-8")
+            run("apply", draft); run("assemble"); run("finish")
+            second = json.loads((root / "output" / "code-map" / "manifest.json").read_text(encoding="utf-8"))["source"]
+            self.assertNotEqual(first["hash"], second["hash"])
+
+
 class DirtyAndSurveyTest(unittest.TestCase):
     def test_uncommitted_changes_under_the_root_are_recorded_as_dirty(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -428,3 +460,82 @@ class SeparationTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+MONOREPO = {
+    "package.json": '{"name": "root", "workspaces": ["packages/*", "apps/*"]}',
+    "packages/ui/package.json": '{"name": "@acme/ui", "main": "./dist/index.js", "types": "./dist/index.d.ts"}',
+    "packages/ui/src/index.ts": 'export * from "./button";\nexport const ui = 1;\n',
+    "packages/ui/src/button.ts": "export function Button() { return 1; }\n",
+    "packages/ui/src/icons/star.ts": "export const Star = 1;\n",
+    "packages/utils/package.json": '{"name": "@acme/utils", "exports": {".": "./src/main.ts"}}',
+    "packages/utils/src/main.ts": "export const util = 1;\n",
+    "apps/web/tsconfig.json": '{"compilerOptions": {"paths": {"@/*": ["./core/*"], "@/helpers/*": ["./helpers/*"]}}}',
+    "apps/web/core/page.ts": 'import { thing } from "@/lib/thing";\nimport { fmt } from "@/helpers/fmt";\nimport { ui } from "@acme/ui";\nimport { Star } from "@acme/ui/icons/star";\nimport { util } from "@acme/utils";\nimport react from "react";\nexport const page = 1;\n',
+    "apps/web/core/lib/thing.ts": "export const thing = 1;\n",
+    "apps/web/helpers/fmt.ts": "export const fmt = 1;\n",
+    "apps/admin/tsconfig.json": '{"compilerOptions": {"paths": {"@/*": ["./src/*"]}}}',
+    "apps/admin/src/main.ts": 'import { thing } from "@/lib/thing";\nimport { ui } from "@acme/ui";\nexport const admin = 1;\n',
+    "apps/admin/src/lib/thing.ts": "export const thing = 2;\n",
+    "apps/web/core/assets/logo.svg": "<svg/>\n",
+    "apps/web/core/types/issue.d.ts": "export interface Issue { id: string }\n",
+    "apps/web/core/query.ts": 'import logo from "@/assets/logo.svg?url";\nimport type { Issue } from "@/types/issue";\nimport "./missing-generated";\nexport const q = 1;\n',
+    "apps/web/.react-router/types/routes.ts": 'import "./app/root";\nexport const r = 1;\n',
+}
+MONOREPO_CONFIG = CONFIG.replace('root = "src"', 'root = "."').replace('module_depth = 2', 'module_depth = 2').replace('[rules.typescript]\ntsconfig = "tsconfig.json"\n', "")
+
+
+class MonorepoTest(unittest.TestCase):
+    """パッケージごとの tsconfig と、ワークスペースのパッケージ（package.json の name）を解決できること。"""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.p = Project(self.tmp.name, files=MONOREPO, config=MONOREPO_CONFIG)
+        self.p.extract()
+        self.reverse = {r["file"]: r["imported_by"] for r in map(json.loads, (self.p.out / "lookup" / "reverse_imports.jsonl").read_text(encoding="utf-8").splitlines())}
+
+    def test_each_file_uses_the_nearest_tsconfig(self):
+        self.assertEqual(self.reverse["apps/web/core/lib/thing.ts"], ["apps/web/core/page.ts"])      # web の @/ は ./core
+        self.assertEqual(self.reverse["apps/admin/src/lib/thing.ts"], ["apps/admin/src/main.ts"])    # admin の @/ は ./src
+        self.assertEqual(self.reverse["apps/web/helpers/fmt.ts"], ["apps/web/core/page.ts"])         # より具体的なパターン
+
+    def test_workspace_packages_resolve_by_name_to_their_source(self):
+        self.assertEqual(self.reverse["packages/ui/src/index.ts"], ["apps/admin/src/main.ts", "apps/web/core/page.ts"])   # main は dist/ → src/ に読み替える
+        self.assertEqual(self.reverse["packages/ui/src/icons/star.ts"], ["apps/web/core/page.ts"])                         # サブパス
+        self.assertEqual(self.reverse["packages/utils/src/main.ts"], ["apps/web/core/page.ts"])                            # exports["."]
+
+    def test_module_level_dependencies_show_the_cross_package_edges(self):
+        modules = json.loads((self.p.out / "_raw" / "modules.json").read_text(encoding="utf-8"))
+        self.assertEqual(modules["apps/web"]["depends_on"], {"packages/ui": 2, "packages/utils": 1})
+        self.assertEqual(modules["packages/ui"]["depended_by"], {"apps/admin": 1, "apps/web": 2})
+
+    def test_asset_queries_and_declaration_files_resolve_and_hidden_folders_are_not_scanned(self):
+        tree = (self.p.out / "lookup" / "tree.md").read_text(encoding="utf-8")
+        self.assertNotIn(".react-router", tree)                                         # 生成物のフォルダ（ドットで始まる）は読まない
+        self.assertEqual(self.reverse["apps/web/core/types/issue.d.ts"], ["apps/web/core/query.ts"])   # @/types/issue → issue.d.ts
+        result = json.loads(self.p.run("extract")[1])
+        self.assertEqual(result["unresolved"], 1)                                       # ?url の資産は数えず、./missing-generated だけ
+
+    def test_external_packages_are_still_ignored(self):
+        self.assertNotIn("react", json.dumps(self.reverse))
+
+
+class PythonPackageRootTest(unittest.TestCase):
+    FILES = {
+        "apps/api/plane/__init__.py": "",
+        "apps/api/plane/db/__init__.py": "",
+        "apps/api/plane/db/models.py": "from plane.utils import helper\nimport plane.utils.helper as h\n",
+        "apps/api/plane/utils/__init__.py": "",
+        "apps/api/plane/utils/helper.py": "def helper():\n    pass\n",
+        "tools/script.py": "import sibling\n",
+        "tools/sibling.py": "x = 1\n",
+    }
+
+    def test_absolute_imports_resolve_from_the_top_of_the_package(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            q = Project(tmp, files=self.FILES, config=CONFIG.replace('["typescript"]', '["python"]').replace('root = "src"', 'root = "."').replace('[rules.typescript]\ntsconfig = "tsconfig.json"\n', ""))
+            result = q.extract()
+            reverse = {r["file"]: r["imported_by"] for r in map(json.loads, (q.out / "lookup" / "reverse_imports.jsonl").read_text(encoding="utf-8").splitlines())}
+            self.assertEqual(reverse["apps/api/plane/utils/helper.py"], ["apps/api/plane/db/models.py"])
+            self.assertEqual(reverse["tools/sibling.py"], ["tools/script.py"])
