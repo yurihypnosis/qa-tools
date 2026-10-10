@@ -5,13 +5,13 @@
     "repo": "sample-app",
     "commit": "f8f641c"
   },
-  "config_hash": "sha256:c52289c34536521bb5d1ebe404de3a5e6e947729205c684081c3bee24da2b49c",
+  "config_hash": "sha256:2abfcc3a6deb5c0971b04796e22b3bbd69c4e8c93cd6a279270ac97a8841b69b",
   "inputs": {},
-  "generated_at": "2026-10-09T23:49:46+09:00",
+  "generated_at": "2026-10-10T17:30:55+09:00",
   "generated_by": {
-    "claude": 14,
+    "claude": 0,
     "script": 0,
-    "carried": 0,
+    "carried": 14,
     "local": 0
   },
   "items": 14

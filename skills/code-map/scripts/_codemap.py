@@ -24,6 +24,7 @@ import manifest  # noqa: E402
 
 ALWAYS_EXCLUDED = {".git", "node_modules", "__pycache__", ".next", "dist", "build"}
 SECTIONS = ["役割", "主なファイル", "公開シンボル", "依存先", "依存元"]
+HASH_LENGTH = 12  # tree.md のハッシュ（内容の sha256 の先頭）。他のツールが、code-map が古いかを調べるのに使う
 MAX_ROLE = 600  # 役割は 2〜4 文。長すぎる下書きは、要約になっていない
 
 
@@ -77,7 +78,7 @@ def collect(config):
         raise ValueError(f"source.root {root!r} が {repo} の下に無い")
     on_disk = set()
     for folder, dirs, names in os.walk(base):
-        dirs[:] = sorted(d for d in dirs if d not in ALWAYS_EXCLUDED)
+        dirs[:] = sorted(d for d in dirs if d not in ALWAYS_EXCLUDED and not d.startswith("."))   # ドットで始まるフォルダは、設定や生成物
         for name in names:
             on_disk.add(Path(folder, name).relative_to(repo).as_posix())
     return on_disk
@@ -146,8 +147,8 @@ def extract(config, fresh=False):
     info = scan(config)
     modules, imported_by = build_modules(config, info)
     out = config["out"]
-    tree = ["# ファイルツリー", "", "| ファイル | モジュール | 言語 | 行数 |", "| --- | --- | --- | --- |"]
-    tree += [f"| {p} | {info[p]['module']} | {info[p]['language']} | {info[p]['lines']} |" for p in sorted(info)]
+    tree = ["# ファイルツリー", "", "| ファイル | モジュール | 言語 | 行数 | ハッシュ |", "| --- | --- | --- | --- | --- |"]
+    tree += [f"| {p} | {info[p]['module']} | {info[p]['language']} | {info[p]['lines']} | {info[p]['hash'][:HASH_LENGTH]} |" for p in sorted(info)]
     symbols = ["file\tline\tkind\tname"] + [f"{p}\t{s['line']}\t{s['kind']}\t{s['name']}" for p in sorted(info) for s in info[p]["symbols"]]
     (out / "lookup").mkdir(parents=True, exist_ok=True)
     (out / "lookup" / "tree.md").write_text("\n".join(tree) + "\n", encoding="utf-8")
@@ -175,7 +176,7 @@ def survey(repo_path, root, platforms):
         raise ValueError(f"{base} がディレクトリではない")
     counts = Counter()
     for folder, dirs, names in os.walk(base):
-        dirs[:] = [d for d in dirs if d not in ALWAYS_EXCLUDED]
+        dirs[:] = [d for d in dirs if d not in ALWAYS_EXCLUDED and not d.startswith(".")]
         n = sum(1 for name in names if posixpath.splitext(name)[1] in extensions)
         rel = Path(folder).relative_to(base).as_posix()
         parts = [] if rel == "." else rel.split("/")
@@ -321,6 +322,16 @@ def check(config, skip_manifest=False):
     return findings, stats
 
 
+def source_of(config):
+    """manifest の source。git ならコミット、git でなければファイルの内容のハッシュ（contracts.md の C5）。"""
+    try:
+        return {"repo": config["repo_name"], "commit": gitinfo.head(config["repo"], config["root"])}
+    except ValueError:
+        lines = [l for l in (config["out"] / "lookup" / "tree.md").read_text(encoding="utf-8").splitlines()[4:] if l.startswith("|")]
+        pairs = "\n".join(sorted("\t".join(c.strip() for c in (cells[0], cells[-1])) for cells in (l.strip("|").split("|") for l in lines)))
+        return {"files": posixpath.join(config["root"], "**"), "hash": "sha256:" + hashlib.sha256(pairs.encode("utf-8")).hexdigest()}
+
+
 def finish(config):
     findings, stats = check(config, skip_manifest=True)
     if findings:
@@ -329,8 +340,7 @@ def finish(config):
     items = stats["modules"]
     claude = items if plan["pending"] is None else len(plan["pending"])
     manifest.write(
-        config["out"], tool="code-map",
-        source={"repo": config["repo_name"], "commit": gitinfo.head(config["repo"], config["root"])},
+        config["out"], tool="code-map", source=source_of(config),
         config_hash_value=manifest.config_hash(config["path"]), inputs={},
         generated_by={"claude": claude, "carried": items - claude}, items=items,
     )
