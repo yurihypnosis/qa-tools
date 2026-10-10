@@ -1,6 +1,6 @@
 {
   "name": "qa-tools",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "QA エンジニア向けの AI テスト設計ツール。PBI からテストケースを段階生成し、テストケースごとに回帰の重要度と規模を決める。",
   "author": {
     "name": "yurihypnosis"

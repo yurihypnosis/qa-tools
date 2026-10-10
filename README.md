@@ -6,6 +6,7 @@ QA エンジニア向けの AI テスト設計ツール集（Claude Code プラ�
 
 - **test-case-generator**：PBI の資料から、サイジング → テスト分析 → テスト観点 → 15 列のテストケース → セルフレビューを、QA のレビューゲートで止まりながら段階的に作る
 - **code-map**：ソースコードから、ファイル一覧・公開シンボル・依存関係と、モジュールごとの役割の説明（AI が書くのは役割 1 段落だけ）を作る。`/qa-tools:code-map build`
+- **screen-list**：アプリの画面とダイアログを 1 行 1 件の CSV に洗い出す。画面があるかはスクリプトがソースから決め、AI が書くのは画面名とロールだけ。`/qa-tools:screen-list build`（code-map の出力が要る）
 - **test-priority**：テストケース 1 件ずつに、回帰テストとしての重要度（R1〜R4）と、実行する規模（sanity / smoke / light / full）を決める。AI は意味の判断だけをして、重要度と規模は設定の規則からスクリプトが計算する
 
 ![フロー](docs/architecture/flow.png)
@@ -67,6 +68,10 @@ claude --plugin-dir <このリポジトリの絶対パス>
 
 Claude Code の中で `/qa-tools:code-map build` を実行する。`output/code-map/` に、`index.md`（モジュールの一覧）、`modules/*.md`、`lookup/` ができる。出力例は `examples/sample-app/sample-output/code-map/`、仕様は [docs/design/tools/code-map.md](docs/design/tools/code-map.md)。ソースを変えたあとは `/qa-tools:code-map update` で、内容が変わったモジュールの役割だけを書き直す。
 
+git のリポジトリでなくても動く（manifest の `source` は、git のコミットの代わりに、ファイルの内容のハッシュになる）。モノレポ（パッケージごとの tsconfig、ワークスペースのパッケージ）にも対応している。
+
+続けて、同じ作業ディレクトリで `/qa-tools:screen-list build` を実行すると、`output/screen-list/screens.csv`（画面とダイアログの一覧）ができる。サンプルアプリでは、`examples/sample-app/.qa/screen-list.toml` を使う。出力例は `examples/sample-app/sample-output/screen-list/`、仕様は [docs/design/tools/screen-list.md](docs/design/tools/screen-list.md)。ソースを変えたら、先に code-map を、次に screen-list を `update` する。
+
 ## 自分のプロジェクトで使う
 
 1. 手元の clone からプラグインを入れる（一度だけ。どこにも公開されない）
@@ -94,6 +99,7 @@ skills/test-case-generator/
   evals/evals.json       挙動評価のケース（skill-creator の形式）
 skills/test-priority/    同じ構成。platforms/ にテストケースの形式ごとの読み方を置く
 skills/code-map/         同じ構成。platforms/ に言語ごとの読み方を置く。スクリプトは codemap.py 1 つ
+skills/screen-list/      同じ構成。platforms/ に UI フレームワークごとの画面の見つけ方を置く。スクリプトは screens.py 1 つ
 core/                    2 つ以上のツールが使う共通処理（manifest・引き継ぎ・設定・git・JSON Lines）
 examples/dummy-product/  テスト用ダミー製品
 docs/design/             設計の正本（用語集・原則・共通の約束ごと・ツール同士の受け渡し）
