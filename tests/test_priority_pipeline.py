@@ -33,7 +33,7 @@ JUDGMENTS = {  # 仕様書 §10 の 6 つの例
 }
 EXPECTED = {  # case: (重要度, 規模)
     "T-1": ("R2", "smoke"), "T-2": ("R4", "full"), "T-3": ("R3", "full"),
-    "C-1": ("R1", "sanity"), "C-2": ("R1", "smoke"), "X-1": ("", "判定不可"),
+    "C-1": ("R1", "sanity"), "C-2": ("R1", "sanity"), "X-1": ("", "判定不可"),   # C-2 は、グループ「ヘッダー」の 1 件だけなので代表
 }
 
 
@@ -166,7 +166,7 @@ class CheckTest(unittest.TestCase):
         self.assertEqual(receipt["stats"]["cases"], 6)
         self.assertEqual(receipt["stats"]["decided"], 5)
         self.assertEqual(receipt["stats"]["unresolved"], 1)
-        self.assertEqual(receipt["stats"]["sanity"], 1)
+        self.assertEqual(receipt["stats"]["sanity"], 2)   # C-1 と C-2（グループ「ヘッダー」の 1 件だけで代表）
 
     def test_wrong_import_columns(self):
         self.edit_csv("import.csv", lambda rows: [["CaseNo.", "重要度"]] + [r[:2] for r in rows[1:]])
@@ -441,6 +441,47 @@ class HardeningTest(unittest.TestCase):
                 self.assertEqual(code, 2)
                 self.assertNotIn("Traceback", err)
                 self.p.build()
+
+
+class RealisticSampleTest(unittest.TestCase):
+    """複数の機能・画面にまたがる 31 件のサンプル（examples/sample-app/）。毎回流す段が、グループ数で抑えられていることを確かめる。"""
+
+    SAMPLE = ROOT / "examples" / "sample-app"
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        (self.root / ".qa").mkdir()
+        shutil.copy(self.SAMPLE / ".qa" / "test-priority.toml", self.root / ".qa" / "test-priority.toml")
+        shutil.copytree(self.SAMPLE / "sample-output" / "test-cases" / "PBI-1", self.root / "output" / "PBI-1")
+        shutil.copytree(self.SAMPLE / "sample-output" / "test-priority", self.root / "output" / "test-priority")
+        self.config = self.root / ".qa" / "test-priority.toml"
+
+    def run_cli(self, name, *args):
+        return run_path(script(name), "--config", self.config, *args, cwd=self.root)
+
+    def test_export_reproduces_the_committed_csvs_and_the_output_passes_every_check(self):
+        out = self.root / "output" / "test-priority"
+        for name in ("import.csv", "review.csv"):
+            (out / name).unlink()
+        self.assertEqual(self.run_cli("export.py")[0], 0)
+        for name in ("import.csv", "review.csv"):
+            self.assertEqual((out / name).read_bytes(), (self.SAMPLE / "sample-output" / "test-priority" / name).read_bytes())
+        self.assertEqual(self.run_cli("check_priority.py")[0], 0)
+
+    def test_the_every_run_tiers_are_bounded_by_the_number_of_groups_and_are_small(self):
+        code, out, _ = self.run_cli("check_priority.py", "--json")
+        stats = json.loads(out)["stats"]
+        config = pr.load_config(self.config)
+        cases = pr.load_cases(config)
+        groups = {pr.group_key(config["rules"], c) for c in cases}
+        every_run = stats["sanity"] + stats["smoke"]
+        self.assertLessEqual(every_run, len(groups))
+        self.assertLessEqual(every_run / stats["cases"], 0.35)       # 毎回流すのは、全体の 1/3 以下
+        self.assertGreaterEqual(stats["sanity"], 1)                   # 最小の動作確認が、空ではない
+        reps = [r for r in pr.decide_from_files(config) if r["representative"]]
+        self.assertEqual(len(reps), len(groups))                      # どのグループにも、代表が 1 件
 
 
 class UpdateFlowTest(unittest.TestCase):
