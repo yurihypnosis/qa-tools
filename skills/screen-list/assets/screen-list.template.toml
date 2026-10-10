@@ -3,7 +3,6 @@ platform = "<UI フレームワークのプラットフォーム定義の名前>
 
 [source]
 repo = "<. か、.qa/local.toml の [repos] に書いた名前（code-map と同じ）>"
-root = "<code-map の source.root と同じ>"   # 未コミットの変更を調べる範囲（repo からの相対）
 code_map = "output/code-map"         # code-map の出力（利用側プロジェクトからの相対）
 
 [output]

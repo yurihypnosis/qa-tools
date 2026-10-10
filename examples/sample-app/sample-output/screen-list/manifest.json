@@ -5,18 +5,18 @@
     "repo": "sample-app",
     "commit": "f8f641c"
   },
-  "config_hash": "sha256:9682837eeaecdf488902f37d83f4aeaf669811a75954c5c6e8766c22922eb8c6",
+  "config_hash": "sha256:8aadb3027c02fa2454371109a68063678298dd3692e103edcbcb52e64d0abd51",
   "inputs": {
     "code-map": {
       "repo": "sample-app",
       "commit": "f8f641c"
     }
   },
-  "generated_at": "2026-10-10T17:17:22+09:00",
+  "generated_at": "2026-10-10T17:30:55+09:00",
   "generated_by": {
-    "claude": 18,
+    "claude": 0,
     "script": 0,
-    "carried": 0,
+    "carried": 18,
     "local": 0
   },
   "items": 18

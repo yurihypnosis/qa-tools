@@ -2,7 +2,6 @@ platform = "nextjs-app-router"
 
 [source]
 repo = "sample-app"
-root = "src"
 code_map = "output/code-map"
 
 [output]

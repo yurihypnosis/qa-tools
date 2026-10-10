@@ -11,7 +11,6 @@ INTERCEPTING = re.compile(r"^\(\.{1,3}\)")       # 割り込みルート (.)phot
 DEFAULT_EXPORT = re.compile(r"^export\s+default\b", re.M)
 # 画面らしいファイルの、よくある置き方。ページの中で切り替わる画面（申告が要るもの）の見落としに気づくための目印（確定ではない）
 HINT_GLOBS = ("*/screens/*.tsx", "*/screens/*.jsx", "*-screen.tsx", "*Screen.tsx")
-SKIP_DIRS = {".git", "node_modules", ".next", "dist", "build"}
 
 
 def _page_ids(repo, app_dir):
@@ -69,17 +68,10 @@ def candidates(repo, rules, reverse_imports):
     return list(pages.values()) + list(dialogs.values())
 
 
-def hints(repo, root, rules):
-    """画面らしいファイル（`rules.screen_hints` の glob。無ければ既定）を返す。候補に入っているかは、呼び出し側が見る。"""
+def hints(files, rules):
+    """画面らしいファイル（`rules.screen_hints` の glob。無ければ既定）を返す。files は code-map が読んだファイル。候補に入っているかは、呼び出し側が見る。"""
     globs = rules.get("screen_hints", HINT_GLOBS)
-    found = []
-    for folder, dirs, names in os.walk(repo / root):
-        dirs[:] = sorted(d for d in dirs if d not in SKIP_DIRS)
-        for name in sorted(names):
-            path = posixpath.relpath(os.path.join(folder, name), repo)
-            if any(fnmatch.fnmatch(path, g) for g in globs):
-                found.append(path)
-    return sorted(found)
+    return sorted(f for f in files if any(fnmatch.fnmatch(f, g) for g in globs))
 
 
 def id_of(candidate):

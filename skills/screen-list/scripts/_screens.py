@@ -14,7 +14,6 @@ SKILL_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(SKILL_DIR.parent.parent / "core"))  # contracts.md の C7
 import carry  # noqa: E402
 import config as cfg  # noqa: E402
-import gitinfo  # noqa: E402
 import jsonl  # noqa: E402
 import manifest  # noqa: E402
 
@@ -22,6 +21,7 @@ COLUMNS = ["画面ID", "画面名", "種別", "ロール", "URL", "ソース", "
 KINDS = ("画面", "ダイアログ")
 EVERYONE = "全員"
 MAX_NAME = 80
+HASH_LENGTH = 12  # code-map の tree.md のハッシュの長さ（内容の sha256 の先頭）
 FORMULA_START = "=+-@\t\r"  # CSV を表計算ソフトで開いたとき、式として評価される先頭の文字
 
 
@@ -44,7 +44,7 @@ def load_config(path):
     if not isinstance(raw["platform"], str):
         raise ValueError("platform は文字列（プラットフォーム定義の名前）")
     source, rules = raw["source"], raw["rules"]
-    for key in ("repo", "root", "code_map"):
+    for key in ("repo", "code_map"):
         if not isinstance(source.get(key), str):
             raise ValueError(f"source.{key} が無い")
     if not isinstance(raw["output"].get("dir"), str):
@@ -62,7 +62,7 @@ def load_config(path):
     project = cfg.project_root(path)
     return {
         "path": Path(path), "project": project, "repo": cfg.resolve_repo(project, source["repo"]), "repo_name": source["repo"],
-        "root": posixpath.normpath(source["root"]), "code_map": project / source["code_map"], "out": project / raw["output"]["dir"],
+        "code_map": project / source["code_map"], "out": project / raw["output"]["dir"],
         "platform": raw["platform"], "rules": rules, "roles": list(rules["roles"]), "exclude": list(rules.get("exclude", [])), "extra": extra,
     }
 
@@ -77,13 +77,23 @@ def read_code_map(config):
     for line in (folder / "lookup" / "tree.md").read_text(encoding="utf-8").splitlines()[4:]:
         if line.startswith("|"):
             cells = [c.strip() for c in line.strip("|").split("|")]
-            tree[cells[0]] = cells[1]
+            tree[cells[0]] = {"module": cells[1], "hash": cells[4]}
     reverse = {r["file"]: r["imported_by"] for r in jsonl.read(folder / "lookup" / "reverse_imports.jsonl")}
-    mapped = manifest.read(folder)
-    now = gitinfo.head(config["repo"], config["root"])  # 未コミットの変更（+dirty）も、code-map の版と合わせて比べる。root は code-map と同じにする
-    if mapped["source"].get("commit") != now:
-        raise ValueError(f"code-map が古い（code-map は {mapped['source'].get('commit')}、ソースは {now}）。code-map update を実行する")
-    return {"tree": tree, "reverse": reverse, "manifest": mapped}
+    return {"tree": tree, "reverse": reverse, "manifest": manifest.read(folder)}
+
+
+def check_fresh(config, code_map, files):
+    """読むファイルの内容が、code-map が読んだときと同じか（tree.md のハッシュ）。git に頼らない。違えば止まる。"""
+    stale = []
+    for f in sorted(files):
+        entry = code_map["tree"].get(f)
+        path = config["repo"] / f
+        if entry is None:
+            stale.append(f"{f}（code-map に無い）")
+        elif path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest()[:HASH_LENGTH] != entry["hash"]:
+            stale.append(f"{f}（内容が変わった）")
+    if stale:
+        raise ValueError("code-map が古い。code-map update を実行する。対象: " + ", ".join(stale[:5]) + (f" ほか {len(stale) - 5} 件" if len(stale) > 5 else ""))
 
 
 def vocabulary(config):
@@ -96,6 +106,7 @@ def candidates(config, fresh=False):
     found = platform.candidates(config["repo"], config["rules"], code_map["reverse"])
     for item in config["extra"]:
         found.append({"key": item["key"], "kind": "画面", "file": item["source"], "line": 1, "url": "", "parents": [item["parent"]]})
+    check_fresh(config, code_map, {c["file"] for c in found})   # ファイルごとの内容のハッシュで、code-map が古いかを調べる
     rows, seen = [], {}
     for c in found:
         cid = platform.id_of(c)
@@ -107,9 +118,9 @@ def candidates(config, fresh=False):
             raise ValueError(f"{cid} のソース {c['file']} が {config['repo']} の下に無い")
         digest = hashlib.sha256(path.read_bytes() + b"\n" + ";".join(sorted(c["parents"])).encode("utf-8")).hexdigest()
         rows.append({"id": cid, "kind": c["kind"], "url": c["url"], "file": c["file"], "line": c["line"], "source": f"{c['file']}:{c['line']}",
-                     "module": code_map["tree"].get(c["file"], ""), "parents": sorted(c["parents"]), "fingerprint": digest})
+                     "module": code_map["tree"][c["file"]]["module"], "parents": sorted(c["parents"]), "fingerprint": digest})
     covered = {c["file"] for c in found}
-    hints = [h for h in platform.hints(config["repo"], config["root"], config["rules"]) if h not in covered]
+    hints = [h for h in platform.hints(list(code_map["tree"]), config["rules"]) if h not in covered]
     unknown = [i for i in config["exclude"] if i not in seen]
     if unknown:
         raise ValueError("rules.exclude に、候補に無い画面 ID がある: " + ", ".join(unknown))
@@ -230,12 +241,12 @@ def finish(config):
     plan_path = config["out"] / "_raw" / "plan.json"
     plan = json.loads(plan_path.read_text(encoding="utf-8")) if plan_path.is_file() else {"pending": None}
     items = stats["rows"]
+    code_source = read_code_map(config)["manifest"]["source"]   # 読んだ code-map と同じ版（git のコミット、または内容のハッシュ）
     claude = items if plan["pending"] is None else len(plan["pending"])
     manifest.write(
         config["out"], tool="screen-list",
-        source={"repo": config["repo_name"], "commit": gitinfo.head(config["repo"], config["root"])},
-        config_hash_value=manifest.config_hash(config["path"]),
-        inputs={"code-map": read_code_map(config)["manifest"]["source"]},
+        source=code_source, config_hash_value=manifest.config_hash(config["path"]),
+        inputs={"code-map": code_source},
         generated_by={"claude": claude, "carried": items - claude}, items=items,
     )
     return [], stats

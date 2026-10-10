@@ -48,7 +48,6 @@ SCREENS_TOML = """platform = "nextjs-app-router"
 
 [source]
 repo = "."
-root = "src"
 code_map = "output/code-map"
 
 [output]
@@ -226,13 +225,41 @@ class CandidatesTest(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertIn("code-map", err)
 
-    def test_uncommitted_changes_since_the_code_map_also_make_it_stale(self):
+    def test_a_file_changed_since_the_code_map_makes_it_stale_even_without_a_commit(self):
         (self.s.root / "src" / "app" / "(auth)" / "login" / "page.tsx").write_text("export default function Login() { return 2; }\n", encoding="utf-8")  # コミットしない
         code, _, err = self.s.run("candidates")
         self.assertEqual(code, 2)
-        self.assertIn("+dirty", err)
-        self.s.refresh_code_map()    # code-map も dirty で作り直せば、同じ状態なので通る
+        self.assertIn("login/page.tsx", err)
+        self.s.refresh_code_map()    # code-map を作り直せば、同じ内容なので通る
         self.assertEqual(self.s.run("candidates")[0], 0)
+
+    def test_a_page_added_after_the_code_map_is_stale(self):
+        path = self.s.root / "src" / "app" / "(main)" / "new" / "page.tsx"
+        path.parent.mkdir(parents=True)
+        path.write_text("export default function New() { return null; }\n", encoding="utf-8")
+        code, _, err = self.s.run("candidates")
+        self.assertEqual(code, 2)
+        self.assertIn("new/page.tsx", err)
+
+    def test_it_works_on_a_source_that_is_not_a_git_repo(self):
+        import shutil
+        with tempfile.TemporaryDirectory() as tmp:
+            shutil.copytree(self.s.root, Path(tmp) / "p", ignore=shutil.ignore_patterns(".git", "output"))
+            root = Path(tmp) / "p"
+            cm = lambda *a: run_path(CODEMAP, *a, "--config", root / ".qa" / "code-map.toml", cwd=root)
+            pending = json.loads(cm("extract", "--fresh")[1])["pending"]
+            (root / "d.jsonl").write_text("".join(json.dumps({"module": m, "role": "役割。"}, ensure_ascii=False) + "\n" for m in pending), encoding="utf-8")
+            self.assertEqual(cm("apply", root / "d.jsonl")[0], 0)
+            self.assertEqual((cm("assemble")[0], cm("finish")[0]), (0, 0))
+            sl = lambda *a: run_path(CLI, *a, "--config", root / ".qa" / "screen-list.toml", cwd=root)
+            pending = json.loads(sl("candidates", "--fresh")[1])["pending"]
+            (root / "n.jsonl").write_text("".join(json.dumps({"id": i, "name": f"名前:{i}", "roles": ["全員"]}, ensure_ascii=False) + "\n" for i in pending), encoding="utf-8")
+            self.assertEqual((sl("apply", root / "n.jsonl")[0], sl("merge")[0]), (0, 0))
+            code, out, err = sl("finish")
+            self.assertEqual(code, 0, out + err)
+            manifest = json.loads((root / "output" / "screen-list" / "manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(sorted(manifest["source"]), ["files", "hash"])
+            self.assertEqual(manifest["inputs"]["code-map"], manifest["source"])
 
     def test_missing_roles_key_or_code_map_output_is_a_config_error(self):
         path = self.s.root / ".qa" / "screen-list.toml"

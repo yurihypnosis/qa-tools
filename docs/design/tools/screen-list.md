@@ -2,7 +2,7 @@
 
 アプリの**画面とダイアログを、1 行 1 件の CSV（`screens.csv`）に洗い出す**。「どの画面がどこに実装されていて、誰が開けるか」をそろえた一覧にして、テストの範囲を数える土台にする。言葉は [glossary.md](../glossary.md)、共通の約束は [contracts.md](../contracts.md) に従う。
 
-- **入力**：ソースコード、code-map の出力（公開ファイルの F1・F2・F5）
+- **入力**：ソースコード、code-map の出力（公開ファイルの F1・F2・F5）。git でなくても動く
 - **出力**：`output/screen-list/screens.csv` と `manifest.json`。他のツール（test-priority）が読むのは `画面ID` 列と `画面名` 列（F4）
 
 ## 1. 小さく作る
@@ -69,7 +69,7 @@ UTF-8 BOM 付き。1 行 1 件。行は `画面ID` の昇順。
 
 URL を変えずに、ページの中の状態で切り替わる表示は、ファイルの置き場所からは見つけられない。数えたいものは、**人が設定に書く**（AI が勝手に増やさない）。
 
-**申告漏れに気づくためのヒント**：プラットフォーム定義の `hints(repo, root, rules)` が、画面らしいファイル（既定：`screens/` の下、`*-screen.tsx`、`*Screen.tsx`。`rules.screen_hints` の glob で置き換えられる）のうち、候補のどのファイルにも当たらないものを返す。`candidates` の出力の `hints`、`_raw/hints.json`、`check` の `stats.hints` に出る。確定ではなく**確認してほしい候補**で、失敗にはしない（ページ本体の部品も当たる）。
+**申告漏れに気づくためのヒント**：プラットフォーム定義の `hints(files, rules)` が、code-map が読んだファイルのうち、画面らしいファイル（既定：`screens/` の下、`*-screen.tsx`、`*Screen.tsx`。`rules.screen_hints` の glob で置き換えられる）のうち、候補のどのファイルにも当たらないものを返す。`candidates` の出力の `hints`、`_raw/hints.json`、`check` の `stats.hints` に出る。確定ではなく**確認してほしい候補**で、失敗にはしない（ページ本体の部品も当たる）。
 
 ```toml
 [[rules.extra]]
@@ -97,7 +97,6 @@ platform = "nextjs-app-router"
 
 [source]
 repo = "sample-app"
-root = "src"                         # 未コミットの変更を調べる範囲（repo からの相対）。code-map の source.root と同じにする
 code_map = "output/code-map"         # code-map の出力（利用側プロジェクトからの相対）
 
 [output]
@@ -113,7 +112,7 @@ run = ["coverage"]
 ```
 
 - `rules.roles` のキーが無ければ `ConfigError`（`init` を勧める）
-- code-map の `manifest.json` の `source.commit` が、ソースの今の版（コミット。未コミットの変更があれば `+dirty` も）と文字列として違うときは止まる（`code-map update` を勧める。F2）
+- **code-map が古いかは、読むファイルごとに調べる**：候補のソースのファイルについて、`tree.md` の `ハッシュ`（F1）と、今のファイルの内容の sha256 の先頭 12 桁を比べる。違う、または `tree.md` に無い（code-map の後に増えた）ときは止まる（`code-map update` を勧める）。git のコミットには頼らないので、未コミットの変更や git でないソースでも正確に動く
 - `rules.exclude` に、候補に無い ID があれば止まる
 
 ## 6. 検査 `check`（C6 の形）
@@ -133,7 +132,7 @@ run = ["coverage"]
 
 | キー | 値 |
 | --- | --- |
-| `source` | `{"repo": <設定の repo>, "commit": <先頭 7 桁>}`（`+dirty` もある。`core/gitinfo.py`） |
+| `source` | 読んだ code-map の manifest の `source` と同じもの（git のコミット、または内容のハッシュ） |
 | `inputs` | `{"code-map": <読んだ code-map の manifest の source>}` |
 | `generated_by` | `claude`：今回 AI が名前とロールを書いた行の数。`carried`：使い回した行の数。`script`：0 |
 | `items` | CSV の行数 |

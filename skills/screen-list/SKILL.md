@@ -32,7 +32,7 @@ metadata:
 ## 入力と実行環境
 
 - 設定ファイル `.qa/screen-list.toml`（無ければ `init`）
-- code-map の出力（設定の `source.code_map`）。**ソースの今の版（未コミットの変更も含む）と同じ版**であること。古さはスクリプトが調べ、古いと止まる（止まらなければ同じ版）。止まったら、メッセージのとおり `code-map update` を先に実行する
+- code-map の出力（設定の `source.code_map`）。読むファイルの内容が、code-map が読んだときと同じであること。古さはスクリプトが、ファイルごとのハッシュで調べ、古いと止まる（止まらなければ同じ）。git でなくてもよい。止まったら、メッセージのとおり `code-map update` を先に実行する
 - Python 3.11 以上と標準ライブラリだけ。`<skill>` は、この SKILL.md があるディレクトリ（skill の読み込み時に示される Base directory）。すべて `python3 <skill>/scripts/screens.py <サブコマンド>` の形で、作業ディレクトリ（利用側プロジェクトのルート）から実行する。終了コードは 0=OK、1=検査の指摘あり、2=設定か入力のエラー
 
 ## 流れ（build と update）
