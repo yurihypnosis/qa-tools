@@ -68,6 +68,8 @@ claude --plugin-dir <このリポジトリの絶対パス>
 
 Claude Code の中で `/qa-tools:code-map build` を実行する。`output/code-map/` に、`index.md`（モジュールの一覧）、`modules/*.md`、`lookup/` ができる。出力例は `examples/sample-app/sample-output/code-map/`、仕様は [docs/design/tools/code-map.md](docs/design/tools/code-map.md)。ソースを変えたあとは `/qa-tools:code-map update` で、内容が変わったモジュールの役割だけを書き直す。
 
+git のリポジトリでなくても動く（manifest の `source` は、git のコミットの代わりに、ファイルの内容のハッシュになる）。モノレポ（パッケージごとの tsconfig、ワークスペースのパッケージ）にも対応している。
+
 続けて、同じ作業ディレクトリで `/qa-tools:screen-list build` を実行すると、`output/screen-list/screens.csv`（画面とダイアログの一覧）ができる。サンプルアプリでは、`examples/sample-app/.qa/screen-list.toml` を使う。出力例は `examples/sample-app/sample-output/screen-list/`、仕様は [docs/design/tools/screen-list.md](docs/design/tools/screen-list.md)。ソースを変えたら、先に code-map を、次に screen-list を `update` する。
 
 ## 自分のプロジェクトで使う

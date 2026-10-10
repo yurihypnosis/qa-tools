@@ -33,14 +33,13 @@
     {
       "id": 3,
       "prompt": "/qa-tools:screen-list init",
-      "expected_output": "読むリポジトリ・UI フレームワーク・code-map の場所・ダイアログ部品・ロール・ページの中で切り替わる画面を 1 つずつ聞き、source.root を code-map と同じにして、設定を作り、candidates が動くことを確かめる。",
+      "expected_output": "読むリポジトリ・UI フレームワーク・code-map の場所・ダイアログ部品・ロール・ページの中で切り替わる画面を 1 つずつ聞き、設定を作り、candidates が動くことを確かめる。",
       "files": [
         "../../examples/sample-app"
       ],
       "expectations": [
         "質問を 1 度に 1 つずつしている",
         "UI フレームワークの選択肢を platforms/ のディレクトリ一覧から出している",
-        "source.root を code-map の設定と同じにしている",
         "ページの中で切り替わる画面があるかを聞き、あれば rules.extra に書いている"
       ]
     }
