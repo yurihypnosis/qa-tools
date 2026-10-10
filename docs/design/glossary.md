@@ -46,6 +46,15 @@ docs/design/ の文書と、qa-tools の Issue で使う言葉の定義。**こ�
 | 画面 ID | screen-list が画面とダイアログに付ける識別子。`<接頭辞>/<画面のキー>` の形で、どちらもプラットフォーム定義が決める。画面名を変えても変わらない | `web/settings`（Next.js App Router、キーは URL のパス） |
 | 未解決マーカー | 情報が足りず決められなかった箇所に書く文字列。`[未解決: 理由]` の形 | `[未解決: fixture の中身が分からない]` |
 
+## code-map の言葉
+
+| 用語 | 定義 | 例 |
+| --- | --- | --- |
+| モジュール | ソースコードをまとめる単位。設定の `rules.module_depth`（`source.root` から何段目のディレクトリまで）で決める。ルート直下のファイルは `(root)` | `features/quiz` |
+| 被参照数 | そのファイルを import しているファイルの数 | `src/lib/db.ts` を 12 ファイルが import している → 12 |
+| 代表ファイル | モジュールの中で被参照数の多い上位のファイル。AI が要約に書く対象 | `representatives = 5` なら上位 5 つ |
+| 公開シンボル | 他のファイルから使える関数・クラスなど（TypeScript は `export` されたもの、Python は名前が `_` で始まらないトップレベルの def / class） | `export function computeStreak` |
+
 ## test-priority の言葉
 
 | 用語 | 定義 | 例 |
