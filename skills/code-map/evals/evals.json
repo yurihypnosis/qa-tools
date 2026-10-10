@@ -1,0 +1,48 @@
+{
+  "skill_name": "code-map",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/qa-tools:code-map build",
+      "expected_output": ".qa/code-map.toml の設定でソースを読み、output/code-map/ に lookup/・modules/・index.md・architecture.md・SKILL.md・manifest.json を作る。全モジュールの役割を、代表ファイルを読んで書き、検査に通る。報告に件数と、AI が役割を書いたモジュールの数がある。",
+      "files": [
+        "../../examples/sample-app"
+      ],
+      "expectations": [
+        "output/code-map/ に manifest.json と index.md と modules/*.md ができている",
+        "役割の下書きに module と role 以外のキーが無く、apply が成功している",
+        "modules/ や lookup/ のファイルを Write や Edit で直接書いていない",
+        "各役割が、代表ファイルを読んだ内容に基づき、ファイルや関数の一覧になっていない",
+        "完了報告に、ファイル・モジュール・公開シンボルの件数と、役割を書いたモジュールの数がある"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "ソースの 1 ファイルだけ変えたので、/qa-tools:code-map update を実行して。",
+      "expected_output": "extract の pending が、変えたファイルのモジュール 1 つだけになり、その役割だけを書き直す。ほかのモジュールの modules/*.md は 1 バイトも変わらない。manifest の generated_by が claude 1、carried がそれ以外。",
+      "files": [
+        "../../examples/sample-app"
+      ],
+      "expectations": [
+        "extract の出力の pending が 1 モジュールだけである",
+        "役割の下書きに、pending のモジュール以外が含まれていない",
+        "pending 以外のモジュールの modules/*.md が前回と変わっていない",
+        "manifest.json の generated_by が claude 1 で、carried が残りのモジュール数である"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "/qa-tools:code-map init",
+      "expected_output": "読むリポジトリ・言語・source.root を 1 つずつ聞き、survey でディレクトリごとのファイル数を調べて module_depth を相談し、.qa/code-map.toml を作って extract が動くことを確かめる。",
+      "files": [
+        "../../examples/sample-app"
+      ],
+      "expectations": [
+        "質問を 1 度に 1 つずつしている",
+        "言語の選択肢を platforms/ のディレクトリ一覧から出している",
+        "module_depth を決める前に、survey の結果を見せている",
+        "別のリポジトリなら、絶対パスを .qa/local.toml に書き、.qa/code-map.toml には書いていない"
+      ]
+    }
+  ]
+}

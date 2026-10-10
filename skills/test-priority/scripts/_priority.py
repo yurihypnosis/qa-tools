@@ -15,6 +15,7 @@ from pathlib import Path
 SKILL_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(SKILL_DIR.parent.parent / "core"))  # contracts.md の C7
 import carry  # noqa: E402
+import jsonl  # noqa: E402
 import manifest  # noqa: E402
 LEVELS = (1, 2, 3, 4)
 SCALES = ("sanity", "smoke", "light", "full")
@@ -155,17 +156,13 @@ def raw_dir(config):
 
 
 def read_jsonl(path):
-    path = Path(path)
-    if not path.is_file():
-        return []
-    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    try:
+        return jsonl.read(path)
+    except ValueError as error:
+        raise InputError(str(error)) from None
 
 
-def write_jsonl(path, rows):
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    text = "".join(json.dumps(r, ensure_ascii=False, sort_keys=True) + "\n" for r in rows)
-    path.write_text(text, encoding="utf-8")
+write_jsonl = jsonl.write
 
 
 def read_adjudications(config):
