@@ -1,0 +1,61 @@
+# テスト用のサンプル。サンプルアプリの機能を想定した、手書きのテストケース 31 件に対する設定
+platform = "tcg-markdown"
+
+[source]
+repo = "."
+cases_glob = "output/*/4-testcases.md"
+
+[output]
+dir = "output/test-priority"
+
+[rules]
+group_by = "screen"
+
+[rules.areas.AUTH]
+emphasis = ["permission", "data"]
+default = 2
+[rules.areas.AUTH.weights]
+"ログイン" = 1
+"アクセス制御" = 1
+"新規登録" = 2
+
+[rules.areas.QUIZ]
+emphasis = ["data", "blast"]
+default = 3
+[rules.areas.QUIZ.weights]
+"回答記録" = 2
+"復習スケジュール" = 2
+"結果表示" = 3
+"苦手分析" = 3
+"CSV書き出し" = 3
+"目標設定" = 3
+
+[rules.areas.FLASH]
+emphasis = ["data"]
+default = 3
+[rules.areas.FLASH.weights]
+"単語カード" = 3
+
+[rules.areas.LOG]
+emphasis = ["data"]
+default = 3
+[rules.areas.LOG.weights]
+"学習ログ" = 3
+
+[rules.areas.ROAD]
+emphasis = []
+default = 4
+[rules.areas.ROAD.weights]
+"ロードマップ" = 4
+
+[rules.areas.MIND]
+emphasis = []
+default = 4
+[rules.areas.MIND.weights]
+"思考フレーム" = 4
+
+[rules.exclude]
+features = []
+
+[checks]
+run = ["import-clean"]

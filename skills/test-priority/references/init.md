@@ -7,7 +7,7 @@
 | 入力 | 利用側プロジェクトのテストケースの表。`.qa/product.md`（あれば、領域コードの確認に使う） |
 | 出力 | `.qa/test-priority.toml`（雛形：`assets/test-priority.template.toml`） |
 | 検査 | 作った設定ファイルで `load_cases.py` が動くこと |
-| 次 | `build`（`references/build.md`） |
+| 次 | 動詞 `build`（SKILL.md の動詞の表） |
 
 ## ロール
 

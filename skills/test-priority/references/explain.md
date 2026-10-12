@@ -7,7 +7,7 @@
 | 入力 | `output/test-priority/_raw/explain_input.jsonl`（`plan.py explain` が書く、理由文が要るケースだけ。1 ケース 1 行：`case` `title` `body` `axes` `impact` `kind`（AI の判断）と、`start` `level` `scale` `representative` `marks` `effective_axes` `blocked_by` `adjudicated`（計算の結果）） |
 | 出力 | 下書き `output/test-priority/_raw/explain.draft.jsonl` → `apply_judgments.py explain` で `judgments.jsonl` に取り込む |
 | 検査 | `apply_judgments.py` が、ケースの存在と理由が空でないことを検査する |
-| 次 | export（`build.md` の手順 5） |
+| 次 | `export.py` を実行する |
 
 ## ロール
 
@@ -15,7 +15,7 @@ QA エンジニアとして、決まった重要度と規模の**理由を、読
 
 ## 手順
 
-1. `explain_input.jsonl` を 50 行ずつ読む（Read の offset と limit）。
+1. `explain_input.jsonl` を 50 行ずつ読む（Read の offset と limit）。1 回に読む量が多いと、後ろのケースの理由が雑になりやすいため、目安として 50 件にしている。
 2. 各ケースの理由文を書く。形は `assets/reason.template.md` に従う。
 3. 下書きに、1 ケース 1 行の JSON を書く。キーは `case` と `reason` の 2 つだけ。理由文の中の改行は `\n` と書く。
    ```json
@@ -25,7 +25,7 @@ QA エンジニアとして、決まった重要度と規模の**理由を、読
    ```bash
    python3 <skill>/scripts/apply_judgments.py explain output/test-priority/_raw/explain.draft.jsonl --config .qa/test-priority.toml
    ```
-   終了コードが 2 なら、メッセージが示す行だけを直して、1 回だけ再実行する。
+   終了コードが 2 なら、メッセージが示す行だけを直して、1 回だけ再実行する（直しても通らないなら、人に報告して止める）。
 
 ## 「だからこの重要度」の根拠
 

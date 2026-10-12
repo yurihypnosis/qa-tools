@@ -3,12 +3,16 @@
 判定の計算（決定・規模・代表）は、AI の判断と設定だけから決まる純粋な関数にしてある。
 列名や書式など、テストケースの形式に依存する部分は platforms/<名前>/ に置く（contracts.md の C9）。
 """
+import sys
+
+if sys.version_info < (3, 11):  # 設定ファイルの TOML を読む tomllib は 3.11 から標準
+    raise SystemExit(f"Python 3.11 以上が必要（今は {sys.version.split()[0]}）")
+
 import csv
 import glob
 import hashlib
 import importlib.util
 import json
-import sys
 import tomllib
 from pathlib import Path
 
@@ -29,7 +33,8 @@ NO_GROUP = "(なし)"
 CHECK_NAMES = ("import-clean", "examples")
 MARK_ORDER = ("上げ", "下げ", "推定", UNDECIDABLE)
 # 重要度 → (グループの代表, それ以外) の規模。仕様書 6.2（仮の値）
-SCALE_TABLE = {1: ("sanity", "smoke"), 2: ("smoke", "light"), 3: ("light", "full"), 4: ("full", "full")}
+# 毎回流す段（sanity・smoke）に入るのは、グループの代表だけ。重要でも代表ではないケースは light 以下（仕様書 6.2。32 件の試算で、毎回流す割合が 52% → 29%）
+SCALE_TABLE = {1: ("sanity", "light"), 2: ("smoke", "light"), 3: ("light", "full"), 4: ("full", "full")}
 
 
 class ConfigError(Exception):
@@ -260,11 +265,12 @@ def decide_all(config, cases, judgments, adjudications):
         rows.append({"rec": rec, "judgment": j, "adjudication": adj, "representative": False, **d})
     groups = {}
     for row in rows:
-        excluded = row["rec"]["feature"] in rules["exclude"]["features"]
-        if row["judgment"]["kind"] == "代表" and row["level"] is not None and not excluded:
+        if row["level"] is not None and row["rec"]["feature"] not in rules["exclude"]["features"]:
             groups.setdefault(group_key(rules, row["rec"]), []).append(row)
     for members in groups.values():
-        min(members, key=lambda r: (r["level"], r["rec"]["case"]))["representative"] = True
+        # 代表と判断されたケースから選ぶ。1 件も無いグループは、グループの全ケースから最も重要な 1 件を代表にする
+        pool = [r for r in members if r["judgment"]["kind"] == "代表"] or members
+        min(pool, key=lambda r: (r["level"], r["rec"]["case"]))["representative"] = True
     for row in rows:
         row["case"] = row["rec"]["case"]
         row["scale"] = scale_of(rules, row["rec"], row["level"], row["representative"], row["adjudication"])
@@ -494,7 +500,12 @@ def plan_path(config):
 
 def read_plan(config):
     path = plan_path(config)
-    return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+    if not path.is_file():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        raise InputError(f"{path.name} を JSON として読めない: {error}。load_cases.py を実行し直す") from None
 
 
 def write_plan(config, **parts):

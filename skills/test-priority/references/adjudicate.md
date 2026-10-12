@@ -7,7 +7,7 @@
 | 入力 | QA の指示（どのケースを、どの重要度か規模にするか、その理由） |
 | 出力 | `output/test-priority/adjudications.json`（`adjudicate.py` が書く） |
 | 検査 | `adjudicate.py` が、ケースの存在・値の語彙・理由の有無を検査する |
-| 次 | `update`（`references/update.md`）で結果に反映する |
+| 次 | 動詞 `update`（SKILL.md の動詞の表）で結果に反映する |
 
 ## 手順
 
