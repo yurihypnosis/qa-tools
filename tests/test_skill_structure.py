@@ -44,6 +44,14 @@ class SkillStructureTest(unittest.TestCase):
                 with self.subTest(skill=skill.name, path=path):
                     self.assertTrue((skill / path).exists())
 
+    def test_every_reference_is_linked_from_skill_md(self):
+        """参照は SKILL.md から 1 階層まで（Anthropic の skill authoring best practices）。"""
+        for skill in self.skill_dirs():
+            text = (skill / "SKILL.md").read_text(encoding="utf-8")
+            for reference in sorted((skill / "references").glob("*.md")):
+                with self.subTest(skill=skill.name, reference=reference.name):
+                    self.assertIn(f"](references/{reference.name})", text)
+
     def test_every_reference_declares_its_contract(self):
         for reference in SKILLS.glob("*/references/*.md"):
             with self.subTest(reference=reference.name):

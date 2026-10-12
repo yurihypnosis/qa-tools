@@ -7,7 +7,7 @@
 | 入力 | 利用側プロジェクトのテストケースの表。`.qa/product.md`（あれば、領域コードの確認に使う） |
 | 出力 | `.qa/test-priority.toml`（雛形：`assets/test-priority.template.toml`） |
 | 検査 | 作った設定ファイルで `load_cases.py` が動くこと |
-| 次 | `build`（`references/build.md`） |
+| 次 | 動詞 `build`（SKILL.md の動詞の表） |
 
 ## ロール
 
@@ -31,6 +31,7 @@ QA エンジニアの相談相手として、機能の重みとリスク軸を�
    - **機能ごとの開始点**：調べた機能の一覧を見せ、QA が知っているものだけ 1〜4 で答えてもらう。答えなかったものは書かない
 6. `group_by`（代表を 1 件に絞る単位。`feature` か `screen`）を聞く。調べた結果で、1 つの機能に全ケースが集まっているなら、`screen` を勧める（1 つの機能だと、代表が全体で 1 件しか選ばれないため）。
 7. 対象外にする機能があれば聞く（無ければ空）。
+   続けて、screen-list の `screens.csv` があるか聞く。あれば、パスを `source.screens` に書く（画面 ID が引けて、代表が画面ごとに選ばれ、`gaps.md` が出る）。無ければ書かない。
 8. `assets/test-priority.template.toml` を雛形に、Write で `.qa/test-priority.toml` を作る。雛形に無い領域は、`[rules.areas.<領域コード>]` の節を足す。
 9. `python3 <skill>/scripts/load_cases.py --config .qa/test-priority.toml` を実行し、終了コードが 0 であることを確かめる。2 なら、メッセージに従って設定ファイルを 1 回だけ直す。
 10. 作った設定ファイルを QA に見せ、次は `/qa-tools:test-priority build` だと伝えて終える。

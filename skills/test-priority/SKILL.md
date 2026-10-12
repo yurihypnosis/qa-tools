@@ -3,7 +3,7 @@ name: test-priority
 description: テストケース 1 件ずつに、回帰テストとしての重要度（R1〜R4）と、実行する規模（sanity / smoke / light / full）を決め、取り込み用 CSV・レビュー用 CSV・理由文を出す。AI は意味の判断だけをして、重要度と規模は設定の規則からスクリプトが計算する。Use when the user asks to prioritize, rank, or triage test cases for regression — e.g. 「回帰テストの優先度をつけて」「どのテストを毎回流すか決めて」「smoke に入れるケースを選んで」「テストケースの重要度を判定して」「変わったケースだけ判定し直して」「このケースは R1 にして」. Not for writing test cases (use test-case-generator) or for running tests.
 license: MIT
 metadata:
-  version: "0.5.0"
+  version: "0.9.0"
 ---
 
 # Test Priority
@@ -15,7 +15,18 @@ metadata:
 - **重要度** `R1`〜`R4`：壊れたときに困る度合い（R1 が最も重要）
 - **規模** `sanity` ⊂ `smoke` ⊂ `light` ⊂ `full`：そのケースを含む最小の実行単位
 
-AI がするのは意味の判断（リスク軸・影響範囲・代表か応用か・理由文）だけである。重要度と規模は、その判断と設定ファイルから**スクリプトが計算する**。同じ入力なら、2 回目の出力は 1 バイトも変わらない。
+AI がするのは意味の**判断**（リスク軸・影響範囲・代表か応用か・理由文）だけである。重要度と規模は、その判断と設定ファイルから**スクリプトが決定する**（計算する）。同じ入力なら、2 回目の出力は 1 バイトも変わらない。
+
+## 言葉
+
+この skill の中では、次の使い分けで書く。
+
+| 言葉 | 意味 | 誰が |
+| --- | --- | --- |
+| 判断（judge） | ケース 1 件の、リスク軸・影響範囲・種別（代表か応用か）を決めること | AI |
+| 決定（decide） | 判断と設定から、重要度・規模・代表・要レビューを計算すること | スクリプト |
+| 判定 | 判断と決定を合わせた全体（「全ケースを判定する」） | — |
+| 判定不可 | 領域が設定に無いなど、情報が足りず決定できないこと。規模の値でもある | — |
 
 仕様の正本は `docs/design/tools/test-priority.md`、言葉の定義は `docs/design/glossary.md` にある（プラグインのリポジトリ側。利用側プロジェクトには無い）。この skill の手順だけで動くように書いてあるが、迷ったら仕様書に従う。
 
@@ -39,6 +50,13 @@ AI がするのは意味の判断（リスク軸・影響範囲・代表か応�
 
 その動詞に入ってから、対応する reference を読む。他の動詞の reference は先に読まない。
 
+`build` と `update` は、途中の段で、次の 2 つも読む（AI が書く段の手順）。
+
+| 段 | 読む reference |
+| --- | --- |
+| judge（意味の判断を下書きに書く） | [references/judge.md](references/judge.md) |
+| explain（理由文を下書きに書く） | [references/explain.md](references/explain.md) |
+
 ## 入力の契約
 
 作業ディレクトリ（利用側プロジェクトのルート）に次があることを最初に確かめる。足りなければ、何が足りないかを伝えて止まる。
@@ -47,6 +65,7 @@ AI がするのは意味の判断（リスク軸・影響範囲・代表か応�
 | --- | --- | --- |
 | `.qa/test-priority.toml` | `init` 以外で必須 | 設定ファイル（書き方は `assets/test-priority.template.toml`） |
 | テストケースの表 | ✅ | 設定の `source.cases_glob` で指すファイル |
+| `output/screen-list/screens.csv` | | screen-list の出力。設定の `source.screens` に書くと、確認画面を画面 ID に引き、`gaps.md` を作る |
 | `output/test-priority/adjudications.json` | | 人の裁定。`adjudicate.py` で記録する。`build` でも消さず、規則より優先する |
 
 プラットフォーム定義（テストケースの表の形式）は、`platforms/` のディレクトリ名で選ぶ。選べるものは `ls <skill>/platforms/` で調べる。
@@ -59,12 +78,13 @@ AI がするのは意味の判断（リスク軸・影響範囲・代表か応�
 | --- | --- |
 | `import.csv` | 取り込み用。ケース・重要度・規模の 3 列。対象外と判定不可は入れない |
 | `review.csv` | レビュー用。全ケースを 1 行ずつ。理由と要レビューの印を含む |
+| `gaps.md` | `source.screens` があるときだけ。テストケースの無い画面と、画面 ID を引けなかったケース |
 | `manifest.json` | 何から・いつ作ったかの記録。検査に通ったときだけ書く |
 | `_raw/` | 中間ファイル（`cases.jsonl` `judgments.jsonl`）。他のツールは読まない |
 
 ## スクリプト
 
-標準ライブラリだけで動く。`python3 <skill>/scripts/<名前>.py --config .qa/test-priority.toml` の形で実行する。終了コードは 0=OK、1=検査の指摘あり、2=設定か入力のエラー。
+Python 3.11 以上と標準ライブラリだけで動く（設定ファイルの TOML を読む `tomllib` が 3.11 から標準にあるため。`pip install` は要らない）。`<skill>` は、この SKILL.md があるディレクトリ（skill の読み込み時に示される Base directory）を指す。`python3 <skill>/scripts/<名前>.py --config .qa/test-priority.toml` の形で実行する。終了コードは 0=OK、1=検査の指摘あり、2=設定か入力のエラー。
 
 | スクリプト | やること |
 | --- | --- |
@@ -73,7 +93,7 @@ AI がするのは意味の判断（リスク軸・影響範囲・代表か応�
 | `plan.py judge\|explain` | `update` 用。判断・理由文をやり直すケースだけを `_raw/pending.jsonl` `_raw/explain_input.jsonl` に書く（`build` も、全ケースを対象にして使う） |
 | `apply_judgments.py judge\|explain <下書き>` | AI の下書きを `_raw/judgments.jsonl` に取り込む（fingerprint などは補う） |
 | `decide.py` | 判断と設定から、重要度・規模・代表・要レビューを計算して JSON Lines で出す |
-| `export.py` | `import.csv` と `review.csv` を書く |
+| `export.py` | `import.csv` と `review.csv` を書く（`source.screens` があれば `gaps.md` も） |
 | `check_priority.py [--json] [--no-manifest]` | 出力を検査する。読み取り専用 |
 | `adjudicate.py` | 人の裁定を記録する・消す |
 | `finish.py` | 検査に通ったときだけ `manifest.json` を書く。`plan.json` に載らなかったケースを「引き継ぎ」と数える |
@@ -90,7 +110,7 @@ AI がするのは意味の判断（リスク軸・影響範囲・代表か応�
 
 1. 出力ファイルのパス（`import.csv` `review.csv` `manifest.json`）
 2. 規模ごとの件数（`check_priority.py --json` の `stats`）
-3. 人が見るべき行：`要レビュー` に印がある行の件数と、印ごとの内訳。判定不可があれば、そのケースと、決めてほしいこと
+3. 人が見るべき行：`要レビュー` に印がある行の件数と、印ごとの内訳。判定不可があれば、そのケースと、決めてほしいこと。`stats` に `screens` があれば、ケースの無い画面の数（`screens_without_cases`）と、画面 ID を引けなかったケースの数（`cases_without_screen_id`）を足し、`gaps.md` のパスを伝える
 4. 検査の結果（`status`。指摘があればその一覧）
 
 ## Common Rationalizations

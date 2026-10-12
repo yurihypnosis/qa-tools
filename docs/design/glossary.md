@@ -69,6 +69,7 @@ docs/design/ の文書と、qa-tools の Issue で使う言葉の定義。**こ�
 | --- | --- | --- |
 | 重要度 | テストケースが壊れたときの困る度合い。`R1`（最も重要）〜`R4`。test-case-generator の「重要度/Priority」列（High / Medium / Low）とは別のもの | `R2` |
 | 規模 | そのテストケースを含む最小の実行単位。`sanity` ⊂ `smoke` ⊂ `light` ⊂ `full`（大きい規模は小さい規模をすべて含む） | `smoke`（smoke・light・full で実行される） |
+| 判断・決定・判定 | 判断：AI がする、リスク軸・影響範囲・種別の意味の判断。決定：判断と設定から、スクリプトが重要度・規模を計算すること。判定：その全体。情報が足りず決定できないことを「判定不可」と呼ぶ | 判断（AI）→ 決定（スクリプト）→ 理由文（AI） |
 | 開始点 | 重要度を決めるときの出発の値。設定の機能の重み表から引く | `[rules.areas.DMY-TASK.weights]` の `3`（R3） |
 | リスク軸 | 重要度を上げる根拠になる 3 つの観点：`data`（データの正しさ）、`permission`（権限の境界）、`blast`（影響の広がり）。test-case-generator の「観点（TP）」とは別のもの | `data` |
 | 影響範囲 | 壊れたときの実害の大きさ。`cosmetic`（見た目だけ）、`stop`（業務が止まる）、`harm`（お金・法令・権限に実害） | `stop` |
@@ -80,6 +81,6 @@ docs/design/ の文書と、qa-tools の Issue で使う言葉の定義。**こ�
 | ツール名 | 状態 | 入力 → 成果物 |
 | --- | --- | --- |
 | test-case-generator | 実装済み | PBI の資料 → テストケース（15 列の Markdown 表） |
-| test-priority | 未実装（v0.5.0） | テストケース → 重要度と規模の CSV |
+| test-priority | 実装済み（画面 ID とのつなぎは v0.9.0） | テストケース → 重要度と規模の CSV |
 | code-map | 未実装（v0.6.0） | ソースコード → コードの索引と要約（Markdown ＋ JSONL） |
 | screen-list | 未実装（v0.8.0） | ソースコード → 画面一覧 CSV |

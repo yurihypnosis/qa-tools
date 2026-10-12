@@ -2,9 +2,9 @@
 
 テストケース 1 件ずつに、**重要度**（壊れたとき困る度合い）と**規模**（どの実行単位で流すか）を、同じ規則で決める。言葉は [glossary.md](../glossary.md)、共通の約束は [contracts.md](../contracts.md) に従う。
 
-- **状態**：未実装（v0.5.0 で実装。Issue #13〜#15）
-- **入力**：テストケースの表。最初に対応する形式は test-case-generator の `4-testcases.md`
-- **出力**：取り込み用 CSV、レビュー用 CSV、manifest.json（`output/test-priority/`）
+- **状態**：実装済み（画面 ID とのつなぎは v0.9.0。Issue #27・#28）
+- **入力**：テストケースの表（最初に対応する形式は test-case-generator の `4-testcases.md`）。設定すれば、screen-list の `screens.csv` も読む（F4。5.3）
+- **出力**：取り込み用 CSV、レビュー用 CSV、manifest.json、`screens.csv` を読んだときは `gaps.md`（`output/test-priority/`）
 
 ## 1. 何を決めるか
 
@@ -94,12 +94,16 @@ platform = "tcg-markdown"
 [source]
 repo = "."
 cases_glob = "output/*/4-testcases.md"
+screens = "output/screen-list/screens.csv"   # 無くてよい。あれば、確認画面を画面 ID に引く（5.3）
 
 [output]
 dir = "output/test-priority"
 
 [rules]
 group_by = "screen"            # 代表を 1 件に絞る単位。feature か screen
+
+[rules.screen_aliases]         # 無くてよい。確認画面の名前が screens.csv の画面名と合わないときだけ書く
+"ヘッダー" = "web/settings"
 
 [rules.areas.DMY-TASK]
 emphasis = ["data", "permission"]
@@ -131,6 +135,9 @@ run = ["import-clean", "examples"]
 | `areas.<領域コード>.default` | 整数 1〜4 | 機能が重み表に無いときの開始点（推定になる） |
 | `areas.<領域コード>.weights` | 表（機能名 = 整数 1〜4） | 機能ごとの開始点。機能名は `feature` と完全一致 |
 | `exclude.features` | 配列 | 規模を `対象外` にする機能名 |
+| `screen_aliases` | 表（確認画面の名前 = 画面 ID） | 5.3 の別名。値の画面 ID が `screens.csv` に無ければ止まる（`ConfigError`） |
+
+`source.screens` は `screens.csv` のパス（利用側プロジェクトのルートから）。書いたのにファイルが無ければ止まる（先に screen-list を実行する）。
 
 領域コードは `.qa/product.md` の領域コードと同じ値を使う。
 
@@ -140,26 +147,41 @@ run = ["import-clean", "examples"]
 2. `weights` に `feature` がある → その値
 3. 無い → `default`。要レビューの印 `推定` を付ける
 
+### 5.3 画面 ID の引き方（F4）
+
+`source.screens` があるとき、ケースの `screen`（確認画面の名前）から画面 ID を、次の順に**スクリプトが**引く。AI は関わらない。
+
+| 順 | 引き方 |
+| --- | --- |
+| 1 | `rules.screen_aliases` に `screen` があれば、その画面 ID |
+| 2 | `screens.csv` の `画面名` と `screen` が完全一致し、その画面が 1 つだけなら、その画面 ID |
+| 3 | `screen` が「画面」で終わるなら、それを外した名前で 2 をやり直す（test-case-generator は「ログイン画面」と書き、screen-list は「ログイン」と書くため） |
+
+- どれにも当たらない、または同じ名前の画面が複数あるときは、**推測しない**。画面 ID を空にして、要レビューの印 `画面不明` を付ける。人が `rules.screen_aliases` に書いて決める
+- `group_by = "screen"` のとき、代表を選ぶ単位（6.1）は、画面 ID が引けたケースでは**画面 ID**、引けなかったケースでは確認画面の名前。同じ画面を別の名前で書いたケースが、同じグループに入る
+- 画面 ID は決定にだけ使う。AI の判断（judge・explain）には渡さないので、`screens.csv` が変わっても、判断は引き継げる（12）
+
 ## 6. 規模の決め方
 
 ### 6.1 代表の選び方
 
-1. ケースを `group_by` の値（`feature` か `screen`）でグループにする
-2. グループの中で、種別が `代表` のケースだけを候補にする
+1. ケースを `group_by` の値（`feature` か `screen`。`screen` は画面 ID が引けたら画面 ID。5.3）でグループにする
+2. グループの中で、種別が `代表` のケースを候補にする。**1 件も無いグループは、グループの全ケースを候補にする**（どのグループにも代表が 1 件いる）
 3. 候補を「重要度の小さい順（R1 が先）、同じなら `case` の昇順」に並べ、先頭の 1 件を**そのグループの代表**にする
-4. 候補が 0 件のグループには、代表がいない
+4. 判定不可・対象外のケースは、候補に入れない
 
 ### 6.2 規模の表
 
 | 重要度 | グループの代表 | それ以外 |
 | --- | --- | --- |
-| R1 | `sanity` | `smoke` |
+| R1 | `sanity` | `light` |
 | R2 | `smoke` | `light` |
 | R3 | `light` | `full` |
 | R4 | `full` | `full` |
 
 - `exclude.features` に入っている機能のケースは、表によらず `対象外`
-- `sanity` に入るのはグループの代表だけなので、グループあたり最大 1 件になる
+- **毎回流す段（`sanity` `smoke`）に入るのは、グループの代表だけ**。したがって、毎回流すケースの数は、グループの数を超えない。重要でも代表ではないケースは `light` に入る
+- グループあたり、代表は 1 件なので、`sanity` もグループあたり最大 1 件になる
 - 規模は「含む最小の実行単位」なので、入れ子は値の意味で保証される。ケースが smoke に入っていれば、light と full にも入っている
 
 ## 7. 人の裁定 `output/test-priority/adjudications.json`
@@ -198,6 +220,7 @@ run = ["import-clean", "examples"]
 | 列 | 内容 |
 | --- | --- |
 | `CaseNo.` `タイトル` `領域` `機能` `確認画面` | 入力から |
+| `画面ID` | 5.3 で引いた画面 ID。`source.screens` が無い、または引けなかったときは空 |
 | `既存の優先度` | `existing`（High / Medium / Low、無ければ空） |
 | `開始点` | `R1`〜`R4`（判定不可なら空） |
 | `リスク軸` | 挙げられた軸。`;` 区切り |
@@ -207,18 +230,33 @@ run = ["import-clean", "examples"]
 | `理由` | AI が書く。1 行目に結論、続けて「何を確認する？／壊れると何が困る？／だからこの重要度」 |
 | `要レビュー` | 下の印。`;` 区切り |
 
-要レビューの印は 4 種類。
+要レビューの印は 5 種類。
 
 | 印 | 付く条件 |
 | --- | --- |
 | `上げ` | 開始点が R1 でないのに、結果が R1 になった |
 | `下げ` | 開始点が R4 でないのに、結果が R4 になった |
 | `推定` | 機能が重み表に無く、`default` を使った |
+| `画面不明` | `source.screens` があるのに、画面 ID を引けなかった（5.3） |
 | `判定不可` | 5.2 の 1 に当たった |
 
-### 8.3 そのほか
+### 8.3 すき間 `gaps.md`
 
-- `manifest.json`（C5）：`generated_by` の `claude` は、今回 AI が 1 回でも出力（判断か理由文）を作ったケースの件数、`carried` は 1 回も作らずに judgments.jsonl から使い回したケースの件数、`script` は 0。`claude` ＋ `carried` ＝ `items`（review.csv の行数）
+`source.screens` があるときだけ、`export.py` が書く（無ければ、前回のファイルを消す）。UTF-8。見出しは次の 3 つで、この順。
+
+| 見出し | 載せるもの |
+| --- | --- |
+| テストケースが 1 件も無い画面 | `screens.csv` の画面のうち、画面 ID がどのケースにも引かれていないもの（`画面ID` `画面名`） |
+| R1・R2 のケースがあるのに、sanity・smoke に 1 件も無い画面 | 重要度が R1 か R2 のケースがあり、そのどれも sanity・smoke でない画面（`group_by = "feature"` のとき起こりうる。`"screen"` のときは、代表が各画面に 1 件いるので起きない） |
+| 画面 ID を引けなかったケース | `画面ID` が空のケースと確認画面の名前 |
+
+画面は `画面ID` の昇順、ケースは `case` の昇順。該当が無ければ「なし」と書く。
+
+「ケースが 1 件も無い」は、判定不可・対象外のケースも 1 件と数える（人が決める、または決めた結果なので、テストを足す場所とは分けて見る）。`screens.csv` が更新されたあとは、`export.py` をやり直すまで `gaps.md` は古い（update の順番は [data-flow.md](../data-flow.md)）。
+
+### 8.4 そのほか
+
+- `manifest.json`（C5）：`generated_by` の `claude` は、今回 AI が 1 回でも出力（判断か理由文）を作ったケースの件数、`carried` は 1 回も作らずに judgments.jsonl から使い回したケースの件数、`script` は 0。`claude` ＋ `carried` ＝ `items`（review.csv の行数）。`inputs` は、`source.screens` があり、その隣に screen-list の manifest.json があるとき `{"screen-list": <その manifest の source>}`、無ければ `{}`
 - `adjudications.json`：7
 - `_raw/judgments.jsonl`（中間ファイル。他のツールは読まない）：1 件 1 行。`{"case", "fingerprint", "axes", "impact", "kind", "reason", "reason_level"}`。`reason_level` は理由文を書いたときの重要度
 
@@ -234,7 +272,7 @@ run = ["import-clean", "examples"]
 | `EXAMPLE` | `[checks.examples]` の計算例が、規則どおりの結果にならない |
 | `MANIFEST` | manifest.json が無い、または必須のキーが欠けている |
 
-`stats`：`cases`（入力の件数）、`decided`（import.csv の行数）、`unresolved`（判定不可の件数）、規模ごとの件数。
+`stats`：`cases`（入力の件数）、`decided`（import.csv の行数）、`unresolved`（判定不可の件数）、規模ごとの件数。`source.screens` があるときは、さらに `screens`（画面の数）、`screens_without_cases`（ケースが 1 件も無い画面の数）、`cases_without_screen_id`（画面 ID を引けなかったケースの数）。この 3 つは情報で、検査の失敗にはしない。
 
 ### 9.1 計算例 `[checks.examples]`
 
@@ -261,7 +299,7 @@ expect = { level = "R2", scale = "smoke" }
 | 1 | DMY-TASK / タスク名の文字数上限 | R3 | `data` | `stop` | High | 代表・グループの代表 | R2（R3 から上げ） | `smoke` | なし |
 | 2 | DMY-TASK / タスク名の文字数上限 | R3 | なし | `cosmetic` | Medium | 応用 | R4（R3 から下げ） | `full` | `下げ` |
 | 3 | DMY-COMMON / ログイン | R1 | `permission` | `harm` | High | 代表・グループの代表 | R1（上限） | `sanity` | なし |
-| 4 | DMY-COMMON / ログアウト（表に無い） | R2（default） | `blast` | `stop` | なし | 応用 | R1（R2 から上げ） | `smoke` | `上げ` `推定` |
+| 4 | DMY-COMMON / ログアウト（表に無い） | R2（default） | `blast` | `stop` | なし | 応用（代表ではない） | R1（R2 から上げ） | `light` | `上げ` `推定` |
 | 5 | DMY-XXX / （任意） | — | — | — | — | — | — | `判定不可` | `判定不可` |
 | 6 | DMY-TASK / タスク名の文字数上限 | R3 | `data` | `stop` | Low | 応用 | R3（Low が上げを止める） | `full` | なし |
 
@@ -272,8 +310,11 @@ expect = { level = "R2", scale = "smoke" }
 | 値 | 初期値 |
 | --- | --- |
 | 上げ下げの幅 | ±1 段 |
-| 規模の表（6.2） | 上の表のとおり |
+| 規模の表（6.2） | 上の表のとおり。**測定済みの見直し**：32 件・14 グループの試算で、R1 の非代表を `smoke` に入れる案は、毎回流す割合が 52%。代表だけにすると 29%（AI の判断は同じものを使い、規則だけを変えた） |
 | 影響範囲 `cosmetic` のとき、有効なリスク軸が 0 個なら下げる | 下げる |
+| 領域の `emphasis`（リスク軸）の絞り方 | 領域ごとに QA が決める。**測定済みの効き方**：サンプルアプリ 31 件で、保存した AI の判断を変えずに `emphasis` だけ替えると、R1 の割合は全領域で `data` のみ 32%、`permission` のみ 13%、軸なし 13%（毎回流す段は 9 件／4 件／4 件）。R1 が多すぎるときは、まず `emphasis` を絞る |
+| AI の判断のばらつき | **測定済み**：サンプルアプリ 31 件を、同じ build で Haiku に 3 回流した。判断（軸・影響範囲・種別）の完全一致は 55〜65%、重要度の一致は 87〜94%、毎回流す段に入るかの一致は 90〜97%。規則の表が、判断の揺れの大部分を吸収する。残りの 6〜13% は実行ごとに重要度が変わるので、`update` で判断を引き継ぎ（12）、人が決めたいものは裁定にする |
+| 画面名の照合に、末尾の「画面」を外した一致を許す（5.3） | 許す。サンプルアプリの 31 件の確認画面 14 種のうち、完全一致は 0 種、「画面」を外すと 8 種が一致。残り 5 種は別名で指定し、1 種（「全画面」）は画面を指さないので引けないまま残した。screen-list の画面名が test-case-generator の言い方に近づけば、別名は減る |
 
 ## 12. update：何を引き継ぎ、何をやり直すか
 

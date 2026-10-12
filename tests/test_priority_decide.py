@@ -45,7 +45,7 @@ class WorkedExamplesTest(unittest.TestCase):
 
     def test_4_unlisted_feature_uses_default_and_is_marked(self):
         d = decide(rec(area="DMY-COMMON", feature="ログアウト"), ["blast"], "stop", "応用", False)
-        self.assertEqual((d["start"], d["level"], d["scale"], d["marks"]), (2, 1, "smoke", ["上げ", "推定"]))
+        self.assertEqual((d["start"], d["level"], d["scale"], d["marks"]), (2, 1, "light", ["上げ", "推定"]))   # 代表ではないので、毎回流す段には入らない
 
     def test_5_unknown_area_is_undecidable(self):
         d = decide(rec(area="DMY-XXX"), ["data"], "stop", "代表", True)
@@ -110,6 +110,18 @@ class DecideAllTest(unittest.TestCase):
         self.assertEqual([c for c, r in sorted(rows.items()) if r["representative"]], ["A-1", "B-1"])
         self.assertEqual((rows["A-1"]["scale"], rows["A-2"]["scale"], rows["A-3"]["scale"]), ("smoke", "full", "light"))
 
+    def test_a_group_without_a_representative_case_uses_its_most_important_case(self):
+        cases = [rec("G-1", screen="x"), rec("G-2", screen="x")]
+        judgments = [judgment("G-1", [], "stop", "応用"), judgment("G-2", ["data"], "stop", "応用")]   # G-2 が R2、G-1 が R3。代表は無い
+        rows = self.run_all(cases, judgments)
+        self.assertEqual([(c, r["representative"], r["scale"]) for c, r in sorted(rows.items())], [("G-1", False, "full"), ("G-2", True, "smoke")])
+
+    def test_only_representatives_enter_the_every_run_tiers(self):
+        cases = [rec(f"R-{i}", area="DMY-COMMON", feature="ログイン", screen="s") for i in range(1, 4)]
+        judgments = [judgment(c["case"], ["permission"], "harm", "代表" if c["case"] == "R-2" else "応用") for c in cases]   # 3 件とも R1
+        rows = self.run_all(cases, judgments)
+        self.assertEqual({c: r["scale"] for c, r in rows.items()}, {"R-1": "light", "R-2": "sanity", "R-3": "light"})
+
     def test_empty_group_key_forms_one_group_named_none(self):
         rows = self.run_all()
         self.assertEqual((rows["B-1"]["scale"], rows["B-2"]["scale"]), ("light", "full"))
@@ -118,7 +130,7 @@ class DecideAllTest(unittest.TestCase):
         cases = [rec("S-1", area="DMY-COMMON", feature="ログイン", screen="x"), rec("S-2", area="DMY-COMMON", feature="ログイン", screen="x")]
         judgments = [judgment("S-1", ["permission"], "harm", "代表"), judgment("S-2", ["permission"], "harm", "代表")]
         rows = self.run_all(cases, judgments)
-        self.assertEqual(sorted(r["scale"] for r in rows.values()), ["sanity", "smoke"])
+        self.assertEqual(sorted(r["scale"] for r in rows.values()), ["light", "sanity"])   # 代表ではない R1 は、毎回流す段に入らない
 
     def test_missing_judgment_is_an_input_error(self):
         with self.assertRaises(pr.InputError) as ctx:

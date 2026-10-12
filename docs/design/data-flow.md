@@ -16,7 +16,7 @@
 | F1 | screen-list | code-map | `output/code-map/lookup/tree.md` | ファイルのモジュールを引いて `モジュール` 列に書く。`ハッシュ` 列と今のファイルの内容を比べて、code-map が古くないかを、ファイルごとに確かめる（git に頼らない） |
 | F2 | screen-list | code-map | `output/code-map/manifest.json` | `source`（git のコミット、または内容のハッシュ）を、自分の manifest の `source` と `inputs` に写す |
 | F3 | test-priority | test-case-generator | `output/*/4-testcases.md` の 15 列の表 | 判定するテストケースの一覧として読む（プラットフォーム定義 `tcg-markdown`） |
-| F4 | test-priority | screen-list | `output/screen-list/screens.csv` の `画面ID` 列と `画面名` 列 | テストケースの「確認画面」列の画面名から画面 ID を引く |
+| F4 | test-priority | screen-list | `output/screen-list/screens.csv` の `画面ID` 列と `画面名` 列 | テストケースの「確認画面」列の画面名から画面 ID を引く（引き方は [test-priority の 5.3](tools/test-priority.md)）。引けなかったケースは `画面不明` の印を付けて人に返す |
 | F5 | screen-list | code-map | `output/code-map/lookup/reverse_imports.jsonl` | ダイアログのファイルから import を上へ辿り、開く画面（`親画面ID`）を求める |
 
 **画面の候補は screen-list が自分で列挙する（決定）**：何が画面かは UI フレームワークによって違うので、screen-list のプラットフォーム定義（[contracts.md の C9](contracts.md#c9-プラットフォーム定義)）が列挙する。code-map は言語の単位（import・シンボル・モジュール）だけを扱い、画面を知らない。
@@ -37,7 +37,7 @@
 
 1. この画面は、どのモジュールで実装されているか（screens.csv の `モジュール` 列。F1）
 2. この画面を確かめているテストケースはあるか（F4）
-3. どのテストケースにも出てこない画面はどれか（#27 で作る）
+3. どのテストケースにも出てこない画面はどれか（test-priority の `gaps.md`）
 
 ## update を実行する順番
 

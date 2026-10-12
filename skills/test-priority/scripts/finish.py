@@ -35,7 +35,7 @@ def main(argv=None):
         tool="test-priority",
         source={"files": config["cases_glob"], "hash": pr.source_hash(config)},
         config_hash_value=pr.manifest.config_hash(config["path"]),
-        inputs={},
+        inputs=pr.screen_list_inputs(config),
         generated_by={"claude": items - carried, "carried": carried},
         items=items,
     )
