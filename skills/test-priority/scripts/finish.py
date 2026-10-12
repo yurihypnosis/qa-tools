@@ -30,12 +30,14 @@ def main(argv=None):
         return 1
     items = stats["cases"]
     carried = pr.carried_count(config, pr.load_cases(config))
+    screens = config["screens"]
+    inputs = {"screen-list": pr.manifest.read(screens["path"].parent)["source"]} if screens and (screens["path"].parent / "manifest.json").is_file() else {}
     pr.manifest.write(
         config["out_dir"],
         tool="test-priority",
         source={"files": config["cases_glob"], "hash": pr.source_hash(config)},
         config_hash_value=pr.manifest.config_hash(config["path"]),
-        inputs={},
+        inputs=inputs,
         generated_by={"claude": items - carried, "carried": carried},
         items=items,
     )

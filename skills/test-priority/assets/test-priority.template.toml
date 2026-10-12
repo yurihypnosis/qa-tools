@@ -4,6 +4,7 @@ platform = "<プラットフォーム定義の名前>"
 [source]
 repo = "."
 cases_glob = "<テストケースの glob>"
+# screens = "output/screen-list/screens.csv"       # screen-list の出力があるときだけ。確認画面を画面 ID に引く
 
 [output]
 dir = "output/test-priority"
@@ -18,6 +19,10 @@ default = <1〜4>                                       # 機能が下の表に�
 
 [rules.areas.<領域コード>.weights]
 "<機能名>" = <1〜4>                                    # 機能ごとの開始点
+
+# 確認画面の名前が screens.csv の画面名と合わないときだけ（末尾の「画面」を外しても合わないもの）
+# [rules.screen_aliases]
+# "<確認画面の名前>" = "<画面ID>"
 
 [rules.exclude]
 features = []                                          # 規模を「対象外」にする機能名

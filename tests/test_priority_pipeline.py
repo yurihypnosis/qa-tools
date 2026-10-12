@@ -139,6 +139,104 @@ class PipelineTest(unittest.TestCase):
         self.assertEqual(first, [(self.p.out / n).read_bytes() for n in ("import.csv", "review.csv")])
 
 
+class ScreenIdTest(unittest.TestCase):
+    """screen-list の screens.csv から画面 ID を引く（F4）。引けないものは推測せず、印を付ける。"""
+
+    SCREENS = {"web/login": "ログイン", "web#task-edit": "タスク編集ダイアログ", "web/settings": "設定"}
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.p = Project(self.tmp.name)
+        shelf = self.p.root / "output" / "screen-list"
+        shelf.mkdir(parents=True)
+        with open(shelf / "screens.csv", "w", encoding="utf-8-sig", newline="") as handle:
+            writer = csv.writer(handle, lineterminator="\n")
+            writer.writerow(["画面ID", "画面名", "種別"])
+            writer.writerows([[sid, name, "画面"] for sid, name in self.SCREENS.items()])
+        self.set_config(source='screens = "output/screen-list/screens.csv"')
+
+    def set_config(self, source, aliases=""):
+        text = (FIXTURES / "priority" / "test-priority.toml").read_text(encoding="utf-8")
+        text = text.replace('cases_glob = "output/*/4-testcases.md"', f'cases_glob = "output/*/4-testcases.md"\n{source}')
+        text = text.replace('group_by = "screen"', f'group_by = "screen"\n{aliases}')
+        self.p.config.write_text(text, encoding="utf-8")
+
+    def test_resolve_prefers_an_alias_then_an_exact_name_then_the_name_without_the_trailing_suffix(self):
+        screens = {"ids": self.SCREENS, "by_name": {n: [i] for i, n in self.SCREENS.items()}, "aliases": {"ヘッダー": "web/settings"}}
+        resolve = lambda name: pr.resolve_screen(screens, name)
+        self.assertEqual(resolve("ヘッダー"), "web/settings")
+        self.assertEqual(resolve("設定"), "web/settings")
+        self.assertEqual(resolve("ログイン画面"), "web/login")
+        self.assertEqual((resolve("画面"), resolve(""), resolve("ログイン画面画面")), ("", "", ""))
+        self.assertEqual(pr.resolve_screen(None, "ログイン画面"), "")
+
+    def test_two_screens_with_the_same_name_are_not_guessed(self):
+        screens = {"ids": {"a": "設定", "b": "設定"}, "by_name": {"設定": ["a", "b"]}, "aliases": {}}
+        self.assertEqual(pr.resolve_screen(screens, "設定"), "")
+
+    def test_review_csv_has_the_screen_id_and_unmatched_cases_are_marked(self):
+        self.p.build()
+        review = self.p.read_csv("review.csv")
+        by_case = {r[0]: dict(zip(review[0], r)) for r in review[1:]}
+        self.assertEqual([by_case[c]["画面ID"] for c in ("T-1", "T-2", "T-3", "C-1")], ["web#task-edit"] * 3 + ["web/login"])
+        self.assertEqual((by_case["C-2"]["画面ID"], by_case["X-1"]["画面ID"]), ("", ""))
+        self.assertIn("画面不明", by_case["C-2"]["要レビュー"].split(";"))
+        self.assertNotIn("画面不明", by_case["C-1"]["要レビュー"])
+
+    def test_gaps_md_lists_screens_without_cases_and_unmatched_cases(self):
+        self.p.build()
+        gaps = (self.p.out / "gaps.md").read_text(encoding="utf-8")
+        no_cases = gaps.split("## ")[1]
+        self.assertIn("web/settings", no_cases)
+        self.assertNotIn("web/login", no_cases)
+        unresolved = gaps.split("## ")[3]
+        self.assertIn("C-2", unresolved)
+        self.assertIn("X-1", unresolved)
+
+    def test_an_alias_makes_a_case_resolve_and_a_wrong_alias_is_a_config_error(self):
+        self.set_config('screens = "output/screen-list/screens.csv"', '[rules.screen_aliases]\n"ヘッダー" = "web/settings"\n')
+        self.p.build()
+        review = self.p.read_csv("review.csv")
+        by_case = {r[0]: dict(zip(review[0], r)) for r in review[1:]}
+        self.assertEqual(by_case["C-2"]["画面ID"], "web/settings")
+        self.set_config('screens = "output/screen-list/screens.csv"', '[rules.screen_aliases]\n"ヘッダー" = "web/nothing"\n')
+        code, _, err = self.p.run("export.py")
+        self.assertEqual(code, 2)
+        self.assertIn("web/nothing", err)
+
+    def test_a_missing_screens_file_asks_for_screen_list_first(self):
+        (self.p.root / "output" / "screen-list" / "screens.csv").unlink()
+        code, _, err = self.p.run("export.py")
+        self.assertEqual(code, 2)
+        self.assertIn("screen-list", err)
+
+    def test_cases_of_the_same_screen_share_one_representative_even_with_different_names(self):
+        rules = {"group_by": "screen"}
+        self.assertEqual(pr.group_key(rules, {"screen": "ログイン画面"}, "web/login"), pr.group_key(rules, {"screen": "ログイン"}, "web/login"))
+        self.assertEqual(pr.group_key(rules, {"screen": "どこか"}, ""), "どこか")
+        self.assertEqual(pr.group_key(rules, {"screen": ""}, ""), pr.NO_GROUP)
+
+    def test_stats_report_screens_and_the_manifest_records_the_screen_list_version(self):
+        self.p.build()
+        (self.p.root / "output" / "screen-list" / "manifest.json").write_text(
+            json.dumps({"tool": "screen-list", "source": {"repo": "x", "commit": "abc1234"}}), encoding="utf-8")
+        code, out, _ = self.p.run("check_priority.py", "--json", "--no-manifest")
+        stats = json.loads(out)["stats"]
+        self.assertEqual((stats["screens"], stats["screens_without_cases"], stats["cases_without_screen_id"]), (3, 1, 2))
+        self.assertEqual(self.p.run("finish.py")[0], 0)
+        data = json.loads((self.p.out / "manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(data["inputs"], {"screen-list": {"repo": "x", "commit": "abc1234"}})
+
+    def test_without_the_setting_nothing_changes(self):
+        self.set_config(source="")
+        self.p.build()
+        review = self.p.read_csv("review.csv")
+        self.assertEqual({r[review[0].index("画面ID")] for r in review[1:]}, {""})
+        self.assertFalse((self.p.out / "gaps.md").exists())
+        self.assertNotIn("screens", json.loads(self.p.run("check_priority.py", "--json", "--no-manifest")[1])["stats"])
+
+
 class CheckTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -456,6 +554,7 @@ class RealisticSampleTest(unittest.TestCase):
         shutil.copy(self.SAMPLE / ".qa" / "test-priority.toml", self.root / ".qa" / "test-priority.toml")
         shutil.copytree(self.SAMPLE / "sample-output" / "test-cases" / "PBI-1", self.root / "output" / "PBI-1")
         shutil.copytree(self.SAMPLE / "sample-output" / "test-priority", self.root / "output" / "test-priority")
+        shutil.copytree(self.SAMPLE / "sample-output" / "screen-list", self.root / "output" / "screen-list")
         self.config = self.root / ".qa" / "test-priority.toml"
 
     def run_cli(self, name, *args):
@@ -463,10 +562,10 @@ class RealisticSampleTest(unittest.TestCase):
 
     def test_export_reproduces_the_committed_csvs_and_the_output_passes_every_check(self):
         out = self.root / "output" / "test-priority"
-        for name in ("import.csv", "review.csv"):
+        for name in ("import.csv", "review.csv", "gaps.md"):
             (out / name).unlink()
         self.assertEqual(self.run_cli("export.py")[0], 0)
-        for name in ("import.csv", "review.csv"):
+        for name in ("import.csv", "review.csv", "gaps.md"):
             self.assertEqual((out / name).read_bytes(), (self.SAMPLE / "sample-output" / "test-priority" / name).read_bytes())
         self.assertEqual(self.run_cli("check_priority.py")[0], 0)
 
@@ -475,7 +574,8 @@ class RealisticSampleTest(unittest.TestCase):
         stats = json.loads(out)["stats"]
         config = pr.load_config(self.config)
         cases = pr.load_cases(config)
-        groups = {pr.group_key(config["rules"], c) for c in cases}
+        resolve = lambda c: pr.resolve_screen(config["screens"], c["screen"])
+        groups = {pr.group_key(config["rules"], c, resolve(c)) for c in cases}
         every_run = stats["sanity"] + stats["smoke"]
         self.assertLessEqual(every_run, len(groups))
         self.assertLessEqual(every_run / stats["cases"], 0.35)       # 毎回流すのは、全体の 1/3 以下

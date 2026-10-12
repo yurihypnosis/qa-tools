@@ -31,7 +31,8 @@ KINDS = ("代表", "応用")
 EXISTING = ("high", "medium", "low")
 NO_GROUP = "(なし)"
 CHECK_NAMES = ("import-clean", "examples")
-MARK_ORDER = ("上げ", "下げ", "推定", UNDECIDABLE)
+UNKNOWN_SCREEN = "画面不明"
+MARK_ORDER = ("上げ", "下げ", "推定", UNKNOWN_SCREEN, UNDECIDABLE)
 # 重要度 → (グループの代表, それ以外) の規模。仕様書 6.2（仮の値）
 # 毎回流す段（sanity・smoke）に入るのは、グループの代表だけ。重要でも代表ではないケースは light 以下（仕様書 6.2。32 件の試算で、毎回流す割合が 52% → 29%）
 SCALE_TABLE = {1: ("sanity", "light"), 2: ("smoke", "light"), 3: ("light", "full"), 4: ("full", "full")}
@@ -99,15 +100,56 @@ def load_config(path):
     if unknown:
         raise ConfigError(f"checks.run に知らない検査: {unknown}（選べるもの: {', '.join(CHECK_NAMES)}）")
     root = path.resolve().parent.parent
+    screens = read_screens(root, source.get("screens"), rules.get("screen_aliases", {}))
     return {
         "path": path,
         "root": root,
         "platform": raw["platform"],
         "cases_glob": source["cases_glob"],
+        "screens": screens,
         "out_dir": root / output["dir"],
         "rules": {"group_by": group_by, "areas": areas, "exclude": {"features": list(rules.get("exclude", {}).get("features", []))}},
         "checks": raw["checks"],
     }
+
+
+SCREEN_SUFFIX = "画面"
+
+
+def read_screens(root, rel_path, aliases):
+    """source.screens（screen-list の screens.csv）を読む（F4）。設定が無ければ None。"""
+    if rel_path is None:
+        return None
+    path = root / rel_path
+    if not path.is_file():
+        raise ConfigError(f"source.screens の {path} が無い。先に screen-list を実行する")
+    with open(path, encoding="utf-8-sig", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    if rows and not {"画面ID", "画面名"} <= set(rows[0]):
+        raise ConfigError(f"{path} に 画面ID 列と 画面名 列が無い")
+    names = {}
+    for row in rows:
+        names.setdefault(row["画面名"], []).append(row["画面ID"])
+    ids = {row["画面ID"]: row["画面名"] for row in rows}
+    for name, screen_id in aliases.items():
+        if screen_id not in ids:
+            raise ConfigError(f"rules.screen_aliases の {name!r} の {screen_id!r} が {path.name} に無い")
+    return {"path": path, "ids": ids, "by_name": names, "aliases": dict(aliases)}
+
+
+def resolve_screen(screens, name):
+    """確認画面の名前から画面 ID を引く。別名の指定 → 画面名との完全一致 → 末尾の「画面」を外して完全一致。
+    引けない、または同じ名前の画面が複数あるときは ""（推測しない）。"""
+    if screens is None:
+        return ""
+    if name in screens["aliases"]:
+        return screens["aliases"][name]
+    stripped = name[:-len(SCREEN_SUFFIX)] if name.endswith(SCREEN_SUFFIX) and len(name) > len(SCREEN_SUFFIX) else None
+    for candidate in (name, stripped):
+        ids = screens["by_name"].get(candidate, []) if candidate else []
+        if len(ids) == 1:
+            return ids[0]
+    return ""
 
 
 def available_platforms():
@@ -241,7 +283,10 @@ def scale_of(rules, rec, level, is_representative, adjudication=None):
     return SCALE_TABLE[level][0 if is_representative else 1]
 
 
-def group_key(rules, rec):
+def group_key(rules, rec, screen_id=""):
+    """代表を 1 件に絞る単位。画面でまとめるとき、画面 ID が引けた画面は画面 ID を使う。"""
+    if rules["group_by"] == "screen" and screen_id:
+        return screen_id
     return rec[rules["group_by"]] or NO_GROUP
 
 
@@ -262,11 +307,14 @@ def decide_all(config, cases, judgments, adjudications):
         j = by_case[rec["case"]]
         adj = adjudications.get(rec["case"])
         d = decide_level(rules, rec, j, adj)
-        rows.append({"rec": rec, "judgment": j, "adjudication": adj, "representative": False, **d})
+        screen_id = resolve_screen(config.get("screens"), rec["screen"])
+        if config.get("screens") is not None and not screen_id:
+            d["marks"] = [m for m in MARK_ORDER if m in {*d["marks"], UNKNOWN_SCREEN}]
+        rows.append({"rec": rec, "judgment": j, "adjudication": adj, "representative": False, "screen_id": screen_id, **d})
     groups = {}
     for row in rows:
         if row["level"] is not None and row["rec"]["feature"] not in rules["exclude"]["features"]:
-            groups.setdefault(group_key(rules, row["rec"]), []).append(row)
+            groups.setdefault(group_key(rules, row["rec"], row["screen_id"]), []).append(row)
     for members in groups.values():
         # 代表と判断されたケースから選ぶ。1 件も無いグループは、グループの全ケースから最も重要な 1 件を代表にする
         pool = [r for r in members if r["judgment"]["kind"] == "代表"] or members
@@ -279,7 +327,7 @@ def decide_all(config, cases, judgments, adjudications):
 
 # --- 書き出し -----------------------------------------------------------------
 
-REVIEW_TAIL = ["タイトル", "領域", "機能", "確認画面", "既存の優先度", "開始点", "リスク軸", "影響範囲", "種別", "代表",
+REVIEW_TAIL = ["タイトル", "領域", "機能", "確認画面", "画面ID", "既存の優先度", "開始点", "リスク軸", "影響範囲", "種別", "代表",
                "重要度", "規模", "理由", "要レビュー"]
 IMPORT_TAIL = ["重要度", "規模"]
 
@@ -320,7 +368,7 @@ def export(config):
     for r in rows:
         rec, j = r["rec"], r["judgment"]
         review.append([
-            r["case"], rec["title"], rec["area"], rec["feature"], rec["screen"], rec["existing"].capitalize(),
+            r["case"], rec["title"], rec["area"], rec["feature"], rec["screen"], r["screen_id"], rec["existing"].capitalize(),
             level_name(r["start"]), ";".join(sorted(set(j["axes"]), key=AXES.index)), j["impact"], j["kind"],
             "○" if r["representative"] else "", level_name(r["level"]), r["scale"], j["reason"], ";".join(r["marks"]),
         ])
@@ -328,7 +376,61 @@ def export(config):
             import_rows.append([r["case"], level_name(r["level"]), r["scale"]])
     write_csv(config["out_dir"] / "review.csv", review)
     write_csv(config["out_dir"] / "import.csv", import_rows)
+    write_gaps(config, rows)
     return rows
+
+
+# --- 画面とのすき間（gaps.md） ---------------------------------------------------
+
+EVERY_RUN_SCALES = ("sanity", "smoke")
+IMPORTANT_LEVELS = (1, 2)
+
+
+def find_gaps(screens, rows):
+    """screens.csv の画面ごとにケースを数え、すき間を 3 種類に分ける（仕様書 8）。"""
+    by_screen = {}
+    for r in rows:
+        if r["screen_id"]:
+            by_screen.setdefault(r["screen_id"], []).append(r)
+    no_cases = sorted(set(screens["ids"]) - set(by_screen))
+    not_every_run = sorted(
+        sid for sid, members in by_screen.items()
+        if any(m["level"] in IMPORTANT_LEVELS for m in members) and not any(m["scale"] in EVERY_RUN_SCALES for m in members)
+    )
+    unresolved = [r for r in rows if not r["screen_id"]]
+    return {"no_cases": no_cases, "not_every_run": not_every_run, "unresolved": unresolved, "by_screen": by_screen}
+
+
+def gaps_markdown(config, rows):
+    screens = config["screens"]
+    gaps = find_gaps(screens, rows)
+    name = screens["ids"].get
+    lines = ["# 画面とテストケースのすき間", "",
+             f"`{screens['path'].name}` の画面 {len(screens['ids'])} 件と、テストケース {len(rows)} 件を突き合わせた結果。", "",
+             f"## テストケースが 1 件も無い画面（{len(gaps['no_cases'])} 件）", ""]
+    lines += ["| 画面ID | 画面名 |", "| --- | --- |", *[f"| {sid} | {name(sid)} |" for sid in gaps["no_cases"]]] if gaps["no_cases"] else ["なし"]
+    lines += ["", f"## R1・R2 のケースがあるのに、sanity・smoke に 1 件も無い画面（{len(gaps['not_every_run'])} 件）", ""]
+    if gaps["not_every_run"]:
+        lines += ["| 画面ID | 画面名 | ケース数 |", "| --- | --- | --- |",
+                  *[f"| {sid} | {name(sid)} | {len(gaps['by_screen'][sid])} |" for sid in gaps["not_every_run"]]]
+    else:
+        lines.append("なし")
+    lines += ["", f"## 画面 ID を引けなかったケース（{len(gaps['unresolved'])} 件）", ""]
+    if gaps["unresolved"]:
+        lines += ["| ケース | 確認画面 |", "| --- | --- |",
+                  *[f"| {r['case']} | {r['rec']['screen'] or '(空)'} |" for r in gaps["unresolved"]]]
+        lines += ["", "引けない名前は、`rules.screen_aliases` に画面 ID を書いて指定する。"]
+    else:
+        lines.append("なし")
+    return "\n".join(lines) + "\n"
+
+
+def write_gaps(config, rows):
+    path = config["out_dir"] / "gaps.md"
+    if config.get("screens") is None:
+        path.unlink(missing_ok=True)
+        return
+    path.write_text(gaps_markdown(config, rows), encoding="utf-8")
 
 
 # --- 検査 ---------------------------------------------------------------------
@@ -403,6 +505,12 @@ def check(config, skip_manifest=False):
         for case in sorted(set(read_adjudications(config)) - known):
             findings.append(_finding("ADJUDICATION_UNKNOWN_CASE", out / "adjudications.json", 1, case=case))
     stats["decided"] = len(imp) - 1
+    screens = config.get("screens")
+    if screens is not None:
+        covered = {r["画面ID"] for _, r in review if r["画面ID"]}
+        stats["screens"] = len(screens["ids"])
+        stats["screens_without_cases"] = len(set(screens["ids"]) - covered)
+        stats["cases_without_screen_id"] = sum(1 for _, r in review if not r["画面ID"])
     if "examples" in run:
         findings += run_examples(config)
     if not skip_manifest:

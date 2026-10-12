@@ -81,6 +81,6 @@ docs/design/ の文書と、qa-tools の Issue で使う言葉の定義。**こ�
 | ツール名 | 状態 | 入力 → 成果物 |
 | --- | --- | --- |
 | test-case-generator | 実装済み | PBI の資料 → テストケース（15 列の Markdown 表） |
-| test-priority | 未実装（v0.5.0） | テストケース → 重要度と規模の CSV |
+| test-priority | 実装済み（画面 ID とのつなぎは v0.9.0） | テストケース → 重要度と規模の CSV |
 | code-map | 未実装（v0.6.0） | ソースコード → コードの索引と要約（Markdown ＋ JSONL） |
 | screen-list | 未実装（v0.8.0） | ソースコード → 画面一覧 CSV |

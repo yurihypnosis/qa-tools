@@ -65,6 +65,7 @@ AI がするのは意味の**判断**（リスク軸・影響範囲・代表か�
 | --- | --- | --- |
 | `.qa/test-priority.toml` | `init` 以外で必須 | 設定ファイル（書き方は `assets/test-priority.template.toml`） |
 | テストケースの表 | ✅ | 設定の `source.cases_glob` で指すファイル |
+| `output/screen-list/screens.csv` | | screen-list の出力。設定の `source.screens` に書くと、確認画面を画面 ID に引き、`gaps.md` を作る |
 | `output/test-priority/adjudications.json` | | 人の裁定。`adjudicate.py` で記録する。`build` でも消さず、規則より優先する |
 
 プラットフォーム定義（テストケースの表の形式）は、`platforms/` のディレクトリ名で選ぶ。選べるものは `ls <skill>/platforms/` で調べる。
@@ -77,6 +78,7 @@ AI がするのは意味の**判断**（リスク軸・影響範囲・代表か�
 | --- | --- |
 | `import.csv` | 取り込み用。ケース・重要度・規模の 3 列。対象外と判定不可は入れない |
 | `review.csv` | レビュー用。全ケースを 1 行ずつ。理由と要レビューの印を含む |
+| `gaps.md` | `source.screens` があるときだけ。テストケースの無い画面と、画面 ID を引けなかったケース |
 | `manifest.json` | 何から・いつ作ったかの記録。検査に通ったときだけ書く |
 | `_raw/` | 中間ファイル（`cases.jsonl` `judgments.jsonl`）。他のツールは読まない |
 
@@ -91,7 +93,7 @@ Python 3.11 以上と標準ライブラリだけで動く（設定ファイル�
 | `plan.py judge\|explain` | `update` 用。判断・理由文をやり直すケースだけを `_raw/pending.jsonl` `_raw/explain_input.jsonl` に書く（`build` も、全ケースを対象にして使う） |
 | `apply_judgments.py judge\|explain <下書き>` | AI の下書きを `_raw/judgments.jsonl` に取り込む（fingerprint などは補う） |
 | `decide.py` | 判断と設定から、重要度・規模・代表・要レビューを計算して JSON Lines で出す |
-| `export.py` | `import.csv` と `review.csv` を書く |
+| `export.py` | `import.csv` と `review.csv` を書く（`source.screens` があれば `gaps.md` も） |
 | `check_priority.py [--json] [--no-manifest]` | 出力を検査する。読み取り専用 |
 | `adjudicate.py` | 人の裁定を記録する・消す |
 | `finish.py` | 検査に通ったときだけ `manifest.json` を書く。`plan.json` に載らなかったケースを「引き継ぎ」と数える |
@@ -108,7 +110,7 @@ Python 3.11 以上と標準ライブラリだけで動く（設定ファイル�
 
 1. 出力ファイルのパス（`import.csv` `review.csv` `manifest.json`）
 2. 規模ごとの件数（`check_priority.py --json` の `stats`）
-3. 人が見るべき行：`要レビュー` に印がある行の件数と、印ごとの内訳。判定不可があれば、そのケースと、決めてほしいこと
+3. 人が見るべき行：`要レビュー` に印がある行の件数と、印ごとの内訳。判定不可があれば、そのケースと、決めてほしいこと。`stats` に `screens` があれば、ケースの無い画面の数（`screens_without_cases`）と、画面 ID を引けなかったケースの数（`cases_without_screen_id`）を足し、`gaps.md` のパスを伝える
 4. 検査の結果（`status`。指摘があればその一覧）
 
 ## Common Rationalizations

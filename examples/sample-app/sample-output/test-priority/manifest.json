@@ -5,9 +5,14 @@
     "files": "output/*/4-testcases.md",
     "hash": "sha256:577b8ef6cfa67fcea863e9bc26d6ff665f56c70d28b340f02acd607027a233fb"
   },
-  "config_hash": "sha256:3728278952d66cbe8e8953148c6fb78f99247428abeaedab60ac5f494f4ccf05",
-  "inputs": {},
-  "generated_at": "2026-10-10T17:23:13+09:00",
+  "config_hash": "sha256:cda71b0c9a38589bb47cc2cd0881f8d47ea1af18805b69f111a19299b7540862",
+  "inputs": {
+    "screen-list": {
+      "repo": "sample-app",
+      "commit": "f8f641c"
+    }
+  },
+  "generated_at": "2026-10-12T13:41:32+09:00",
   "generated_by": {
     "claude": 31,
     "script": 0,

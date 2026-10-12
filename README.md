@@ -53,7 +53,7 @@ Claude Code の中で `/qa-tools:test-priority build` を実行する。設定�
 
 テストケースを書き換えたあとは `/qa-tools:test-priority update` で、変わったケースだけを判定し直す（ほかの行は 1 バイトも変わらない）。人が重要度を決めたいときは、「TC-045 は R2 にして。理由は…」と頼むと裁定が記録され、`build` でも消えない。
 
-`output/test-priority/` に、取り込み用の `import.csv`、レビュー用の `review.csv`（理由と要レビューの印つき）、`manifest.json` ができる。出力例は `examples/dummy-product/sample-output/test-priority/`、仕様は [docs/design/tools/test-priority.md](docs/design/tools/test-priority.md) にある。
+`output/test-priority/` に、取り込み用の `import.csv`、レビュー用の `review.csv`（理由と要レビューの印つき）、`manifest.json` ができる。screen-list の `screens.csv` を `source.screens` に指定すると、確認画面が画面 ID に引かれ、画面ごとに代表が選ばれて、テストケースの無い画面が `gaps.md` に出る（`examples/sample-app/`）。出力例は `examples/dummy-product/sample-output/test-priority/`、仕様は [docs/design/tools/test-priority.md](docs/design/tools/test-priority.md) にある。
 
 ## code-map を試す（サンプルアプリ）
 
