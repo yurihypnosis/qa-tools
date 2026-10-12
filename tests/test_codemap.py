@@ -133,9 +133,9 @@ class ExtractTest(unittest.TestCase):
 
     def test_large_modules_are_reported_so_the_depth_can_be_raised(self):
         self.assertEqual(self.p.extract()["large"], [])          # 既定のしきい値（仮：300 ファイル）では、小さなアプリに出ない
-        text = (self.p.root / ".qa" / "code-map.toml").read_text(encoding="utf-8").replace("representatives = 2", "representatives = 2\nlarge_module = 3")
+        text = (self.p.root / ".qa" / "code-map.toml").read_text(encoding="utf-8").replace("representatives = 2", "representatives = 2\nlarge_module = 2")
         (self.p.root / ".qa" / "code-map.toml").write_text(text, encoding="utf-8")
-        self.assertEqual(self.p.extract()["large"], [{"module": "features/quiz", "files": 4}])
+        self.assertEqual(self.p.extract()["large"], [{"module": "features/quiz", "files": 3}])
 
     def test_unresolved_relative_imports_are_counted_not_fatal(self):
         code, out, _ = self.p.run("extract")
