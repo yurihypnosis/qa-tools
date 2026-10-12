@@ -131,6 +131,12 @@ class ExtractTest(unittest.TestCase):
         self.assertIn("src/features/quiz/lib/streak.ts\t4\tinterface\tStreak", lines)
         self.assertIn("src/app/page.tsx\t5\tfunction\tPage", lines)
 
+    def test_large_modules_are_reported_so_the_depth_can_be_raised(self):
+        self.assertEqual(self.p.extract()["large"], [])          # 既定のしきい値（仮：300 ファイル）では、小さなアプリに出ない
+        text = (self.p.root / ".qa" / "code-map.toml").read_text(encoding="utf-8").replace("representatives = 2", "representatives = 2\nlarge_module = 2")
+        (self.p.root / ".qa" / "code-map.toml").write_text(text, encoding="utf-8")
+        self.assertEqual(self.p.extract()["large"], [{"module": "features/quiz", "files": 3}])
+
     def test_unresolved_relative_imports_are_counted_not_fatal(self):
         code, out, _ = self.p.run("extract")
         self.assertEqual(code, 0)
@@ -539,3 +545,37 @@ class PythonPackageRootTest(unittest.TestCase):
             reverse = {r["file"]: r["imported_by"] for r in map(json.loads, (q.out / "lookup" / "reverse_imports.jsonl").read_text(encoding="utf-8").splitlines())}
             self.assertEqual(reverse["apps/api/plane/utils/helper.py"], ["apps/api/plane/db/models.py"])
             self.assertEqual(reverse["tools/sibling.py"], ["tools/script.py"])
+
+
+EXTENDS_REPO = {
+    "packages/tsconfig/package.json": '{"name": "@acme/tsconfig"}',
+    "packages/tsconfig/base.json": '{"compilerOptions": {"baseUrl": ".", "paths": {"@shared/*": ["../shared/src/*"]}}}',
+    "packages/tsconfig/react.json": '// コメントがあってもよい\n{"extends": "./base", "compilerOptions": {"jsx": "react-jsx"}}',
+    "packages/shared/src/util.ts": "export const util = 1;\n",
+    "apps/web/tsconfig.json": '{"extends": "@acme/tsconfig/react.json"}',
+    "apps/web/src/a.ts": 'import { util } from "@shared/util";\nexport const a = 1;\n',
+    "apps/own/tsconfig.json": '{"extends": "../../packages/tsconfig/base.json", "compilerOptions": {"baseUrl": ".", "paths": {"@own/*": ["./src/*"]}}}',
+    "apps/own/src/b.ts": 'import { c } from "@own/c";\nimport { util } from "@shared/util";\nexport const b = 1;\n',
+    "apps/own/src/c.ts": "export const c = 1;\n",
+    "apps/none/src/d.ts": 'import { util } from "@shared/util";\nexport const d = 1;\n',
+}
+
+
+class TsconfigExtendsTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.p = Project(self.tmp.name, files=EXTENDS_REPO, config=MONOREPO_CONFIG)
+        self.p.extract()
+        self.reverse = {r["file"]: r["imported_by"] for r in map(json.loads, (self.p.out / "lookup" / "reverse_imports.jsonl").read_text(encoding="utf-8").splitlines())}
+
+    def test_paths_are_inherited_through_a_workspace_package_and_a_relative_extends_chain(self):
+        # apps/web → @acme/tsconfig/react.json → ./base。paths は base の場所を基準に（baseUrl = base のディレクトリ）解決する
+        self.assertIn("apps/web/src/a.ts", self.reverse["packages/shared/src/util.ts"])
+
+    def test_a_child_paths_replaces_the_inherited_paths_as_typescript_does(self):
+        self.assertEqual(self.reverse["apps/own/src/c.ts"], ["apps/own/src/b.ts"])           # 自分の paths
+        self.assertNotIn("apps/own/src/b.ts", self.reverse["packages/shared/src/util.ts"])   # 継承した @shared/* は、paths の置き換えで消える
+
+    def test_a_file_without_any_tsconfig_has_no_aliases(self):
+        self.assertNotIn("apps/none/src/d.ts", self.reverse["packages/shared/src/util.ts"])
