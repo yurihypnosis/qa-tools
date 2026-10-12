@@ -1,0 +1,17 @@
+# .qa/code-map.toml（init が、質問の答えで埋める。<> の部分は置き換える）
+platform = ["<言語>"]
+
+[source]
+repo = "<. か、.qa/local.toml の [repos] に書いた名前>"
+root = "<ソースを読み始めるディレクトリ（repo からの相対）>"
+exclude = []                    # 追加で除く glob。.git node_modules __pycache__ .next dist build は常に除く
+
+[output]
+dir = "output/code-map"
+
+[rules]
+module_depth = <1 以上の整数>   # root から何段目のディレクトリまでを 1 モジュールにするか
+representatives = 5             # 仮：役割を書くときに読む代表ファイルの数
+
+[checks]
+run = ["public-files"]

@@ -151,9 +151,10 @@ output/
 | ファイル | やること | 最初に使うツール（Issue） |
 | --- | --- | --- |
 | `core/manifest.py` | manifest.json の読み書き、設定ファイルのハッシュ | test-priority（#14） |
-| `core/plan.py` | manifest のコミットから今までに変わったファイルの一覧 | code-map（#20） |
 | `core/carry.py` | 前回の項目を「キー ＋ 内容のハッシュ」で比べて引き継ぐ。裁定の記録 | test-priority（#15） |
-| `core/screen_id.py` | 画面 ID を作る・画面 ID から CSV の行を引く | screen-list（#24） |
+| `core/jsonl.py` | JSON Lines の読み書き（キーをソートして、同じ入力なら同じバイト列にする） | test-priority |
+| `core/config.py` | 設定ファイルの読み込みと、`source.repo` の名前から場所を引く（`.qa/local.toml`） | code-map |
+| `core/gitinfo.py` | ソースのコミット（未コミットの変更があれば `+dirty`） | code-map |
 
 ## C8. 実行環境
 

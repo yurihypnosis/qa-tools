@@ -5,6 +5,7 @@ QA エンジニア向けの AI テスト設計ツール集（Claude Code プラ�
 現在の中身は 2 つの skill である。
 
 - **test-case-generator**：PBI の資料から、サイジング → テスト分析 → テスト観点 → 15 列のテストケース → セルフレビューを、QA のレビューゲートで止まりながら段階的に作る
+- **code-map**：ソースコードから、ファイル一覧・公開シンボル・依存関係と、モジュールごとの役割の説明（AI が書くのは役割 1 段落だけ）を作る。`/qa-tools:code-map build`
 - **test-priority**：テストケース 1 件ずつに、回帰テストとしての重要度（R1〜R4）と、実行する規模（sanity / smoke / light / full）を決める。AI は意味の判断だけをして、重要度と規模は設定の規則からスクリプトが計算する
 
 ![フロー](docs/architecture/flow.png)
@@ -53,6 +54,19 @@ Claude Code の中で `/qa-tools:test-priority build` を実行する。設定�
 
 `output/test-priority/` に、取り込み用の `import.csv`、レビュー用の `review.csv`（理由と要レビューの印つき）、`manifest.json` ができる。出力例は `examples/dummy-product/sample-output/test-priority/`、仕様は [docs/design/tools/test-priority.md](docs/design/tools/test-priority.md) にある。
 
+## code-map を試す（サンプルアプリ）
+
+ソースコードを読むツールは、別のリポジトリ（サンプルアプリ）を入力にする。サンプルアプリを clone し、その絶対パスを `.qa/local.toml` に書く。
+
+```bash
+git clone https://github.com/yurihypnosis/my-learning-app /tmp/sample-app
+cp -R examples/sample-app /tmp/sample-app-project && cd /tmp/sample-app-project
+printf '[repos]\nsample-app = "/tmp/sample-app"\n' > .qa/local.toml
+claude --plugin-dir <このリポジトリの絶対パス>
+```
+
+Claude Code の中で `/qa-tools:code-map build` を実行する。`output/code-map/` に、`index.md`（モジュールの一覧）、`modules/*.md`、`lookup/` ができる。出力例は `examples/sample-app/sample-output/code-map/`、仕様は [docs/design/tools/code-map.md](docs/design/tools/code-map.md)。ソースを変えたあとは `/qa-tools:code-map update` で、内容が変わったモジュールの役割だけを書き直す。
+
 ## 自分のプロジェクトで使う
 
 1. 手元の clone からプラグインを入れる（一度だけ。どこにも公開されない）
@@ -79,7 +93,8 @@ skills/test-case-generator/
   scripts/               決定的な検査（標準ライブラリのみ、JSON レシート）
   evals/evals.json       挙動評価のケース（skill-creator の形式）
 skills/test-priority/    同じ構成。platforms/ にテストケースの形式ごとの読み方を置く
-core/                    2 つ以上のツールが使う共通処理（manifest.json の読み書き）
+skills/code-map/         同じ構成。platforms/ に言語ごとの読み方を置く。スクリプトは codemap.py 1 つ
+core/                    2 つ以上のツールが使う共通処理（manifest・引き継ぎ・設定・git・JSON Lines）
 examples/dummy-product/  テスト用ダミー製品
 docs/design/             設計の正本（用語集・原則・共通の約束ごと・ツール同士の受け渡し）
 docs/architecture/       アーキテクチャ図（archify）
