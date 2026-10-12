@@ -252,6 +252,8 @@ run = ["import-clean", "examples"]
 
 画面は `画面ID` の昇順、ケースは `case` の昇順。該当が無ければ「なし」と書く。
 
+「ケースが 1 件も無い」は、判定不可・対象外のケースも 1 件と数える（人が決める、または決めた結果なので、テストを足す場所とは分けて見る）。`screens.csv` が更新されたあとは、`export.py` をやり直すまで `gaps.md` は古い（update の順番は [data-flow.md](../data-flow.md)）。
+
 ### 8.4 そのほか
 
 - `manifest.json`（C5）：`generated_by` の `claude` は、今回 AI が 1 回でも出力（判断か理由文）を作ったケースの件数、`carried` は 1 回も作らずに judgments.jsonl から使い回したケースの件数、`script` は 0。`claude` ＋ `carried` ＝ `items`（review.csv の行数）。`inputs` は、`source.screens` があり、その隣に screen-list の manifest.json があるとき `{"screen-list": <その manifest の source>}`、無ければ `{}`

@@ -137,6 +137,14 @@ def read_screens(root, rel_path, aliases):
     return {"path": path, "ids": ids, "by_name": names, "aliases": dict(aliases)}
 
 
+def screen_list_inputs(config):
+    """manifest の inputs（C5）。screens.csv の隣に screen-list の manifest.json があれば、その source を記録する。"""
+    screens = config.get("screens")
+    if screens is None or not (screens["path"].parent / "manifest.json").is_file():
+        return {}
+    return {"screen-list": manifest.read(screens["path"].parent)["source"]}
+
+
 def resolve_screen(screens, name):
     """確認画面の名前から画面 ID を引く。別名の指定 → 画面名との完全一致 → 末尾の「画面」を外して完全一致。
     引けない、または同じ名前の画面が複数あるときは ""（推測しない）。"""
