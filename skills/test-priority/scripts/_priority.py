@@ -418,7 +418,7 @@ def gaps_markdown(config, rows):
     lines += ["", f"## 画面 ID を引けなかったケース（{len(gaps['unresolved'])} 件）", ""]
     if gaps["unresolved"]:
         lines += ["| ケース | 確認画面 |", "| --- | --- |",
-                  *[f"| {r['case']} | {r['rec']['screen'] or '(空)'} |" for r in gaps["unresolved"]]]
+                  *[f"| {r['case']} | {(r['rec']['screen'] or '(空)').replace('|', chr(92) + '|')} |" for r in gaps["unresolved"]]]
         lines += ["", "引けない名前は、`rules.screen_aliases` に画面 ID を書いて指定する。"]
     else:
         lines.append("なし")
