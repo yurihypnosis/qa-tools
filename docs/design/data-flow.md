@@ -13,8 +13,8 @@
 
 | ID | 読むツール | 作るツール | 公開ファイル | 読んで何をするか |
 | --- | --- | --- | --- | --- |
-| F1 | screen-list | code-map | `output/code-map/lookup/tree.md` | `ソース` 列のファイルがどのモジュールに属するかを引き、`モジュール` 列に書く |
-| F2 | screen-list | code-map | `output/code-map/manifest.json` | 読んだ tree.md が古くないかを確かめる |
+| F1 | screen-list | code-map | `output/code-map/lookup/tree.md` | ファイルのモジュールを引いて `モジュール` 列に書く。`ハッシュ` 列と今のファイルの内容を比べて、code-map が古くないかを、ファイルごとに確かめる（git に頼らない） |
+| F2 | screen-list | code-map | `output/code-map/manifest.json` | `source`（git のコミット、または内容のハッシュ）を、自分の manifest の `source` と `inputs` に写す |
 | F3 | test-priority | test-case-generator | `output/*/4-testcases.md` の 15 列の表 | 判定するテストケースの一覧として読む（プラットフォーム定義 `tcg-markdown`） |
 | F4 | test-priority | screen-list | `output/screen-list/screens.csv` の `画面ID` 列と `画面名` 列 | テストケースの「確認画面」列の画面名から画面 ID を引く |
 | F5 | screen-list | code-map | `output/code-map/lookup/reverse_imports.jsonl` | ダイアログのファイルから import を上へ辿り、開く画面（`親画面ID`）を求める |
