@@ -30,16 +30,51 @@ def _read_json(text):
 SKIP_DIRS = {"node_modules", "dist", "build", "venv", "__pycache__"}   # ドットで始まるフォルダは、load() で別に除く
 
 
-def _tsconfig(repo, folder):
-    """そのディレクトリの tsconfig.json の paths と baseUrl（そのディレクトリからの相対 → リポジトリからの相対）。読めなければ別名なし。"""
+def _extends_target(spec, folder, packages, repo):
+    """`extends` の先の tsconfig（リポジトリからの相対パス）。相対パスと、ワークスペースのパッケージ経由だけを辿る。"""
+    if spec.startswith("."):
+        path = posixpath.normpath(posixpath.join(folder, spec))
+    else:
+        parts = spec.split("/")
+        name = "/".join(parts[:2]) if spec.startswith("@") else parts[0]
+        package = packages.get(name)
+        if package is None:
+            return None
+        path = posixpath.normpath(posixpath.join(package["dir"], *parts[len(name.split("/")):] or ["tsconfig.json"]))
+    for candidate in (path, path + ".json", posixpath.join(path, "tsconfig.json")):
+        if (repo / candidate).is_file():
+            return candidate
+    return None
+
+
+def _options(repo, file, packages, depth=0):
+    """tsconfig の paths（どこを基準にするか付き）と baseUrl を、`extends` の連鎖を辿って集める。子が paths を持てば、親の paths は置き換わる（TypeScript と同じ）。"""
+    result = {"paths": None, "base_url": None}
     try:
-        options = _read_json((repo / folder / "tsconfig.json").read_text(encoding="utf-8")).get("compilerOptions", {})
+        data = _read_json((repo / file).read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError):
-        return {"paths": {}, "base_url": None}
-    join = lambda p: posixpath.normpath(posixpath.join(folder, p))
-    base = options.get("baseUrl")
-    return {"paths": {pattern: [join(t) for t in targets] for pattern, targets in options.get("paths", {}).items()},
-            "base_url": join(base) if base is not None else None}
+        return result
+    folder = posixpath.dirname(file) or "."
+    extends = data.get("extends", [])
+    for spec in [extends] if isinstance(extends, str) else extends:
+        target = _extends_target(spec, folder, packages, repo) if depth < 10 else None
+        if target:
+            parent = _options(repo, target, packages, depth + 1)
+            result = {k: parent[k] if parent[k] is not None else result[k] for k in result}
+    options = data.get("compilerOptions", {})
+    if "paths" in options:
+        result["paths"] = (options["paths"], folder)
+    if "baseUrl" in options:
+        result["base_url"] = posixpath.normpath(posixpath.join(folder, options["baseUrl"]))
+    return result
+
+
+def _tsconfig(repo, folder, packages):
+    options = _options(repo, posixpath.join(folder, "tsconfig.json"), packages)
+    paths, origin = options["paths"] or ({}, folder)
+    root = options["base_url"] if options["base_url"] is not None else origin   # paths は、baseUrl があればそれを、無ければ定義した tsconfig の場所を基準にする
+    return {"paths": {pattern: [posixpath.normpath(posixpath.join(root, t)) for t in targets] for pattern, targets in paths.items()},
+            "base_url": options["base_url"]}
 
 
 def _package(repo, folder):
@@ -61,18 +96,18 @@ def _package(repo, folder):
 
 
 def load(repo, options):
-    """ディレクトリごとの tsconfig（ファイルは、いちばん近い祖先のものを使う）と、ワークスペースのパッケージ（package.json の name）を集める。"""
-    configs, packages = {}, {}
+    """ディレクトリごとの tsconfig（ファイルは、いちばん近い祖先のものを使い、`extends` も辿る）と、ワークスペースのパッケージ（package.json の name）を集める。"""
+    tsconfigs, packages = [], {}
     for folder, dirs, names in os.walk(repo):
         dirs[:] = sorted(d for d in dirs if d not in SKIP_DIRS and not d.startswith("."))
         rel = posixpath.relpath(Path(folder).as_posix(), repo.as_posix())
         if "tsconfig.json" in names:
-            configs[rel] = _tsconfig(repo, rel)
+            tsconfigs.append(rel)
         if "package.json" in names:
             package = _package(repo, rel)
             if package:
                 packages[package["name"]] = package
-    return {"configs": configs, "packages": packages}
+    return {"configs": {rel: _tsconfig(repo, rel, packages) for rel in tsconfigs}, "packages": packages}
 
 
 def _try(base, files):

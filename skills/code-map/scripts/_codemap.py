@@ -25,6 +25,7 @@ import manifest  # noqa: E402
 ALWAYS_EXCLUDED = {".git", "node_modules", "__pycache__", ".next", "dist", "build"}
 SECTIONS = ["役割", "主なファイル", "公開シンボル", "依存先", "依存元"]
 HASH_LENGTH = 12  # tree.md のハッシュ（内容の sha256 の先頭）。他のツールが、code-map が古いかを調べるのに使う
+LARGE_MODULE = 300  # 仮。これより多くのファイルを持つモジュールは、役割が粗くなる（rules.large_module で変えられる）
 MAX_ROLE = 600  # 役割は 2〜4 文。長すぎる下書きは、要約になっていない
 
 
@@ -165,7 +166,8 @@ def extract(config, fresh=False):
     jsonl.write(out / "_raw" / "pending.jsonl", [{"module": m, "files": modules[m]["files"], "representatives": modules[m]["representatives"]} for m in plan["changed"]])
     (out / "_raw" / "plan.json").write_text(json.dumps({"pending": plan["changed"]}, ensure_ascii=False) + "\n", encoding="utf-8")
     return {"modules": sorted(modules), "pending": plan["changed"], "files": len(info), "symbols": sum(len(i["symbols"]) for i in info.values()),
-            "unresolved": sum(i["unresolved"] for i in info.values())}
+            "unresolved": sum(i["unresolved"] for i in info.values()),
+            "large": [{"module": m, "files": len(v["files"])} for m, v in modules.items() if len(v["files"]) > config["rules"].get("large_module", LARGE_MODULE)]}
 
 
 def survey(repo_path, root, platforms):

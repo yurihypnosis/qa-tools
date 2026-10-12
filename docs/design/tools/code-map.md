@@ -149,7 +149,7 @@ run = ["public-files"]
 
 最初の 2 つ（仮の方式。12）：
 
-- `typescript`：正規表現で `import … from` `export … from` `import(` `require(` を抜く。解決は、相対パス → **そのファイルにいちばん近い祖先の `tsconfig.json` の `paths`（`baseUrl`）**（ファイルごと。`extends` は辿らない）→ **ワークスペースのパッケージ**（`package.json` の `name`。`main` `module` `types` `exports` の `dist/` を `src/` に読み替えた先、無ければ `src/index`。`@scope/pkg/sub` は `src/sub`）の順。`logo.svg?url` のようなクエリは外し、資産（JSON・画像）は数えない。`.d.ts` も解決する
+- `typescript`：正規表現で `import … from` `export … from` `import(` `require(` を抜く。解決は、相対パス → **そのファイルにいちばん近い祖先の `tsconfig.json` の `paths`（`baseUrl`）**（ファイルごと。`extends` は、相対パスとワークスペースのパッケージ経由で辿り、子の `paths` は親の `paths` を置き換える。TypeScript と同じ）→ **ワークスペースのパッケージ**（`package.json` の `name`。`main` `module` `types` `exports` の `dist/` を `src/` に読み替えた先、無ければ `src/index`。`@scope/pkg/sub` は `src/sub`）の順。`logo.svg?url` のようなクエリは外し、資産（JSON・画像）は数えない。`.d.ts` も解決する
 - `python`：標準ライブラリの `ast`。絶対 import は、そのファイルが属するパッケージの 1 つ上（`__init__.py` を辿った先）、ファイルのディレクトリ、設定の `root` の順に探す。相対 import は、そのファイルから解決する
 
 ## 9. 検査 `check`（C6 の形）
@@ -183,3 +183,4 @@ run = ["public-files"]
 | `representatives` | 5 | 役割の質を、サンプルアプリで見る |
 | 代表ファイルの選び方 | 被参照数の多い順 | 足りなければ他の指標を足す |
 | TypeScript の import の解決 | 正規表現 ＋ tsconfig | `unresolved` の件数で測る |
+| 大きいモジュールのしきい値 `rules.large_module` | 300 ファイル | 超えたモジュールは `extract` の出力の `large` に出る（役割が粗くなるので、`module_depth` を深くする提案をする）。`plane` の `apps/web`（3,000 ファイル超）で必要を確認 |
