@@ -3,6 +3,7 @@
 エラーはすべて ValueError（メッセージは、何をすればよいかを含む）。CLI が終了コード 2 にする。
 """
 import csv
+import fnmatch
 import hashlib
 import importlib.util
 import json
@@ -21,6 +22,8 @@ COLUMNS = ["画面ID", "画面名", "種別", "ロール", "URL", "ソース", "
 KINDS = ("画面", "ダイアログ")
 EVERYONE = "全員"
 MAX_NAME = 80
+# 画面らしいファイルの、よくある置き方。ページの中で切り替わる画面（申告が要るもの）の見落としに気づくための目印（確定ではない。rules.screen_hints で置き換える）
+HINT_GLOBS = ("*/screens/*.tsx", "*/screens/*.jsx", "*-screen.tsx", "*Screen.tsx")
 HASH_LENGTH = 12  # code-map の tree.md のハッシュの長さ（内容の sha256 の先頭）
 FORMULA_START = "=+-@\t\r"  # CSV を表計算ソフトで開いたとき、式として評価される先頭の文字
 
@@ -96,6 +99,48 @@ def check_fresh(config, code_map, files):
         raise ValueError("code-map が古い。code-map update を実行する。対象: " + ", ".join(stale[:5]) + (f" ほか {len(stale) - 5} 件" if len(stale) > 5 else ""))
 
 
+def parents_of(start, importers, page_ids):
+    """start から import を上へ辿り、最初に当たった page の ID を返す（page より上は辿らない）。"""
+    found, seen, queue = set(), {start}, [start]
+    while queue:
+        for file in importers.get(queue.pop(), ()):
+            if file in seen:
+                continue
+            seen.add(file)
+            if file in page_ids:
+                found.add(page_ids[file])
+            else:
+                queue.append(file)
+    return sorted(found)
+
+
+def id_of(platform, candidate):
+    return f"{platform.PREFIX}/{candidate['key']}" if candidate["kind"] == "画面" else f"{platform.PREFIX}#{candidate['key']}"
+
+
+def find_candidates(platform, config, reverse_imports):
+    """ページ（プラットフォーム定義）、ダイアログ（ダイアログ部品を import しているファイル。親画面つき）、申告された画面。"""
+    pages = [{**p, "kind": "画面", "parents": []} for p in platform.pages(config["repo"], config["rules"])]
+    page_ids = {p["file"]: f"{platform.PREFIX}/{p['key']}" for p in pages}
+    prefixes = tuple(config["rules"].get("dialog_imports", []))
+    dialogs = {}
+    for target, importers in reverse_imports.items():
+        if prefixes and target.startswith(prefixes):
+            for file in importers:
+                stem = posixpath.splitext(posixpath.basename(file))[0]
+                if stem not in platform.NOT_DIALOG_STEMS and file not in page_ids and not file.startswith(prefixes):
+                    dialogs[file] = {"key": posixpath.splitext(file)[0], "kind": "ダイアログ", "file": file, "line": 1, "url": "",
+                                     "parents": parents_of(file, reverse_imports, page_ids)}
+    extras = [{"key": e["key"], "kind": "画面", "file": e["source"], "line": 1, "url": "", "parents": [e["parent"]]} for e in config["extra"]]
+    return pages + list(dialogs.values()) + extras
+
+
+def hints(files, rules):
+    """画面らしいファイル（`rules.screen_hints` の glob。無ければ既定）。files は code-map が読んだファイル。候補に入っているかは、呼び出し側が見る。"""
+    globs = rules.get("screen_hints", HINT_GLOBS)
+    return sorted(f for f in files if any(fnmatch.fnmatch(f, g) for g in globs))
+
+
 def vocabulary(config):
     return set(config["roles"]) | {EVERYONE}
 
@@ -103,13 +148,11 @@ def vocabulary(config):
 def candidates(config, fresh=False):
     code_map = read_code_map(config)
     platform = load_platform(config["platform"])
-    found = platform.candidates(config["repo"], config["rules"], code_map["reverse"])
-    for item in config["extra"]:
-        found.append({"key": item["key"], "kind": "画面", "file": item["source"], "line": 1, "url": "", "parents": [item["parent"]]})
+    found = find_candidates(platform, config, code_map["reverse"])
     check_fresh(config, code_map, {c["file"] for c in found})   # ファイルごとの内容のハッシュで、code-map が古いかを調べる
     rows, seen = [], {}
     for c in found:
-        cid = platform.id_of(c)
+        cid = id_of(platform, c)
         if cid in seen:
             raise ValueError(f"画面 ID {cid} が重複している（{seen[cid]} と {c['file']}）")
         seen[cid] = c["file"]
@@ -120,14 +163,14 @@ def candidates(config, fresh=False):
         rows.append({"id": cid, "kind": c["kind"], "url": c["url"], "file": c["file"], "line": c["line"], "source": f"{c['file']}:{c['line']}",
                      "module": code_map["tree"][c["file"]]["module"], "parents": sorted(c["parents"]), "fingerprint": digest})
     covered = {c["file"] for c in found}
-    hints = [h for h in platform.hints(list(code_map["tree"]), config["rules"]) if h not in covered]
+    hints_ = [h for h in hints(list(code_map["tree"]), config["rules"]) if h not in covered]
     unknown = [i for i in config["exclude"] if i not in seen]
     if unknown:
         raise ValueError("rules.exclude に、候補に無い画面 ID がある: " + ", ".join(unknown))
     rows = sorted((r for r in rows if r["id"] not in config["exclude"]), key=lambda r: r["id"])
     raw = config["out"] / "_raw"
     jsonl.write(raw / "candidates.jsonl", rows)
-    (raw / "hints.json").write_text(json.dumps({"hints": hints}, ensure_ascii=False) + "\n", encoding="utf-8")
+    (raw / "hints.json").write_text(json.dumps({"hints": hints_}, ensure_ascii=False) + "\n", encoding="utf-8")
     names_path = raw / "names.jsonl"
     if fresh:
         names_path.unlink(missing_ok=True)
@@ -137,7 +180,7 @@ def candidates(config, fresh=False):
     by_id = {r["id"]: r for r in rows}
     jsonl.write(raw / "pending.jsonl", [{k: by_id[i][k] for k in ("id", "kind", "url", "source", "parents")} for i in plan["changed"]])
     (raw / "plan.json").write_text(json.dumps({"pending": plan["changed"]}, ensure_ascii=False) + "\n", encoding="utf-8")
-    return {"candidates": len(rows), "dialogs": sum(1 for r in rows if r["kind"] == "ダイアログ"), "pending": plan["changed"], "hints": hints}
+    return {"candidates": len(rows), "dialogs": sum(1 for r in rows if r["kind"] == "ダイアログ"), "pending": plan["changed"], "hints": hints_}
 
 
 def read_draft(path, config):

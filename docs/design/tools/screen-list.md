@@ -38,15 +38,18 @@ UTF-8 BOM 付き。1 行 1 件。行は `画面ID` の昇順。
 | 名前 | 内容 |
 | --- | --- |
 | `PREFIX` | 画面 ID の接頭辞 |
-| `candidates(repo, rules, reverse_imports)` | 候補の一覧を返す。各要素：`{"key", "kind", "file", "line", "url", "parents"}`。`reverse_imports` は code-map の `reverse_imports.jsonl`（F5）を `{ファイル: [import しているファイル]}` にしたもの。プラットフォーム定義は、code-map の他のファイルを読まない |
+| `NOT_DIALOG_STEMS` | ダイアログの候補にしないファイルの名前（拡張子なし。例：レイアウト） |
+| `pages(repo, rules)` | ページの一覧を返す。各要素：`{"key", "file", "line", "url"}` |
 
-最初に作るのは `nextjs-app-router`（`PREFIX = "web"`）。
+**プラットフォーム定義が持つのは、ページの見つけ方だけ。** ダイアログ・親画面・ヒント・申告された画面は、フレームワークに依存しないので、本体（`scripts/_screens.py`）が code-map の `reverse_imports.jsonl`（F5）から求める。新しいフレームワークに対応するときは、`pages()` を書くだけで済む。
+
+作ってあるのは `nextjs-app-router`（`app/` の `page.tsx`）と `nextjs-pages-router`（`pages/` のファイル。`api/` と、`_` で始まるファイルは除く。`index` はそのディレクトリの URL）。どちらも `PREFIX = "web"`。
 
 ### 3.1 候補
 
 | 候補 | 見つけ方 | 種別 |
 | --- | --- | --- |
-| 画面 | `app_dir`（`rules.app_dir`。無ければ `src/app`、無ければ `app`）の下の `page.tsx` `page.jsx` `page.ts` `page.js` | `画面` |
+| 画面 | プラットフォーム定義の `pages()`。`nextjs-app-router` は `app_dir`（`rules.app_dir`。無ければ `src/app`、無ければ `app`）の下の `page.tsx` `page.jsx` `page.ts` `page.js`。`nextjs-pages-router` は `pages_dir`（`rules.pages_dir`。無ければ `src/pages`、無ければ `pages`）の下のファイル | `画面` |
 | ダイアログ | `reverse_imports` の、キー（ファイル）が `rules.dialog_imports`（ダイアログ部品のパスの前方一致のリスト）のどれかで始まるものの、import しているファイル。ただし `page` と `layout` のファイルは除く | `ダイアログ` |
 | 申告された画面 | `rules.extra`（3.4） | `画面` |
 

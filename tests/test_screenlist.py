@@ -138,6 +138,50 @@ class Setup:
             return list(csv.DictReader(handle))
 
 
+PAGES_APP = {
+    "tsconfig.json": '{"compilerOptions": {"paths": {"@/*": ["./src/*"]}}}',
+    "src/pages/_app.tsx": 'import { Dialog } from "@/components/dialog";\nexport default function App() { return null; }\n',
+    "src/pages/_document.tsx": "export default function Doc() { return null; }\n",
+    "src/pages/index.tsx": 'import { Confirm } from "@/components/confirm";\n\nexport default function Home() { return null; }\n',
+    "src/pages/about.tsx": "export default function About() { return null; }\n",
+    "src/pages/404.tsx": "export default function NotFound() { return null; }\n",
+    "src/pages/blog/index.tsx": "export default function Blog() { return null; }\n",
+    "src/pages/blog/[slug].tsx": "export default function Post() { return null; }\n",
+    "src/pages/docs/[...path].tsx": "export default function Docs() { return null; }\n",
+    "src/pages/api/hello.ts": "export default function handler() {}\n",
+    "src/pages/blog/post.test.tsx": "export const t = 1;\n",
+    "src/components/dialog.tsx": "export function Dialog() { return null; }\n",
+    "src/components/confirm.tsx": 'import { Dialog } from "@/components/dialog";\nexport function Confirm() { return null; }\n',
+}
+
+
+class PagesRouterTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        toml = SCREENS_TOML.replace('"nextjs-app-router"', '"nextjs-pages-router"').replace('dialog_imports = ["src/components/ui/dialog"]', 'dialog_imports = ["src/components/dialog"]')
+        self.s = Setup(self.tmp.name, screens=toml, files=PAGES_APP)
+
+    def test_pages_become_screens_and_special_files_do_not(self):
+        self.s.candidates()
+        rows = {r["id"]: r for r in map(json.loads, (self.s.out / "_raw" / "candidates.jsonl").read_text(encoding="utf-8").splitlines())}
+        self.assertEqual({i: r["url"] for i, r in rows.items() if r["kind"] == "画面"},
+                         {"web/index": "/", "web/about": "/about", "web/404": "/404", "web/blog": "/blog", "web/blog/[slug]": "/blog/[slug]", "web/docs/[...path]": "/docs/[...path]"})
+        self.assertFalse([i for i in rows if "hello" in i or "_app" in i or "_document" in i or "post.test" in i])   # api、_app、_document、テスト
+
+    def test_dialogs_and_parents_work_the_same_way(self):
+        self.s.candidates()
+        rows = {r["id"]: r for r in map(json.loads, (self.s.out / "_raw" / "candidates.jsonl").read_text(encoding="utf-8").splitlines())}
+        self.assertEqual(rows["web#src/components/confirm"]["parents"], ["web/index"])
+        self.assertNotIn("web#src/pages/_app", rows)    # _app は Dialog を import しているが、ダイアログではない
+
+    def test_a_missing_pages_dir_is_an_error_naming_the_setting(self):
+        (self.s.root / ".qa" / "screen-list.toml").write_text(
+            (self.s.root / ".qa" / "screen-list.toml").read_text(encoding="utf-8").replace("[rules]", '[rules]\npages_dir = "nope"'), encoding="utf-8")
+        code, _, err = self.s.run("candidates")
+        self.assertEqual((code, "pages_dir" in err), (2, True))
+
+
 class CandidatesTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

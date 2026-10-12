@@ -6,7 +6,7 @@ QA エンジニア向けの AI テスト設計ツール集（Claude Code プラ�
 
 - **test-case-generator**：PBI の資料から、サイジング → テスト分析 → テスト観点 → 15 列のテストケース → セルフレビューを、QA のレビューゲートで止まりながら段階的に作る
 - **code-map**：ソースコードから、ファイル一覧・公開シンボル・依存関係と、モジュールごとの役割の説明（AI が書くのは役割 1 段落だけ）を作る。`/qa-tools:code-map build`
-- **screen-list**：アプリの画面とダイアログを 1 行 1 件の CSV に洗い出す。画面があるかはスクリプトがソースから決め、AI が書くのは画面名とロールだけ。`/qa-tools:screen-list build`（code-map の出力が要る）
+- **screen-list**：アプリの画面とダイアログを 1 行 1 件の CSV に洗い出す。画面があるかはスクリプトがソースから決め、AI が書くのは画面名とロールだけ。Next.js の App Router・Pages Router に対応。`/qa-tools:screen-list build`（code-map の出力が要る）
 - **test-priority**：テストケース 1 件ずつに、回帰テストとしての重要度（R1〜R4）と、実行する規模（sanity / smoke / light / full）を決める。AI は意味の判断だけをして、重要度と規模は設定の規則からスクリプトが計算する
 
 ![フロー](docs/architecture/flow.png)
